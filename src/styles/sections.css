@@ -13,7 +13,10 @@ main { position: relative; z-index: 1; }
   place-items: center;
   background: var(--zinc-50);
 }
-.intro-ring { width: 120px; height: 120px; overflow: visible; transform: rotate(-90deg); will-change: transform; }
+.intro-mark { position: relative; width: 120px; height: 120px; display: grid; place-items: center; will-change: transform; }
+.intro-ring { position: absolute; inset: 0; width: 120px; height: 120px; overflow: visible; transform: rotate(-90deg); }
+/* le logo attend l'animation pour apparaître */
+.intro-logo { position: relative; width: 106px; height: 106px; opacity: 0; }
 /* invisible tant que l'animation n'a pas commencé : aucun flash au chargement */
 .intro-ring circle { stroke: var(--cordeau); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
 
