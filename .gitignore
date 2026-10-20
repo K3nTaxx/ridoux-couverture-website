@@ -1,0 +1,12 @@
+# dépendances et build
+node_modules/
+dist/
+
+# originaux du client (plus de 1 Go) : les images optimisées du site sont dans public/img
+Photos/
+
+# outils locaux
+.claude/
+*.log
+.DS_Store
+Thumbs.db

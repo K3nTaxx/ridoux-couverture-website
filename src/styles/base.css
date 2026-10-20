@@ -1,0 +1,168 @@
+/* ==========================================================
+   Ridoux Couverture — base : palette, typographie, grille
+   ========================================================== */
+
+:root {
+  /* palette — zinc, ardoise, pierre, cordeau */
+  --zinc-50: #ECEEEC;
+  --zinc-100: #E3E6E3;
+  --zinc-200: #D6DAD7;
+  --zinc-300: #C2C8C5;
+  --zinc-500: #8A9390;
+  --zinc-600: #5F6866;
+  --pierre: #D6D0C6;
+  --pierre-2: #CBC4B8;
+  --ardoise-700: #3A4448;
+  --ardoise-800: #262E31;
+  --ardoise-900: #1B2124;
+  --cordeau: #E8641C;
+  --cordeau-deep: #C4500F;
+  --cordeau-pale: #F6B48A;
+
+  --ink: var(--ardoise-900);
+  --ink-soft: var(--zinc-600);
+  --line: var(--zinc-300);
+
+  /* grille */
+  --m: clamp(48px, 4.6vw, 96px);
+  --g: 24px;
+  --col: calc((100vw - 2 * var(--m) - 11 * var(--g)) / 12);
+
+  /* typographie */
+  --f-sans: 'Archivo Variable', 'Archivo', 'Segoe UI', sans-serif;
+  --f-serif: 'Newsreader Variable', 'Newsreader', Georgia, serif;
+  --fs-h1: clamp(56px, 5.05vw, 80px);
+  --fs-h2: clamp(40px, 3.4vw, 56px);
+  --fs-h3: clamp(21px, 1.55vw, 26px);
+  --fs-body: clamp(16px, 1.2vw, 19px);
+  --fs-lead: clamp(18px, 1.3vw, 20px);
+  --fs-small: 14px;
+
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --ease-io: cubic-bezier(.65, 0, .35, 1);
+  --nav-h: 84px;
+}
+@media (min-width: 1680px) { :root { --g: 32px; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--zinc-50);
+  color: var(--ink);
+  font-family: var(--f-sans);
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  font-stretch: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  overflow-x: clip;
+}
+body.is-loading { overflow: hidden; }
+img, video, canvas, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+h1, h2, h3, p, figure, blockquote, ul, ol, dl, dd { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+::selection { background: var(--cordeau); color: var(--zinc-50); }
+
+/* titres : la voix de l'entreprise */
+.h1, .hero-title {
+  font-family: var(--f-sans);
+  font-size: var(--fs-h1);
+  font-weight: 640;
+  font-stretch: 112%;
+  line-height: 1.0;
+  letter-spacing: -0.014em;
+}
+h2 {
+  font-family: var(--f-sans);
+  font-size: var(--fs-h2);
+  font-weight: 620;
+  font-stretch: 110%;
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--f-sans);
+  font-size: var(--fs-h3);
+  font-weight: 620;
+  font-stretch: 106%;
+  line-height: 1.15;
+  letter-spacing: -0.004em;
+}
+/* textes : la voix d'Anthony */
+.serif, .lead {
+  font-family: var(--f-serif);
+  font-optical-sizing: auto;
+  font-weight: 400;
+}
+
+/* boutons */
+.btn {
+  --bg: var(--ardoise-900);
+  --fg: var(--zinc-50);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  height: 60px;
+  padding: 0 30px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-sans);
+  font-size: 15.5px;
+  font-weight: 600;
+  font-stretch: 108%;
+  letter-spacing: 0.01em;
+  border-radius: 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: background-color .5s var(--ease);
+}
+.btn > span { position: relative; z-index: 1; display: inline-block; }
+.btn::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: var(--cordeau);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .7s var(--ease);
+}
+.btn:hover::after, .btn:focus-visible::after { transform: scaleX(1); }
+.btn--small { height: 46px; padding: 0 22px; font-size: 14.5px; }
+.btn--ghost { --bg: transparent; --fg: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.btn--light { --bg: var(--zinc-50); --fg: var(--ardoise-900); }
+.btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--cordeau);
+  outline-offset: 4px;
+}
+
+/* ligne qui se dévoile */
+.line-mask { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
+.line-mask > span { display: block; will-change: transform; }
+
+
+/* deux voix dans les titres : la linéale de l'entreprise, l'italique d'Anthony */
+h1 em, h2 em, h3 em {
+  font-family: var(--f-serif);
+  font-optical-sizing: auto;
+  font-style: italic;
+  font-weight: 400;
+  font-stretch: 100%;
+  letter-spacing: -0.018em;
+  font-size: 1.1em;
+  line-height: 0.9;
+}
+/* souligné orange qui se trace à la lecture */
+.t-u {
+  /* position relative à la zone de contenu : seule la zone peinte de la boîte en ligne est visible */
+  background: linear-gradient(var(--cordeau), var(--cordeau)) 0 93% / 0% 0.07em no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
