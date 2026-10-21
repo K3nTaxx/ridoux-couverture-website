@@ -22,21 +22,24 @@ export async function initZone({ gsap }) {
   svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
 
   const gBase = el('g', {}, svg);
+  const gRegion = el('g', {}, svg);
   const gCore = el('g', {}, svg);
   const gRoutes = el('g', {}, svg);
   const gNames = el('g', {}, svg);
 
   const core = [];
+  const region = [];
   const targets = [];
   data.deps.forEach((d) => {
     const cls = ['zone-dep'];
     if (d.ra) cls.push('is-ra');
-    const p = el('path', { d: d.d, class: cls.join(' ') }, gBase);
+    el('path', { d: d.d, class: cls.join(' ') }, gBase);
     if (d.core) {
-      const f = el('path', { d: d.d, class: 'zone-dep is-core' }, gCore);
-      core.push(f);
+      core.push(el('path', { d: d.d, class: 'zone-dep is-core' }, gCore));
+    } else if (d.code === '69') {
+      // le Rhône en blanc, comme la Loire et la Haute-Loire ; le reste de la région reste gris
+      region.push(el('path', { d: d.d, class: 'zone-dep is-region' }, gRegion));
     }
-    void p;
     if (d.ra || d.code === '43') targets.push(d);
   });
 
@@ -57,6 +60,9 @@ export async function initZone({ gsap }) {
     if (d.core) {
       const t = el('text', { x: d.cx, y: d.cy + (d.code === '42' ? -34 : 30), 'text-anchor': 'middle', class: 'zone-name', 'font-size': 19 }, gNames);
       t.textContent = d.nom;
+    } else if (d.code === '69') {
+      const t = el('text', { x: d.cx + 14, y: d.cy - 12, 'text-anchor': 'middle', class: 'zone-name', 'font-size': 16 }, gNames);
+      t.textContent = d.nom;
     } else if (d.ra) {
       const t = el('text', { x: d.cx, y: d.cy - 10, 'text-anchor': 'middle', class: 'zone-name zone-name--minor', 'font-size': 14 }, gNames);
       t.textContent = d.nom;
@@ -68,6 +74,7 @@ export async function initZone({ gsap }) {
   baseName.textContent = 'Le Chambon-Feugerolles';
 
   gsap.set(core, { opacity: 0 });
+  gsap.set(region, { opacity: 0 });
   gsap.set(gNames.querySelectorAll('.zone-name'), { opacity: 0 });
   gsap.set([ring, dot], { scale: 0, transformOrigin: '50% 50%' });
   routes.forEach((r) => gsap.set(r.end, { scale: 0, transformOrigin: '50% 50%' }));
@@ -77,7 +84,8 @@ export async function initZone({ gsap }) {
   });
   tl.to([dot, ring], { scale: 1, duration: 0.3, ease: 'expo.out' }, 0)
     .to(baseName, { opacity: 1, duration: 0.25 }, 0.05)
-    .to(core, { opacity: 1, duration: 0.5, stagger: 0.15, ease: 'power2.out' }, 0.1);
+    .to(core, { opacity: 1, duration: 0.5, stagger: 0.15, ease: 'power2.out' }, 0.1)
+    .to(region, { opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power2.out' }, 0.3);
   routes.forEach((r, i) => {
     tl.to(r.line, { strokeDashoffset: 0, duration: 0.5, ease: 'power2.inOut' }, 0.3 + i * 0.12)
       .to(r.end, { scale: 1, duration: 0.15, ease: 'power2.out' }, 0.3 + i * 0.12 + 0.45);

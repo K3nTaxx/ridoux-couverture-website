@@ -71,4 +71,19 @@ Fichiers ajoutés par le client : le logo rond (`Photos/E2A22AA1-….png`, fond 
 | Prestations : retirer la photo, remonter le texte et « parlez-nous de votre projet » | Photo retirée, bloc resserré. |
 | Nettoyage : retirer les 4 dernières images de la mosaïque, finir sur l'image avec le pied sur la toiture, au même niveau que le bas du grand avant/après, au moment où le nettoyage se termine | Mosaïque de 4 éléments. La dernière image à droite (pied sur la toiture) finit au même niveau que le bas du grand avant/après, et le nettoyage se termine à ce moment-là. |
 | SOS : le numéro ne doit pas suivre le curseur | Effet magnétique retiré sur le numéro. |
+| Au chargement, le logo doit être dans l'anneau | Le logo apparaît dans l'anneau (une fois chargé), puis l'ensemble rejoint la navigation. |
 | Tout mettre sur GitHub (K3nTaxx/ridoux-couverture-website), prêt pour Netlify | Dépôt envoyé avec `netlify.toml` (build `npm run build`, dossier `dist`). Le dossier brut `Photos/` (originaux du client, plus d'1 Go) n'est pas envoyé : les images du site sont dans `public/img`. |
+
+### Retour n° 4 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Le haut de page est un peu neutre, « sans âme » : garder l'animation 3D mais la rendre exceptionnelle, plus vivante | Le toit devient vivant, sans rien perdre de la construction rang par rang : ombres de nuages qui glissent sur les tuiles, tuiles qui se soulèvent sous le curseur et retombent en vague, bouffée de craie orange à chaque cordeau claqué, maquette plus grande, caméra et soleil qui respirent doucement. |
+| Carte : la région Rhône-Alpes en blanc | Corrigé au message suivant (voir ci-dessous). |
+
+Précisions du client (même jour) :
+
+| Demande | Ce qui est fait |
+|---|---|
+| Pas toute la région en blanc : tout reste gris comme avant, seules la Loire et la Haute-Loire étaient en blanc, « tu mets aussi rose » | Compris comme « le Rhône » (dictée vocale) : la Loire, la Haute-Loire et le Rhône sont en blanc, le reste en gris comme avant. |
+| Aller plus loin qu'« un texte à gauche et la 3D à droite » : quelque chose d'exceptionnel, adapté à la cible | Le haut de page devient une scène entière : la maison du client sous sa toiture en construction, posée dans un paysage de collines (les monts du Pilat derrière Le Chambon-Feugerolles), avec arbres, brume au loin, ombres de nuages qui passent sur la maison et les collines. Le texte est dans le ciel. |

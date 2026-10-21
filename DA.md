@@ -171,3 +171,19 @@ Puis le toit du logo s'agrandit et glisse jusqu'au faîtage de la toiture 3D : l
 - **Coupe** : chaque étiquette pointe du côté où elle se trouve (pan arrière et pignon droit à droite, pan avant et pignon gauche à gauche), traits coudés sans croisement, points cerclés.
 - **SOS Toiture** : la maquette revient une dernière fois, vue depuis le pignon : elle devient une maison sous la pluie. Le mur du pignon porte le numéro et se fond vers le bas. C'est la fin du voyage de l'objet-fil : construite au haut de page, ouverte dans la coupe, abritante au SOS.
 - **Pied de page** : bord en rang de tuiles, logo, phrase, bouton, trois colonnes, mentions légales.
+
+## Révision après le retour n° 4 (21/10/2026) — « le toit vivant »
+
+Le haut de page gardait une maquette parfaite mais inerte. Trois idées tirées du chantier lui donnent de la vie, sans ajouter un seul élément d'interface :
+- **La météo** : des ombres de nuages glissent sur les tuiles, lentement, comme un vrai matin sur un toit. Le soleil suit toujours le curseur.
+- **La main du couvreur** : sous le curseur, les tuiles se soulèvent d'un cran puis retombent en vague amortie, comme quand on vérifie une tuile.
+- **La craie du cordeau** : pendant la construction, chaque cordeau claqué vibre et lâche une bouffée de craie orange. Le souligné de « Loire » et « Haute-Loire » claque au même moment.
+La maquette est plus grande dans le cadre, et la caméra respire très lentement pour que l'image ne soit jamais figée.
+
+### Précision du client : aller plus loin qu'« un texte à gauche, la 3D à droite »
+
+Le haut de page devient une scène entière, en plein écran, comme une maquette d'architecte posée sur une table :
+- la maison du client sort de terre (les murs montent), puis sa toiture se construit couche par couche, et la cheminée se pose à la fin ;
+- elle est posée dans un paysage de prairie qui monte en collines au loin, dessinées de courbes de niveau, comme une carte du Pilat ;
+- les ombres des nuages traversent la maison et les collines ; la brume du lointain a la couleur du ciel de la page ;
+- le texte est posé dans ce paysage, et le soleil, les tuiles et la caméra réagissent au curseur.

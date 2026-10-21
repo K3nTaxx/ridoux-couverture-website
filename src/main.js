@@ -75,6 +75,10 @@ async function boot() {
   } else {
     // première image de la 3D calculée derrière le voile, puis on attend que le navigateur soit au calme :
     // l'intro ne démarre qu'après trois images régulières d'affilée (1,5 s d'attente au plus)
+    // la maquette est rendue une fois entière puis vide : tous les programmes sont prêts avant la construction
+    maquette.st.build = 1;
+    maquette.render();
+    maquette.st.build = 0;
     maquette.render();
     await waitForSteadyFrames(3, 1500);
     // pendant l'intro, une image lente ralentit l'animation au lieu de la faire sauter

@@ -488,6 +488,7 @@ main { position: relative; z-index: 1; }
 .zone-svg { width: 100%; height: auto; max-height: min(66vh, 620px); overflow: visible; }
 .zone-dep { fill: rgba(27, 33, 36, .035); stroke: rgba(27, 33, 36, .22); stroke-width: .8; vector-effect: non-scaling-stroke; }
 .zone-dep.is-ra { fill: rgba(27, 33, 36, .085); stroke: rgba(27, 33, 36, .35); }
+.zone-dep.is-region { fill: var(--zinc-50); stroke: var(--ardoise-800); stroke-width: 1.4; }
 .zone-dep.is-core { fill: var(--zinc-50); stroke: var(--ardoise-800); stroke-width: 1.4; }
 .zone-route { fill: none; stroke: var(--cordeau); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
 .zone-base { fill: var(--cordeau); }
