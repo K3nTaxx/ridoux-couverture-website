@@ -1453,7 +1453,7 @@ export function createMaquette(canvas) {
       camera.position.lerp(pathP, st.pathMix);
       target.lerp(pathQ, st.pathMix);
     }
-    if (st.droneCam > 0.0001) {
+    if (st.droneCam > 0.0001 || st.droneAim > 0.0001) {
       // la caméra de poursuite : au-dessus et en arrière du drone, le regard sur lui. En descendant vers lui (rigK → 1),
       // elle passe de plus en plus à la verticale, si bien qu'au moment d'y entrer elle regarde déjà exactement comme lui :
       // le toit sous le drone, légèrement incliné vers l'arrière (l'avant de la maison en bas de l'image).

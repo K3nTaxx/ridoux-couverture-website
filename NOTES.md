@@ -206,3 +206,11 @@ Suite du retour n° 15 (même jour) :
 | On doit voir qu'on rentre dans le drone, et qu'on en sort (le drone apparaissait d'une image à l'autre en dézoomant) | Le drone reste visible et grossit au centre jusqu'à ce qu'on entre dedans (battement d'obturateur à ce moment). À la sortie, on remonte au-dessus de lui : on le voit sous nous, le toit en dessous, puis la vue s'incline et tourne jusqu'à la vue finale. |
 | Partenaires : directement en couleur, défilement automatique qui ne s'arrête pas au survol ; le logo grandit au survol ; retirer la barre de couleur en dessous | Logos en couleur, défilement continu (même au survol), le logo grandit au survol, barre orange retirée. |
 | Logo Plastiroll trop pixelisé : utiliser celui fourni | Remplacé par le logo fourni (net, fond transparent) ; l'ancien est rangé dans `sources/`. |
+
+### Retour n° 17 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Drone, l'arrivée : comme avant, le drone monte, on le voit et on rentre dedans directement (trop long sinon, et une saccade) | Plus de longue poursuite : pendant que le drone monte, la caméra le suit du regard (il reste toujours dans le cadre, le toit derrière lui), puis plonge directement dedans d'un seul mouvement, en basculant vers sa propre vue. L'entrée dure un tiers de moins ; le balayage commence plus tôt. |
+| La sortie : la garder, mais la maison un peu plus à gauche et un peu plus haute, plus au milieu | Sortie inchangée ; dans la vue finale, la maison est décalée vers le centre et remontée. |
+| Partenaires : ne pas défiler plus vite quand on fait défiler la page ; toujours le même mouvement | Vitesse constante, quoi qu'on fasse sur la page. |

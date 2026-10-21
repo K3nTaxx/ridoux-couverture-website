@@ -54,11 +54,11 @@ export function initDrone(ctx) {
   function state() {
     // la caméra entre dans le drone : un battement d'obturateur, puis le cadre se referme sur l'image
     // un battement à l'entrée (on passe dans le drone) et un plus léger à la sortie (on en ressort)
-    blink.style.setProperty('--blink', Math.max(0.88 * bump(p, 0.42, 0.45, 0.455, 0.5), 0.55 * bump(p, 0.765, 0.785, 0.79, 0.82)).toFixed(3));
-    hud.style.setProperty('--hud', (io(ramp(p, 0.45, 0.52)) * (1 - io(ramp(p, 0.76, 0.84)))).toFixed(3));
-    hud.style.setProperty('--snap', (1 - io(ramp(p, 0.45, 0.56))).toFixed(3));
-    hud.style.setProperty('--hello', bump(p, 0.45, 0.48, 0.53, 0.57).toFixed(3));
-    const scan = ramp(p, 0.47, 0.74);
+    blink.style.setProperty('--blink', Math.max(0.88 * bump(p, 0.37, 0.4, 0.405, 0.44), 0.55 * bump(p, 0.765, 0.785, 0.79, 0.82)).toFixed(3));
+    hud.style.setProperty('--hud', (io(ramp(p, 0.4, 0.47)) * (1 - io(ramp(p, 0.76, 0.84)))).toFixed(3));
+    hud.style.setProperty('--snap', (1 - io(ramp(p, 0.4, 0.51))).toFixed(3));
+    hud.style.setProperty('--hello', bump(p, 0.4, 0.43, 0.48, 0.52).toFixed(3));
+    const scan = ramp(p, 0.43, 0.72);
     hud.style.setProperty('--scan', scan.toFixed(4));
     pct.textContent = `${Math.round(scan * 100)} %`;
     section.classList.toggle('is-done', p > 0.93);
@@ -77,7 +77,7 @@ export function initDrone(ctx) {
       lead.style.transform = `translate3d(0, ${((1 - back2) * 18).toFixed(1)}px, 0)`;
     }
     // une seule légende, au milieu du balayage
-    const fin = ramp(p, 0.55, 0.58), fout = 1 - ramp(p, 0.7, 0.73);
+    const fin = ramp(p, 0.52, 0.55), fout = 1 - ramp(p, 0.68, 0.71);
     says.style.opacity = Math.min(fin, fout).toFixed(3);
     says.style.transform = `translate3d(0, ${((1 - fin) * 22 - (1 - fout) * 22).toFixed(1)}px, 0)`;
   }
@@ -124,7 +124,7 @@ export function initDrone(ctx) {
     time.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
     const heading = 200 + p * 46 + st.droneScan * 8;
     tape.style.transform = `translate3d(${(compassW() / 2 - heading * STEP - 6).toFixed(1)}px, 0, 0)`;
-    if (p < 0.45) {
+    if (p < 0.4) {
       for (const m of marks) if (m.on) { m.on = false; m.el.classList.remove('is-on'); }
       return;
     }
@@ -140,7 +140,7 @@ export function initDrone(ctx) {
       // le toit défile vers la droite sous le trait : un repère se verrouille quand le trait l'a franchi,
       // et reste verrouillé ; il ne s'éteint que si l'on remonte avant ce moment
       let on = m.on;
-      if (!on && st.droneScan > 0.001 && (x >= line - 2 || st.droneScan > 0.999)) { on = true; m.at = Math.min(p, 0.74); }
+      if (!on && st.droneScan > 0.001 && (x >= line - 2 || st.droneScan > 0.999)) { on = true; m.at = Math.min(p, 0.72); }
       if (on && p < m.at - 0.002) on = false;
       if (on !== m.on) { m.on = on; m.el.classList.toggle('is-on', on); }
     }
