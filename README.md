@@ -23,3 +23,9 @@ Relier ce dépôt à Netlify : la configuration est dans `netlify.toml`
 - `public/img`, `public/video`, `public/geo` : images, vidéo et carte utilisées par le site
 - `sources/` : logo détouré en PNG et images préparées mais non utilisées
 - `CONTENU.md`, `DA.md`, `NOTES.md` : contenu, direction artistique, retours du client
+
+## Crédits
+
+- Ciel du haut de page et éclairage de la 3D : « Evening Road 01 (Pure Sky) », Poly Haven (Sergej Majboroda, Jarod Guest), licence CC0.
+- Contours des départements : france-geojson (Grégoire David), données IGN Admin Express, Licence ouverte.
+- Photos et vidéos : Ridoux Couverture.

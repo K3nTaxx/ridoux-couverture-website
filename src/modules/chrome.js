@@ -4,9 +4,9 @@ export function initChrome({ gsap, ScrollTrigger, lenis }) {
   const nav = document.querySelector('.nav');
 
   /* ---------- navigation ---------- */
+  nav.classList.add('is-solid');
   let lastY = 0;
   lenis.on('scroll', ({ scroll, direction }) => {
-    nav.classList.toggle('is-solid', scroll > 40);
     if (scroll > 160 && direction === 1 && scroll - lastY > 4) nav.classList.add('is-hidden');
     else if (direction === -1) nav.classList.remove('is-hidden');
     lastY = scroll;

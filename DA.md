@@ -187,3 +187,11 @@ Le haut de page devient une scène entière, en plein écran, comme une maquette
 - elle est posée dans un paysage de prairie qui monte en collines au loin, dessinées de courbes de niveau, comme une carte du Pilat ;
 - les ombres des nuages traversent la maison et les collines ; la brume du lointain a la couleur du ciel de la page ;
 - le texte est posé dans ce paysage, et le soleil, les tuiles et la caméra réagissent au curseur.
+
+### Retour n° 5 — « De la maquette au chantier »
+
+Le haut de page raconte le métier en un seul geste de défilement :
+1. **Au-dessus des nuages** : la toiture se construit couche par couche, posée sur une mer de nuages. Le ciel est une vraie photographie (« Evening Road 01 », Poly Haven, CC0) qui éclaire aussi les tuiles.
+2. **La plongée** : au défilement, le texte s'efface et la caméra plonge jusqu'au faîtage.
+3. **Le raccord** : au même angle, la photo réelle d'un faîtage refait par le client se pose par rangs, de l'égout au faîtage, un cordeau orange marquant le rang en cours. La maquette devient le chantier.
+C'est la seconde séquence épinglée du site (la première est la coupe), courte : 150 % de hauteur d'écran.

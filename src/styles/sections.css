@@ -20,6 +20,24 @@ main { position: relative; z-index: 1; }
 /* invisible tant que l'animation n'a pas commencé : aucun flash au chargement */
 .intro-ring circle { stroke: var(--cordeau); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
 
+/* ---------- CIEL ---------- */
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.sky img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; transform-origin: 60% 70%; will-change: transform; }
+/* voile clair derrière le texte : le titre reste lisible sur les nuages */
+.sky::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(236, 238, 236, .62) 0%, rgba(236, 238, 236, .3) 38%, rgba(236, 238, 236, 0) 62%);
+}
+
 /* ---------- 3D ---------- */
 .maquette {
   position: fixed;
@@ -94,6 +112,60 @@ main { position: relative; z-index: 1; }
   display: flex;
   align-items: center;
   padding: var(--nav-h) var(--m) 0;
+  overflow: hidden;
+}
+.hero-copy { position: relative; z-index: 2; will-change: transform, opacity; }
+/* la photo réelle se pose par rangs, de l'égout au faîtage */
+.hero-real { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.hero-bands { position: absolute; inset: 0; }
+.hero-band {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(100% / 7 * var(--i));
+  height: calc(100% / 7 + 2px);
+  overflow: hidden;
+  clip-path: inset(100% 0 0 0);
+  will-change: clip-path;
+}
+.hero-band img {
+  position: absolute;
+  left: 0;
+  top: calc(-100vh / 7 * var(--i));
+  width: 100%;
+  height: 100vh;
+  min-height: 720px;
+  object-fit: cover;
+  object-position: 50% 40%;
+}
+.hero-cord {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  margin-top: -1.5px;
+  background: var(--cordeau);
+  box-shadow: 0 0 14px rgba(232, 100, 28, .55);
+  opacity: 0;
+  z-index: 3;
+  will-change: transform;
+}
+.hero-real-copy {
+  position: absolute;
+  left: var(--m);
+  bottom: clamp(48px, 9vh, 96px);
+  z-index: 2;
+  color: var(--zinc-50);
+  opacity: 0;
+  text-shadow: 0 1px 24px rgba(27, 33, 36, .35);
+}
+.hero-real-title { font-size: clamp(44px, 3.8vw, 64px); margin-bottom: 14px; }
+.hero-real-cap { font-family: var(--f-serif); font-size: var(--fs-lead); max-width: 26em; }
+.hero-real::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 45%;
+  background: linear-gradient(to top, rgba(27, 33, 36, .55), rgba(27, 33, 36, 0));
+  opacity: var(--shade, 0);
 }
 .hero-copy { width: calc(var(--col) * 6 + var(--g) * 5); }
 .hero-title {
@@ -130,7 +202,7 @@ main { position: relative; z-index: 1; }
   --fam-bg: #E1E4E0;
   position: relative;
   z-index: 2;
-  margin-top: 64px;
+  margin-top: 0;
   background: linear-gradient(to bottom, var(--fam-bg) calc(100% - 22vh), rgba(225, 228, 224, 0) 100%);
   padding: clamp(110px, 14vh, 160px) var(--m) clamp(130px, 16vh, 180px);
 }

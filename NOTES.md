@@ -87,3 +87,10 @@ Précisions du client (même jour) :
 |---|---|
 | Pas toute la région en blanc : tout reste gris comme avant, seules la Loire et la Haute-Loire étaient en blanc, « tu mets aussi rose » | Compris comme « le Rhône » (dictée vocale) : la Loire, la Haute-Loire et le Rhône sont en blanc, le reste en gris comme avant. |
 | Aller plus loin qu'« un texte à gauche et la 3D à droite » : quelque chose d'exceptionnel, adapté à la cible | Le haut de page devient une scène entière : la maison du client sous sa toiture en construction, posée dans un paysage de collines (les monts du Pilat derrière Le Chambon-Feugerolles), avec arbres, brume au loin, ombres de nuages qui passent sur la maison et les collines. Le texte est dans le ciel. |
+
+### Retour n° 5 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Trop basique : arbres pas beaux, maison en « vieux blocs » | Maison, arbres et collines retirés. |
+| Pas forcément une scène fixe où l'on bouge au curseur : un effet au défilement, avec des ressources gratuites d'internet si besoin | Haut de page au défilement, en trois temps : la toiture se construit au-dessus d'une mer de nuages (vrai ciel photographié, Poly Haven, CC0, qui éclaire aussi la 3D) ; au défilement, la caméra plonge jusqu'au faîtage ; la vraie photo d'un faîtage refait par le client (IMG_3350) se pose rang par rang, au même angle, avec le cordeau orange, et la légende « De la maquette au chantier ». |

@@ -4,6 +4,7 @@
    faîtage · chéneaux · planches de rive
    ========================================================== */
 import * as THREE from 'three';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 
 const DEG = Math.PI / 180;
 
@@ -91,7 +92,7 @@ const U = {
 
 /* grain de terre cuite (variations de teinte dans l'espace monde) et ombres de nuages :
    un bruit qui dérive avec le vent masque une partie de la lumière du soleil, jamais la lumière ambiante */
-function patchMaterial(material, grain = 0, contour = null) {
+function patchMaterial(material, grain = 0) {
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = U.uTime;
     shader.uniforms.uCloud = U.uCloud;
@@ -134,19 +135,6 @@ function patchMaterial(material, grain = 0, contour = null) {
         reflectedLight.directSpecular *= cShade;
         #include <aomap_fragment>`
       );
-    if (contour) {
-      // courbes de niveau, comme sur une carte topographique : un trait fin tous les 28 cm de dénivelé
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <color_fragment>',
-        `#include <color_fragment>
-        float lv = (vWPos.y - (${contour.ground.toFixed(3)})) / ${contour.step.toFixed(3)} + 0.5;
-        float lw = fwidth(lv);
-        float ld = min(fract(lv), 1.0 - fract(lv));
-        float line = 1.0 - smoothstep(0.0, lw * 1.3, ld);
-        float major = step(0.5, fract(floor(lv + 0.5) / 5.0 + 0.1)) < 0.5 ? 1.0 : 0.0;
-        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.30, 0.35, 0.36), line * mix(0.32, 0.55, major));`
-      );
-    }
     if (grain > 0) {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <color_fragment>',
@@ -157,7 +145,7 @@ function patchMaterial(material, grain = 0, contour = null) {
       );
     }
   };
-  material.customProgramCacheKey = () => `ridoux-${grain}-${contour ? 'c' : ''}`;
+  material.customProgramCacheKey = () => `ridoux-${grain}`;
   return material;
 }
 
@@ -496,126 +484,19 @@ export function createMaquette(canvas) {
     dustAlive = alive > 0 ? 1 : 0;
   }
 
-  /* ---------- le paysage du haut de page : la maison sous sa toiture, dans les collines ---------- */
-  const WALL_TOP = -0.2;
-  const HOUSE_H = 1.5;
-  const GROUND = WALL_TOP - HOUSE_H;
-  const land = new THREE.Group();
-  model.add(land);
-  const plaster = patchMaterial(new THREE.MeshStandardMaterial({ color: 0xebe5da, roughness: 0.92 }), 0.05);
-  const glass = new THREE.MeshStandardMaterial({ color: 0x2b3438, roughness: 0.35, metalness: 0.1 });
-  const shutter = patchMaterial(new THREE.MeshStandardMaterial({ color: 0x8d9b98, roughness: 0.8 }));
-
-  // murs : ils montent depuis le sol au début de la construction
-  const house = new THREE.Group();
-  land.add(house);
-  const wallsGeo = new THREE.BoxGeometry(L - 0.16, HOUSE_H, 2 * S - 0.24);
-  wallsGeo.translate(0, HOUSE_H / 2, 0);
-  const walls = shadowy(new THREE.Mesh(wallsGeo, plaster));
-  walls.position.y = GROUND;
-  house.add(walls);
-  const openings = new THREE.Group();
-  walls.add(openings);
-  const opening = (w, h, x, y, z, ry, withShutters) => {
-    const g = new THREE.Group();
-    g.position.set(x, y, z);
-    g.rotation.y = ry;
-    const pane = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.03), glass);
-    g.add(pane);
-    if (withShutters) {
-      for (const sx of [-1, 1]) {
-        const sh = shadowy(new THREE.Mesh(new THREE.BoxGeometry(w * 0.5, h * 1.02, 0.025), shutter));
-        sh.position.set(sx * w * 0.78, 0, 0.012);
-        g.add(sh);
-      }
-    }
-    openings.add(g);
-  };
-  const facade = S - 0.12 + 0.012;
-  opening(0.4, 0.56, -1.35, HOUSE_H * 0.58, facade, 0, false);
-  opening(0.4, 0.56, 0.55, HOUSE_H * 0.58, facade, 0, false);
-  opening(0.4, 0.56, 1.42, HOUSE_H * 0.58, facade, 0, false);
-  opening(0.46, 0.92, -0.45, 0.46, facade, 0, false);
-  opening(0.36, 0.48, (L - 0.16) / 2 + 0.012, HOUSE_H * 0.6, 0, Math.PI / 2, false);
-  opening(0.36, 0.48, (L - 0.16) / 2 + 0.012, HOUSE_H * 0.6, 1.1, Math.PI / 2, false);
-
-  // cheminée, posée à la fin, quand le faîtage est fait
-  const chimney = new THREE.Group();
-  const chBody = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.36, 1.05, 0.36), plaster));
-  chBody.position.y = 0.525;
-  const chCap = shadowy(new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.07, 0.44), glass));
-  chCap.position.y = 1.07;
-  chimney.add(chBody, chCap);
-  chimney.position.set(1.05, HR - 0.55 * Math.tan(PITCH) - 0.32, -0.55);
-  house.add(chimney);
-
-  // terrain : plat autour de la maison, il monte en collines au loin (les monts du Pilat)
-  const vnoise = (() => {
-    const r = rng(7);
-    const perm = Array.from({ length: 256 }, () => r());
-    const h = (i, j) => perm[(i * 57 + j * 131) & 255];
-    return (x, z) => {
-      const i = Math.floor(x), j = Math.floor(z);
-      const fx = x - i, fz = z - j;
-      const u = fx * fx * (3 - 2 * fx), v = fz * fz * (3 - 2 * fz);
-      const a = h(i, j), b = h(i + 1, j), c = h(i, j + 1), d = h(i + 1, j + 1);
-      return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
-    };
-  })();
-  const terrainH = (x, z) => {
-    const back = -z;
-    // une prairie presque plate, puis les collines loin derrière, noyées dans la brume
-    const rise = THREE.MathUtils.smoothstep(back, 34, 78);
-    const hills = vnoise(x * 0.028 + 3.1, z * 0.03) * 8.5 + vnoise(x * 0.08, z * 0.08 + 9) * 1.4;
-    const swell = (vnoise(x * 0.14 + 20, z * 0.14) - 0.5) * 0.45 * THREE.MathUtils.smoothstep(Math.hypot(x, z), 6, 14);
-    return rise * hills + swell;
-  };
-  const terrGeo = new THREE.PlaneGeometry(220, 120, 160, 80);
-  terrGeo.rotateX(-Math.PI / 2);
-  terrGeo.translate(0, 0, -48);
-  const tp = terrGeo.attributes.position;
-  const tcol = new Float32Array(tp.count * 3);
-  // prairie claire près de la maison (le texte reste lisible), collines plus sombres au loin
-  const meadow = new THREE.Color('#e2e4d8'), hill = new THREE.Color('#9aa7a7'), tmpC = new THREE.Color();
-  for (let i = 0; i < tp.count; i++) {
-    const x = tp.getX(i), z = tp.getZ(i);
-    const h = terrainH(x, z);
-    tp.setY(i, h);
-    tmpC.copy(meadow).lerp(hill, THREE.MathUtils.clamp(h / 3.5, 0, 1));
-    tcol[i * 3] = tmpC.r; tcol[i * 3 + 1] = tmpC.g; tcol[i * 3 + 2] = tmpC.b;
-  }
-  terrGeo.setAttribute('color', new THREE.BufferAttribute(tcol, 3));
-  terrGeo.computeVertexNormals();
-  const terrain = new THREE.Mesh(terrGeo, patchMaterial(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }), 0.03, { ground: GROUND - HR * 0.45, step: 0.28 }));
-  terrain.receiveShadow = true;
-  terrain.position.y = GROUND - 0.01;
-  land.add(terrain);
-
-  // arbres : quelques-uns près de la maison pour l'échelle, d'autres semés sur les collines
-  const treeR = rng(19);
-  // deux arbres derrière la maison pour l'échelle, quelques bosquets sur les collines
-  // trois arbres derrière la maison, pour l'échelle ; rien d'autre ne distrait du toit
-  const treeSpots = [[5.4, -4.2], [6.7, -6.1], [4.2, -7.4]];
-  const foliageGeo = new THREE.IcosahedronGeometry(0.62, 4);
-  foliageGeo.translate(0, 1.15, 0);
-  const trunkGeo = new THREE.CylinderGeometry(0.05, 0.075, 0.7, 8);
-  trunkGeo.translate(0, 0.35, 0);
-  const foliage = shadowy(new THREE.InstancedMesh(foliageGeo, patchMaterial(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95 }), 0.05), treeSpots.length));
-  const trunks = shadowy(new THREE.InstancedMesh(trunkGeo, patchMaterial(new THREE.MeshStandardMaterial({ color: 0xa08a72, roughness: 1 })), treeSpots.length));
-  const treeInfo = [];
-  treeSpots.forEach(([x, z], i) => {
-    const sc = 0.75 + treeR() * 0.7;
-    treeInfo.push({ x, z, y: GROUND + terrainH(x, z) - 0.02, sc: sc, sy: sc * (0.9 + treeR() * 0.5) });
-    foliage.setColorAt(i, tmpC.set('#a9b5a8').offsetHSL((treeR() - 0.5) * 0.03, (treeR() - 0.5) * 0.06, (treeR() - 0.5) * 0.06));
+  /* ---------- le ciel réel éclaire la toiture ----------
+     « Evening Road 01 (Pure Sky) », Poly Haven, CC0. Chargé après la première image :
+     tant qu'il n'est pas prêt, la lumière ambiante fait le travail. */
+  let envReady = false;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  new HDRLoader().load('/env/ciel-1k.hdr', (hdr) => {
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmrem.fromEquirectangular(hdr).texture;
+    scene.environmentRotation.y = -1.1;
+    hdr.dispose();
+    pmrem.dispose();
+    envReady = true;
   });
-  foliage.instanceColor.needsUpdate = true;
-  land.add(foliage, trunks);
-  land.rotation.y = 64 * DEG;
-  // la maison reste alignée avec la toiture : on compense la rotation du paysage
-  house.rotation.y = -64 * DEG;
-  // la brume a la couleur du ciel de la page : les collines s'y fondent
-  const fogColor = new THREE.Color().setRGB(236 / 255, 238 / 255, 236 / 255, THREE.SRGBColorSpace);
-  scene.fog = new THREE.Fog(fogColor, 1e4, 2e4);
 
   /* ---------- lumière ---------- */
   const hemi = new THREE.HemisphereLight(0xe2e9ec, 0x7d6e63, 1.05);
@@ -721,7 +602,6 @@ export function createMaquette(canvas) {
     exposure: 1.02,
     sos: 0,
     sosY: 0,
-    land: 1,
   };
   const pointer = { x: 0, y: 0, sx: 0, sy: 0, inside: false };
   let clock = 0;
@@ -822,23 +702,6 @@ export function createMaquette(canvas) {
   function applyBuild() {
     const b = st.build, e = st.explode;
     const eo = easeOut(e);
-    // les murs montent d'abord, les arbres poussent, la cheminée vient après le faîtage
-    const pw = easeOutExpo(seg(b, 0, 0.14));
-    walls.scale.set(1, Math.max(0.0001, pw), 1);
-    openings.visible = pw > 0.98;
-    const pchim = easeOut(seg(b, 0.9, 1));
-    chimney.scale.set(1, Math.max(0.0001, pchim), 1);
-    treeInfo.forEach((t, i) => {
-      const pt2 = easeOutExpo(seg(b, 0.04 + (i % 7) * 0.012, 0.2 + (i % 7) * 0.012));
-      dummy.position.set(t.x, t.y, t.z);
-      dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(Math.max(0.0001, t.sc * pt2), Math.max(0.0001, t.sy * pt2), Math.max(0.0001, t.sc * pt2));
-      dummy.updateMatrix();
-      foliage.setMatrixAt(i, dummy.matrix);
-      trunks.setMatrixAt(i, dummy.matrix);
-    });
-    foliage.instanceMatrix.needsUpdate = true;
-    trunks.instanceMatrix.needsUpdate = true;
     for (const s of slopes) {
       // chevrons
       const pr = seg(b, 0.0, 0.14);
@@ -1004,12 +867,6 @@ export function createMaquette(canvas) {
     root.rotation.y = (st.yaw + pointer.sx * 4 * (1 - st.sos)) * DEG;
     const sosOn = st.sos > 0.001;
     wall.visible = sosOn;
-    land.visible = st.land > 0.5;
-    // dans le paysage, moins de lumière diffuse : les ombres de la maison et des nuages ressortent
-    amb.intensity = land.visible ? 0.6 : 1.5;
-    hemi.intensity = land.visible ? 0.75 : 1.05;
-    scene.fog.near = land.visible ? 18 : 1e4;
-    scene.fog.far = land.visible ? 150 : 2e4;
     if (sosOn) {
       // le bas du pignon suit la section qui défile
       root.updateMatrixWorld();
@@ -1019,6 +876,10 @@ export function createMaquette(canvas) {
       camera.setViewOffset(W, H, -W * st.shiftX, -H * st.shiftY - (st.sosY - y0), W, H);
     }
     const w = st.sos;
+    // avec le ciel réel, la lumière ambiante s'efface au profit de l'environnement
+    amb.intensity = envReady ? 0.55 : 1.5;
+    hemi.intensity = envReady ? 0.55 : 1.05;
+    scene.environmentIntensity = envReady ? 0.85 : 0;
     M.tile.roughness = 0.66 - 0.34 * w;
     M.ridge.roughness = 0.66 - 0.34 * w;
     sun.color.copy(sun0).lerp(sunWet, w);
@@ -1099,7 +960,6 @@ export function createMaquette(canvas) {
   // la craie et le mur du SOS sont rendus visibles le temps de la compilation, pour ne rien compiler en pleine animation
   dust.visible = true;
   wall.visible = true;
-  land.visible = true;
   const ready = (renderer.compileAsync ? renderer.compileAsync(scene, camera) : Promise.resolve(renderer.compile(scene, camera)))
     .then(() => { dust.visible = false; wall.visible = false; });
 
