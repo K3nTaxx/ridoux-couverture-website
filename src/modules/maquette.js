@@ -610,11 +610,12 @@ export function createMaquette(canvas) {
   const mossK = [];
   for (const t of slopes[1].tileInfo) {
     const k = t.j * COLS + t.i;
-    // près du faîtage, au milieu du pan : la caméra du drone passe juste au-dessus
-    const d = Math.hypot((t.i - 5) / 3.0, (NC - 1 - t.j) / 1.7);
+    // à gauche à l'écran, au milieu du pan arrière : loin des autres défauts, et sous la caméra du drone
+    // (le pan arrière est retourné : ses colonnes de droite sont à gauche dans le monde)
+    const d = Math.hypot((t.i - 13) / 2.6, (t.j - 4.2) / 1.5);
     if (d < 1.4 && rand() < 1.2 - d * 0.55) mossK.push([k, Math.min(1, 1.35 - d * 0.6)]);
   }
-  const RIDGE_BAD = 8;
+  const RIDGE_BAD = 6; // au milieu du faîtage
   const mossCol = new THREE.Color('#4f6b22');
   const leafGeo = new THREE.BoxGeometry(0.045, 0.006, 0.028);
   const LEAVES = 16;
@@ -719,7 +720,8 @@ export function createMaquette(canvas) {
     // les hélices tournent dès que le drone est à l'écran
     const spin = (st.droneT > 0.005 ? 38 : 30) * dt;
     for (const pr of props) pr.rotation.y += spin * pr.userData.dir;
-    drone.visible = st.droneCam < 0.7;
+    // le drone ne réapparaît qu'une fois la caméra assez loin de lui (jamais en gros plan devant l'objectif)
+    drone.visible = st.droneCam < 0.2;
     drWorld.copy(drone.position);
     model.localToWorld(drWorld);
     U.uScan.value.set(drWorld.x, 0, st.scan, Math.sign(SCAN_X0 - SCAN_X1));
@@ -1108,6 +1110,8 @@ export function createMaquette(canvas) {
     droneScan: 0, // balayage d'un pignon à l'autre
     droneUp: 0,   // montée finale
     droneCam: 0,  // 0 : caméra en orbite ; 1 : vue du drone
+    droneFov: 0,  // objectif du drone (plus large), séparé de la position pour une sortie sans à-coup
+    fov: 22,      // objectif de la maquette (plus large dans les combles)
     scan: 0,      // intensité du trait de balayage
     defect: 0,    // les défauts repérés apparaissent
   };
@@ -1465,7 +1469,7 @@ export function createMaquette(canvas) {
     }
     camera.lookAt(target);
     // l'objectif du drone est plus large que celui de la maquette
-    camera.fov = 22 + 20 * st.droneCam;
+    camera.fov = st.fov + 20 * st.droneFov;
     camera.setViewOffset(W, H, -W * st.shiftX, -H * st.shiftY, W, H);
     // le trou suit la toiture
     entryWorld.copy(E_m);

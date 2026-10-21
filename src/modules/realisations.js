@@ -61,10 +61,9 @@ export function initRealisations({ gsap, ScrollTrigger }) {
     scrollTrigger: { trigger: '.rea-grid', start: 'top 70%', toggleActions: 'play none none reverse' },
   });
 
-  /* réfection en trois temps : le cordeau relie les étapes, chaque photo se découvre à son tour */
+  /* réfection en trois temps : les trois étapes sont là dès qu'on arrive, reliées par le cordeau */
   const steps = [...document.querySelectorAll('.rea-steps-row figure')];
   const cord = document.querySelector('.rea-steps-cord');
-  gsap.set(cord, { scaleX: 0, transformOrigin: 'left center' });
   const placeCord = () => {
     const img = steps[0].querySelector('img');
     const top = img.getBoundingClientRect().bottom - cord.parentElement.getBoundingClientRect().top + 16;
@@ -73,12 +72,4 @@ export function initRealisations({ gsap, ScrollTrigger }) {
   };
   placeCord();
   window.addEventListener('resize', placeCord);
-  const tl = gsap.timeline({
-    scrollTrigger: { trigger: '.rea-steps', start: 'top 72%', end: 'bottom 70%', scrub: 0.6 },
-  });
-  steps.forEach((f, i) => {
-    tl.fromTo(f.querySelector('img'), { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1, ease: 'power2.out' }, i * 0.55)
-      .fromTo(f.querySelector('figcaption'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, i * 0.55 + 0.45);
-  });
-  tl.to(cord, { scaleX: 1, duration: steps.length * 0.55 + 0.5, ease: 'none' }, 0);
 }

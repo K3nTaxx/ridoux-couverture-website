@@ -61,30 +61,36 @@ export function initDrone(ctx) {
   function state() {
     // la caméra entre dans le drone : un battement d'obturateur, puis le cadre se referme sur l'image
     blink.style.setProperty('--blink', (0.88 * bump(p, 0.4, 0.445, 0.45, 0.5)).toFixed(3));
-    hud.style.setProperty('--hud', (io(ramp(p, 0.45, 0.52)) * (1 - io(ramp(p, 0.86, 0.92)))).toFixed(3));
+    hud.style.setProperty('--hud', (io(ramp(p, 0.45, 0.52)) * (1 - io(ramp(p, 0.76, 0.84)))).toFixed(3));
     hud.style.setProperty('--snap', (1 - io(ramp(p, 0.45, 0.56))).toFixed(3));
     hud.style.setProperty('--hello', bump(p, 0.45, 0.48, 0.53, 0.57).toFixed(3));
-    const scan = ramp(p, 0.48, 0.84);
+    const scan = ramp(p, 0.46, 0.74);
     hud.style.setProperty('--scan', scan.toFixed(4));
     pct.textContent = `${Math.round(scan * 100)} %`;
-    section.classList.toggle('is-done', p > 0.94);
-    // le titre : dès qu'on défile, il s'installe au centre ; la caméra passe au travers ;
-    // il revient à sa place, sur le côté, quand on sort du drone
-    if (p < 0.86) {
-      const k = io(ramp(p, 0.02, 0.15)), pass = io(ramp(p, 0.28, 0.42));
-      title.style.transform = `translate3d(${(tdx * k).toFixed(1)}px, ${(tdy * k).toFixed(1)}px, 0) scale(${(1 + 0.1 * k + 0.9 * pass).toFixed(4)})`;
-      title.style.opacity = (1 - pass).toFixed(3);
+    section.classList.toggle('is-done', p > 0.93);
+    // le titre : dès qu'on défile, il s'installe au centre, puis s'efface en fondu, de bas en haut,
+    // pendant qu'il monte doucement ; il revient à sa place, sur le côté, quand on sort du drone
+    if (p < 0.76) {
+      const k = io(ramp(p, 0.02, 0.15)), leave = io(ramp(p, 0.19, 0.34));
+      title.style.transform = `translate3d(${(tdx * k).toFixed(1)}px, ${(tdy * k - 46 * leave).toFixed(1)}px, 0) scale(${(1 + 0.08 * k).toFixed(4)})`;
+      const a = -40 + 140 * leave;
+      const mask = leave > 0 ? `linear-gradient(to top, rgba(0, 0, 0, 0) ${a.toFixed(1)}%, #000 ${(a + 40).toFixed(1)}%)` : 'none';
+      title.style.webkitMaskImage = mask;
+      title.style.maskImage = mask;
+      title.style.opacity = '1';
       lead.style.opacity = (1 - ramp(p, 0.01, 0.07)).toFixed(3);
       lead.style.transform = `translate3d(0, ${(-14 * ramp(p, 0.01, 0.07)).toFixed(1)}px, 0)`;
     } else {
-      const back = io(ramp(p, 0.9, 0.97)), back2 = io(ramp(p, 0.92, 0.99));
+      const back = io(ramp(p, 0.88, 0.95)), back2 = io(ramp(p, 0.9, 0.97));
       title.style.transform = `translate3d(0, ${((1 - back) * 24).toFixed(1)}px, 0)`;
+      title.style.webkitMaskImage = 'none';
+      title.style.maskImage = 'none';
       title.style.opacity = back.toFixed(3);
       lead.style.opacity = back2.toFixed(3);
       lead.style.transform = `translate3d(0, ${((1 - back2) * 18).toFixed(1)}px, 0)`;
     }
     // une seule légende, au milieu du balayage
-    const fin = ramp(p, 0.58, 0.61), fout = 1 - ramp(p, 0.77, 0.8);
+    const fin = ramp(p, 0.55, 0.58), fout = 1 - ramp(p, 0.7, 0.73);
     says.style.opacity = Math.min(fin, fout).toFixed(3);
     says.style.transform = `translate3d(0, ${((1 - fin) * 22 - (1 - fout) * 22).toFixed(1)}px, 0)`;
   }
@@ -147,7 +153,7 @@ export function initDrone(ctx) {
       // le toit défile vers la droite sous le trait : un repère se verrouille quand le trait l'a franchi,
       // et reste verrouillé ; il ne s'éteint que si l'on remonte avant ce moment
       let on = m.on;
-      if (!on && st.droneScan > 0.001 && (x >= line - 2 || st.droneScan > 0.999)) { on = true; m.at = Math.min(p, 0.84); }
+      if (!on && st.droneScan > 0.001 && (x >= line - 2 || st.droneScan > 0.999)) { on = true; m.at = Math.min(p, 0.74); }
       if (on && p < m.at - 0.002) on = false;
       if (on !== m.on) { m.on = on; m.el.classList.toggle('is-on', on); }
     }

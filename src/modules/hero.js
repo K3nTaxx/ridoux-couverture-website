@@ -23,7 +23,8 @@ export function initHero(ctx) {
   /* ---------- directeur de caméra ----------
      tout le voyage se mesure en écrans défilés : le haut de page en dure HERO_VH, la coupe CPE_VH.
      Une seule courbe pour les deux : la caméra ne s'arrête jamais en passant de l'un à l'autre. */
-  const HERO_VH = 3, CPE_VH = 2;
+  // plus court qu'avant : on passe des liteaux directement dans la charpente
+  const HERO_VH = 2.3, CPE_VH = 1.8;
   ctx.journey = { HERO_VH, CPE_VH };
   // H0 : la toiture au milieu du soir ; HI : la lumière plonge dans le trou ouvert
   const H0 = { az: 60, el: 12, dist: 16.5, tx: 0, ty: 0.1, tz: 0, shiftX: 0, shiftY: 0.02, sunAz: 100, sunEl: 14, yaw: 0, exposure: 1.04 };
@@ -68,17 +69,21 @@ export function initHero(ctx) {
     };
   }
   // écrans défilés → point de la trajectoire (voir maquette.js) :
-  // tuiles, liteaux, écran, passage entre deux chevrons, combles, puis sortie par le pignon dans la coupe
-  const pathU = spline([[0, 0], [0.75, 1], [1.05, 2], [1.4, 3], [1.8, 4], [2.1, 5], [2.32, 6], [2.6, 7], [3.0, 8], [3.3, 9], [3.72, 10], [4.15, 11]]);
+  // tuiles, liteaux, puis l'écran se déchire et l'on plonge entre deux chevrons dans les combles,
+  // enfin la sortie par le pignon dans la coupe (C = début de la coupe)
+  const C = HERO_VH;
+  const pathU = spline([[0, 0], [0.7, 1], [0.95, 2], [1.2, 3], [1.36, 4], [1.48, 5], [1.62, 6], [1.9, 7], [C, 8], [C + 0.3, 9], [C + 0.72, 10], [C + 1.15, 11]]);
 
   ctx.updateCam = () => {
-    st.drone = 0; st.droneCam = 0; st.scan = 0; st.defect = 0; st.floor = 0;
+    st.drone = 0; st.droneCam = 0; st.droneFov = 0; st.scan = 0; st.defect = 0; st.floor = 0; st.fov = 22;
     if (cam.droneOn) {
       // vérification par drone : il décolle devant la maison, la caméra le rejoint et regarde sous lui,
       // il balaie le toit d'un pignon à l'autre, puis monte pour le montrer en entier
       const p = cam.droneP;
-      const e = io(ramp(p, 0.86, 1));
-      if (p < 0.86) mixState(D0, D1, io(ramp(p, 0.02, 0.3)));
+      // la sortie du drone s'étale sur un quart de la section, avec une courbe douce aux deux bouts
+      const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+      const e = smooth(ramp(p, 0.76, 1));
+      if (p < 0.76) mixState(D0, D1, io(ramp(p, 0.02, 0.3)));
       else {
         // en sortant du drone, la vue s'incline vers 45° et tourne pendant qu'elle s'éloigne ;
         // la maison repasse à droite pour laisser revenir le texte
@@ -92,39 +97,44 @@ export function initHero(ctx) {
       st.drone = 1;
       st.floor = 1;
       st.defect = 1;
-      st.droneT = io(ramp(p, 0.04, 0.36));
-      st.droneCam = io(ramp(p, 0.3, 0.47)) * (1 - io(ramp(p, 0.86, 0.98)));
-      st.droneScan = io(ramp(p, 0.48, 0.84));
-      st.droneUp = io(ramp(p, 0.86, 1));
-      st.scan = bump(p, 0.45, 0.5, 0.82, 0.87);
+      st.droneT = io(ramp(p, 0.04, 0.34));
+      const inPov = io(ramp(p, 0.3, 0.46));
+      st.droneCam = inPov * (1 - e);
+      st.droneFov = inPov * (1 - e);
+      st.droneScan = io(ramp(p, 0.46, 0.74));
+      st.droneUp = e;
+      // le laser s'éteint doucement pendant que la caméra commence à quitter le drone
+      st.scan = io(ramp(p, 0.43, 0.48)) * (1 - smooth(ramp(p, 0.72, 0.86)));
     } else if (cam.sosOn) {
       mixState(S0, S1, 1 - Math.pow(1 - clamp01(cam.sosP), 3));
       st.explode = 0;
       st.sos = 1;
       st.pathMix = 0; st.hole = 0; st.lath = 0; st.tear = 0; st.inside = 0; st.dark = 0; st.air = 0;
     } else {
-      const s = cam.cpeP > 0 ? HERO_VH + cam.cpeP * CPE_VH : cam.heroP * HERO_VH;
-      const k = io(ramp(s, 0.03, 0.7));     // de l'orbite à la trajectoire
-      const out = io(ramp(s, 3.25, 4.1));  // de la trajectoire à l'orbite de la coupe
-      if (s < 3.25) mixState(H0, HI, k);
-      else if (s < 4.1) mixState(HI, C1, out);
-      else mixState(C1, C2, ramp(s, 4.1, 5));
+      const s = cam.cpeP > 0 ? C + cam.cpeP * CPE_VH : cam.heroP * HERO_VH;
+      const k = io(ramp(s, 0.03, 0.6));          // de l'orbite à la trajectoire
+      const out = io(ramp(s, C + 0.25, C + 1.1)); // de la trajectoire à l'orbite de la coupe
+      if (s < C + 0.25) mixState(H0, HI, k);
+      else if (s < C + 1.1) mixState(HI, C1, out);
+      else mixState(C1, C2, ramp(s, C + 1.1, C + CPE_VH));
       // les liteaux en lumière rasante, puis le soleil se redresse pour plonger dans la déchirure
-      const rake = bump(s, 0.7, 1.0, 1.55, 1.95);
+      const rake = bump(s, 0.55, 0.8, 1.15, 1.45);
       st.sunAz = lerp(st.sunAz, 4, rake);
       st.sunEl = lerp(st.sunEl, 19, rake);
       st.pathMix = k * (1 - out);
       st.u = pathU(s);
       // on ouvre couche par couche, et la coupe referme dans l'ordre inverse
-      st.hole = io(ramp(s, 0.3, 0.8)) * (1 - io(ramp(s, 3.4, 3.95)));
-      st.lath = io(ramp(s, 1.15, 1.5)) * (1 - io(ramp(s, 3.28, 3.65)));
-      st.tear = io(ramp(s, 1.75, 2.1)) * (1 - io(ramp(s, 3.1, 3.38)));
-      st.inside = io(ramp(s, 2.05, 2.4)) * (1 - io(ramp(s, 3.1, 3.5)));
+      st.hole = io(ramp(s, 0.25, 0.65)) * (1 - io(ramp(s, C + 0.4, C + 0.95)));
+      st.lath = io(ramp(s, 0.95, 1.25)) * (1 - io(ramp(s, C + 0.28, C + 0.65)));
+      st.tear = io(ramp(s, 1.22, 1.45)) * (1 - io(ramp(s, C + 0.1, C + 0.38)));
+      st.inside = io(ramp(s, 1.4, 1.65)) * (1 - io(ramp(s, C + 0.1, C + 0.5)));
       st.dark = s >= HERO_VH ? 1 : st.inside;
-      st.explode = io(ramp(s, 3.9, 4.55));
-      st.glowLath = 0.32 * bump(s, 0.75, 0.95, 1.1, 1.35);
-      st.glowEcran = 0.45 * bump(s, 1.45, 1.6, 1.72, 1.95);
-      st.air = 1 - ramp(s, 0.12, 0.55);
+      st.explode = io(ramp(s, C + 0.9, C + 1.55));
+      st.glowLath = 0.32 * bump(s, 0.62, 0.8, 0.92, 1.12);
+      st.glowEcran = 0;
+      st.air = 1 - ramp(s, 0.1, 0.45);
+      // dans les combles, un objectif plus large : on voit la charpente, on n'a plus l'impression d'être collé dessus
+      st.fov = 22 + 16 * st.inside;
       st.sos = 0;
     }
     st.dist += intro.dist; st.el += intro.el; st.az += intro.az;
@@ -167,7 +177,7 @@ export function initHero(ctx) {
   const layersBox = document.querySelector('.hero-layers');
   const layers = [...layersBox.querySelectorAll('li')];
   // fenêtres d'apparition de chaque couche traversée, en écrans défilés
-  const windows = [[0.3, 0.85], [0.85, 1.5], [1.5, 2.05], [2.25, 3.0]];
+  const windows = [[0.25, 0.72], [0.72, 1.25], [1.6, 2.3]];
   const FADE = 0.12;
   function heroScroll(p) {
     cam.heroP = p;

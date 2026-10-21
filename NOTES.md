@@ -176,3 +176,14 @@ Précision du client (même jour) : la légende « Dépose » reste telle quelle
 | Remplacer la photo « Dépose » par la toiture découverte | Fait (cadre 3:4) ; la précédente est rangée dans `sources/`. |
 | Remplacer le camion d'« Une histoire de famille et de passion » (image de gauche) | Fait, recadré sur le camion-grue et ses deux logos ; l'ancien est rangé dans `sources/`. |
 | SOS : la pluie démarre trop sur l'image ; elle doit démarrer sous les éléments du dessus | La pluie démarre maintenant juste sous le dernier élément de la section précédente, jamais sur ses images. |
+
+### Retour n° 15 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Drone : les mousses sont bien au milieu mais trop près ; plus loin dans la toiture et côté gauche ; mousse, faîtage et tuile sont tous au même endroit | Mousses déplacées au milieu du pan arrière, côté gauche ; faîtière soulevée au centre du faîtage ; la tuile déplacée reste à droite sur le pan avant, le chéneau à gauche devant : les quatre défauts sont répartis sur le toit. |
+| Le titre « Vérification de votre toiture » vient au milieu puis disparaît : il doit partir avec un fondu, comme la phrase du dessous ; retravailler le titre qui part | Le titre glisse au centre puis s'efface en fondu, de bas en haut, en montant doucement (plus de grossissement brusque). |
+| À la fin, un coup de défilement on est sur le laser, le suivant on n'y est plus : sortie de la caméra trop saccadée | La sortie du drone s'étale sur un quart de la section avec une courbe douce aux deux bouts ; le laser et le cadre de visée s'éteignent progressivement ; le drone ne réapparaît qu'une fois la caméra loin de lui (plus de drone en gros plan). |
+| « Une réfection, étape par étape » : ne plus s'afficher au défilement, s'afficher dès qu'on arrive | Animation d'ouverture retirée : les trois étapes et le cordeau sont affichés tels quels. |
+| Trop long entre le haut de page et les prestations : passer des liteaux directement dans la charpente, oublier l'écran sous-toiture ; dans la charpente, on a l'impression d'être très zoomé | L'étape « écran sous-toiture » est retirée (il se déchire au passage, sans arrêt ni légende) : tuiles → liteaux → charpente. Le haut de page passe de 3 à 2,3 écrans de défilement, la coupe de 2 à 1,8 : 0,9 écran de moins avant les prestations. Dans les combles, l'objectif est plus large : on voit la charpente au lieu d'être collé dessus. |
+| Partenaires (Thomas Sograma, BigMat Allemand matériaux de construction, Plastiroll à Unieux, Dalep) : chercher les logos, les détourer, les mettre sur le site | En cours : partenaires identifiés ; téléchargement des logos soumis à l'accord du client (voir compte rendu). |
