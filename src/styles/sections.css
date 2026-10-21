@@ -14,8 +14,9 @@ main { position: relative; z-index: 1; }
   place-items: center;
   align-content: center;
   gap: 26px;
-  background: #1b2326;
 }
+/* l'aplat sombre est un calque à part : à l'ouverture, on n'anime que son opacité */
+.intro-veil { position: absolute; inset: 0; background: #1b2326; will-change: opacity; }
 .intro-mark { position: relative; width: 120px; height: 120px; display: grid; place-items: center; will-change: transform; }
 .intro-ring {
   position: absolute;
@@ -35,6 +36,7 @@ main { position: relative; z-index: 1; }
   animation: intro-in .7s cubic-bezier(.16, 1, .3, 1) both;
 }
 .intro-name {
+  position: relative;
   font-size: 12.5px;
   font-weight: 700;
   font-stretch: 122%;

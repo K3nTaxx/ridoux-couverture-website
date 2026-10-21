@@ -121,3 +121,9 @@ Précisions du client (même jour) :
 | Un bien meilleur temps de chargement, avec une animation du logo pendant l'attente, le plus rapide possible | Le logo, l'anneau orange qui tourne et le nom de l'entreprise s'affichent dès la première image (sans attendre le JavaScript). Ouverture à la première visite : 1,3 s au lieu de 2,8 s (0,5 s ensuite). Gains : une recompilation complète des shaders au premier rendu supprimée (type d'ombre retiré de three.js), shaders des ombres préparés en parallèle, polices, 3D et carte chargées en même temps, éclairage HDR réduit de 1,3 Mo à 130 Ko, photo de ciel retirée. |
 | Les tuiles : super au zoom, mais on voit qu'elles s'arrêtent de bouger (et à nouveau au dézoom après la charpente) | Tout ce qui est en l'air (tuiles, liteaux) tangue et dérive doucement en permanence, même quand on ne défile plus, à l'aller comme au retour. |
 | La partie liteaux : bien mieux, on voit vraiment | Gardée. |
+
+### Retour n° 9 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Une animation à la fin du chargement : le logo vient en haut à gauche, hyper fluide, avec de beaux mouvements | Le nom s'efface, l'anneau se referme pendant que le logo prend une petite inspiration, puis il s'envole en courbe (il monte d'abord, puis glisse vers la gauche et se pose à l'horizontale) jusqu'au logo de la navigation, au pixel près. La courbe de vitesse est lisse de bout en bout (aucune cassure d'accélération), avec une arrivée longue et douce. L'anneau s'enroule autour du logo et disparaît juste avant qu'il se pose ; le voile s'efface pendant le vol et le haut de page se lève derrière ; le nom de l'entreprise et les liens se déposent ensuite dans la navigation. Durée : 1,4 s une fois la 3D prête. |

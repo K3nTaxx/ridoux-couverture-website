@@ -222,4 +222,4 @@ Les couches traversées s'affichent au passage, en grand, en bas à gauche.
 
 Ce qui est en l'air (tuiles, liteaux) ne se fige jamais : même sans défilement, chaque pièce tangue et dérive doucement.
 
-**Chargement.** Le logo, l'anneau orange qui tourne et le nom de l'entreprise s'affichent dès la première image, en CSS (le logo est inclus dans la page). Dès que la 3D est prête, l'anneau se referme et rejoint le logo de la navigation pendant que le voile s'ouvre sur le soir.
+**Chargement.** Le logo, l'anneau orange qui tourne et le nom de l'entreprise s'affichent dès la première image, en CSS (le logo est inclus dans la page). Dès que la 3D est prête (retour n° 9) : le nom s'efface, l'anneau se referme, le logo inspire puis s'envole en courbe vers la navigation (montée d'abord, glissement vers la gauche ensuite, arrivée à l'horizontale), sur une courbe de vitesse sans cassure ; l'anneau s'enroule et disparaît, le voile s'efface pendant le vol, puis le nom et les liens se déposent.
