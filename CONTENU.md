@@ -175,4 +175,4 @@ Liste donnée par le client : « Thomas Sograma, BigMat Allemand matériaux de c
 - **Thomas Sograma Matériaux** (négoce, réseau France Matériaux, magasin au Chambon-Feugerolles) — logo SVG du site officiel : https://www.thomas-sograma.com/
 - **Dalep** (produits de traitement et de démoussage des toitures) — PNG du site officiel : https://www.dalep.net/
 - **Établissement Georges Allemand**, matériaux de construction, 100 rue de la Tour, Saint-Étienne (« BigMat Allemand » : le client confirme qu'il s'agit du magasin) — logo du site officiel, fond blanc retiré : https://allemand-materiaux.fr/
-- **Plastiroll**, Unieux (systèmes de traitement des toitures et façades) — pas de site officiel trouvé ; logo pris sur sa fiche Batiproduits (https://www.batiproduits.com/fiche/fabricant/plastiroll-69218/), très petit (71 × 38 px) : **à remplacer par un fichier fourni par Plastiroll** si possible.
+- **Plastiroll**, Unieux (systèmes de traitement des toitures et façades, « Solutions Bâtiment & Bois ») — logo fourni par le client (retour n° 16) ✅

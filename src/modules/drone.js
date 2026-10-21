@@ -53,11 +53,12 @@ export function initDrone(ctx) {
   /* l'état de l'écran, selon l'avancement */
   function state() {
     // la caméra entre dans le drone : un battement d'obturateur, puis le cadre se referme sur l'image
-    blink.style.setProperty('--blink', (0.88 * bump(p, 0.4, 0.445, 0.45, 0.5)).toFixed(3));
+    // un battement à l'entrée (on passe dans le drone) et un plus léger à la sortie (on en ressort)
+    blink.style.setProperty('--blink', Math.max(0.88 * bump(p, 0.42, 0.45, 0.455, 0.5), 0.55 * bump(p, 0.765, 0.785, 0.79, 0.82)).toFixed(3));
     hud.style.setProperty('--hud', (io(ramp(p, 0.45, 0.52)) * (1 - io(ramp(p, 0.76, 0.84)))).toFixed(3));
     hud.style.setProperty('--snap', (1 - io(ramp(p, 0.45, 0.56))).toFixed(3));
     hud.style.setProperty('--hello', bump(p, 0.45, 0.48, 0.53, 0.57).toFixed(3));
-    const scan = ramp(p, 0.46, 0.74);
+    const scan = ramp(p, 0.47, 0.74);
     hud.style.setProperty('--scan', scan.toFixed(4));
     pct.textContent = `${Math.round(scan * 100)} %`;
     section.classList.toggle('is-done', p > 0.93);

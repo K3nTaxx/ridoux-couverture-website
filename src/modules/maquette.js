@@ -704,7 +704,7 @@ export function createMaquette(canvas) {
   const SCAN_Y = 5.2, SCAN_X0 = 1.7, SCAN_X1 = -1.7;
   const droneEnd = new THREE.Vector3(-1.1, 3.9, 0.7);
   const drP = new THREE.Vector3(), drLast = new THREE.Vector3(), drVel = new THREE.Vector3(), drStep = new THREE.Vector3(), drWorld = new THREE.Vector3();
-  const povP = new THREE.Vector3(), povQ = new THREE.Vector3();
+  const povP = new THREE.Vector3(), povQ = new THREE.Vector3(), lookA = new THREE.Vector3();
   function stepDrone(dt) {
     if (st.drone < 0.001) { drone.visible = false; U.uScan.value.z = 0; return; }
     flight.getPoint(clamp01(st.droneT), drP);
@@ -720,8 +720,6 @@ export function createMaquette(canvas) {
     // les hélices tournent dès que le drone est à l'écran
     const spin = (st.droneT > 0.005 ? 38 : 30) * dt;
     for (const pr of props) pr.rotation.y += spin * pr.userData.dir;
-    // le drone ne réapparaît qu'une fois la caméra assez loin de lui (jamais en gros plan devant l'objectif)
-    drone.visible = st.droneCam < 0.2;
     drWorld.copy(drone.position);
     model.localToWorld(drWorld);
     U.uScan.value.set(drWorld.x, 0, st.scan, Math.sign(SCAN_X0 - SCAN_X1));
@@ -1109,7 +1107,9 @@ export function createMaquette(canvas) {
     droneT: 0,    // décollage (0 → 1)
     droneScan: 0, // balayage d'un pignon à l'autre
     droneUp: 0,   // montée finale
-    droneCam: 0,  // 0 : caméra en orbite ; 1 : vue du drone
+    droneCam: 0,  // 0 : caméra en orbite ; 1 : caméra attachée au drone (poursuite puis vue du drone)
+    rigK: 0,      // 0 : poursuite, au-dessus et en arrière du drone ; 1 : dans le drone
+    droneAim: 0,  // le regard vers le drone (peut précéder la caméra)
     droneFov: 0,  // objectif du drone (plus large), séparé de la position pour une sortie sans à-coup
     fov: 22,      // objectif de la maquette (plus large dans les combles)
     scan: 0,      // intensité du trait de balayage
@@ -1454,20 +1454,25 @@ export function createMaquette(canvas) {
       target.lerp(pathQ, st.pathMix);
     }
     if (st.droneCam > 0.0001) {
-      // la caméra rejoint le drone et regarde le toit sous lui, presque à la verticale ;
-      // elle suit sa trajectoire, pas son balancement : l'image reste stable
-      povP.copy(drP);
-      povP.y -= 0.06;
-      povQ.copy(drP);
-      povQ.y -= 3;
-      // légèrement inclinée vers l'arrière : l'avant de la maison reste en bas de l'image, comme à l'approche
-      povQ.z -= 0.12;
+      // la caméra de poursuite : au-dessus et en arrière du drone, le regard sur lui. En descendant vers lui (rigK → 1),
+      // elle passe de plus en plus à la verticale, si bien qu'au moment d'y entrer elle regarde déjà exactement comme lui :
+      // le toit sous le drone, légèrement incliné vers l'arrière (l'avant de la maison en bas de l'image).
+      // À la sortie, le même chemin à l'envers : on remonte au-dessus du drone, qu'on voit sous nous.
+      // Elle suit la trajectoire du drone, pas son balancement : l'image reste stable.
+      const k = st.rigK, r = 1 - k;
+      povP.set(drP.x, drP.y - 0.06 + 2.2 * r, drP.z + 1.2 * r * r);
+      povQ.set(drP.x, drP.y - 3, drP.z - 0.12);
+      lookA.copy(drP);
+      povQ.lerp(lookA, 1 - THREE.MathUtils.smoothstep(k, 0.8, 1));
       model.localToWorld(povP);
       model.localToWorld(povQ);
+      // le regard rejoint le drone avant la caméra : il reste dans le cadre pendant tout le trajet
       camera.position.lerp(povP, st.droneCam);
-      target.lerp(povQ, st.droneCam);
+      target.lerp(povQ, Math.max(st.droneCam, st.droneAim));
     }
     camera.lookAt(target);
+    // le drone disparaît seulement quand la caméra entre dedans (le battement d'obturateur couvre ce moment)
+    drone.visible = st.drone > 0.001 && camera.position.distanceTo(drWorld) > 0.62;
     // l'objectif du drone est plus large que celui de la maquette
     camera.fov = st.fov + 20 * st.droneFov;
     camera.setViewOffset(W, H, -W * st.shiftX, -H * st.shiftY, W, H);

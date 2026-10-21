@@ -33,7 +33,7 @@ export function initHero(ctx) {
   const C2 = { ...C1, az: 57, yaw: -24 };
   // drone : la maison de trois quarts, d'abord à droite du titre, puis au centre une fois le titre effacé
   const D0 = { az: 34, el: 13, dist: 18, tx: 0.2, ty: 0.45, tz: 0, shiftX: 0.2, shiftY: 0.03, sunAz: 115, sunEl: 34, yaw: 0, exposure: 1.06 };
-  const D1 = { ...D0, az: 46, el: 20, dist: 13, shiftX: 0 };
+  const D1 = { ...D0, az: 46, el: 20, dist: 13, shiftX: 0, shiftY: -0.07 };
   // SOS : la maquette vue depuis le pignon, comme une maison sous la pluie
   const S0 = { az: 90, el: 34, dist: 12.8, tx: 2.0, ty: 0.2, tz: 0, shiftX: 0, shiftY: 0, sunAz: 140, sunEl: 38, yaw: 0, exposure: 0.98 };
   const S1 = { ...S0, el: 13, dist: 11.4 };
@@ -75,20 +75,22 @@ export function initHero(ctx) {
   const pathU = spline([[0, 0], [0.7, 1], [0.95, 2], [1.2, 3], [1.36, 4], [1.48, 5], [1.62, 6], [1.9, 7], [C, 8], [C + 0.3, 9], [C + 0.72, 10], [C + 1.15, 11]]);
 
   ctx.updateCam = () => {
-    st.drone = 0; st.droneCam = 0; st.droneFov = 0; st.scan = 0; st.defect = 0; st.floor = 0; st.fov = 22;
+    st.drone = 0; st.droneCam = 0; st.droneAim = 0; st.droneFov = 0; st.rigK = 0; st.scan = 0; st.defect = 0; st.floor = 0; st.fov = 22;
     if (cam.droneOn) {
       // vérification par drone : il décolle devant la maison, la caméra le rejoint et regarde sous lui,
       // il balaie le toit d'un pignon à l'autre, puis monte pour le montrer en entier
       const p = cam.droneP;
-      // la sortie du drone s'étale sur un quart de la section, avec une courbe douce aux deux bouts
       const smooth = (t) => t * t * t * (t * (t * 6 - 15) + 10);
-      const e = smooth(ramp(p, 0.76, 1));
-      if (p < 0.76) mixState(D0, D1, io(ramp(p, 0.02, 0.3)));
-      else {
-        // en sortant du drone, la vue s'incline vers 45° et tourne pendant qu'elle s'éloigne ;
-        // la maison repasse à droite pour laisser revenir le texte
-        st.az = lerp(0, -66, e); st.el = lerp(85, 40, e); st.dist = lerp(6.5, 19.5, e);
-        st.tx = lerp(-1.7, 0.1, e); st.ty = lerp(0.5, 0.9, e); st.tz = 0;
+      // la vue finale : on quitte le drone par le haut, puis la vue s'incline vers 45° et tourne en s'éloignant
+      const e = smooth(ramp(p, 0.86, 1));
+      if (p < 0.86) {
+        mixState(D0, D1, io(ramp(p, 0.02, 0.3)));
+        // la caméra monte avec le drone : on le voit par au-dessus, le toit derrière lui, jamais dans le vide
+        st.el += 34 * smooth(ramp(p, 0.1, 0.3));
+      } else {
+        // au départ, exactement la caméra de poursuite (au-dessus et en arrière du drone, le regard sur lui)
+        st.az = lerp(0, -66, e); st.el = lerp(61.4, 40, e); st.dist = lerp(2.51, 19.5, e);
+        st.tx = lerp(-1.7, 0.1, e); st.ty = lerp(4.68, 0.9, e); st.tz = lerp(0.05, 0, e);
         st.shiftX = 0.2 * e; st.shiftY = 0;
         st.sunAz = D0.sunAz; st.sunEl = D0.sunEl; st.yaw = 0; st.exposure = D0.exposure;
       }
@@ -97,14 +99,20 @@ export function initHero(ctx) {
       st.drone = 1;
       st.floor = 1;
       st.defect = 1;
-      st.droneT = io(ramp(p, 0.04, 0.34));
-      const inPov = io(ramp(p, 0.3, 0.46));
-      st.droneCam = inPov * (1 - e);
-      st.droneFov = inPov * (1 - e);
-      st.droneScan = io(ramp(p, 0.46, 0.74));
+      st.droneT = io(ramp(p, 0.04, 0.3));
+      // entrée : la caméra rejoint la poursuite du drone, puis descend dedans ; sortie : elle remonte au-dessus de lui
+      const approach = smooth(ramp(p, 0.2, 0.36));
+      st.rigK = p < 0.6 ? smooth(ramp(p, 0.36, 0.47)) : 1 - smooth(ramp(p, 0.76, 0.86));
+      st.droneCam = p < 0.6 ? approach : 1 - e;
+      // pendant la montée du drone, le regard le suit déjà, avant que la caméra ne le rejoigne
+      st.droneAim = p < 0.6 ? smooth(ramp(p, 0.12, 0.27)) : 1 - e;
+      st.droneFov = smooth(ramp(p, 0.3, 0.47)) * (p < 0.6 ? 1 : 1 - e);
+      // la maison, un peu plus haute à l'écran pendant l'approche
+      st.shiftY *= 1 - approach;
+      st.droneScan = io(ramp(p, 0.47, 0.74));
       st.droneUp = e;
       // le laser s'éteint doucement pendant que la caméra commence à quitter le drone
-      st.scan = io(ramp(p, 0.43, 0.48)) * (1 - smooth(ramp(p, 0.72, 0.86)));
+      st.scan = io(ramp(p, 0.45, 0.5)) * (1 - smooth(ramp(p, 0.72, 0.84)));
     } else if (cam.sosOn) {
       mixState(S0, S1, 1 - Math.pow(1 - clamp01(cam.sosP), 3));
       st.explode = 0;
