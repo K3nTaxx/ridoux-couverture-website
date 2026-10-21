@@ -608,11 +608,10 @@ export function createMaquette(canvas) {
      des feuilles dans le chéneau avant. Ils n'apparaissent que pendant la vérification (st.defect). */
   const SLIP_K = 4 * COLS + 12;
   const mossK = [];
-  for (const t of slopes[1].tileInfo) {
+  for (const t of slopes[0].tileInfo) {
     const k = t.j * COLS + t.i;
-    // à gauche à l'écran, au milieu du pan arrière : loin des autres défauts, et sous la caméra du drone
-    // (le pan arrière est retourné : ses colonnes de droite sont à gauche dans le monde)
-    const d = Math.hypot((t.i - 13) / 2.6, (t.j - 4.2) / 1.5);
+    // à gauche, au milieu du pan avant : du côté qu'on voit, loin des autres défauts
+    const d = Math.hypot((t.i - 3) / 2.6, (t.j - 4.2) / 1.5);
     if (d < 1.4 && rand() < 1.2 - d * 0.55) mossK.push([k, Math.min(1, 1.35 - d * 0.6)]);
   }
   const RIDGE_BAD = 6; // au milieu du faîtage
@@ -622,7 +621,7 @@ export function createMaquette(canvas) {
   const leaves = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }), LEAVES);
   const leafBase = [];
   for (let i = 0; i < LEAVES; i++) {
-    leafBase.push({ x: -1.55 + rand() * 0.75, y: rand() * 0.02, z: (rand() - 0.5) * 0.07, r: rand() * 6.28, t: rand() * 0.6 });
+    leafBase.push({ x: -0.7 + rand() * 0.75, y: rand() * 0.02, z: (rand() - 0.5) * 0.07, r: rand() * 6.28, t: rand() * 0.6 });
     leaves.setColorAt(i, new THREE.Color().setHSL(0.08 + rand() * 0.1, 0.45, 0.22 + rand() * 0.12));
   }
   leaves.instanceColor.needsUpdate = true;
@@ -631,7 +630,7 @@ export function createMaquette(canvas) {
   function writeDefects() {
     const d = st.defect;
     // mousses
-    const s1 = slopes[1], col = s1.tiles.instanceColor.array, mc = [mossCol.r, mossCol.g, mossCol.b];
+    const s1 = slopes[0], col = s1.tiles.instanceColor.array, mc = [mossCol.r, mossCol.g, mossCol.b];
     for (const [k, w] of mossK) {
       for (let c = 0; c < 3; c++) col[k * 3 + c] = s1.baseCol[k * 3 + c] + (mc[c] - s1.baseCol[k * 3 + c]) * d * w * 0.95;
     }
@@ -695,20 +694,20 @@ export function createMaquette(canvas) {
   // le balayage traverse le toit d'un pignon à l'autre, puis le drone monte pour voir tout le toit
   const flight = new THREE.CatmullRomCurve3([
     new THREE.Vector3(2.3, -0.36, 3.1),
-    new THREE.Vector3(2.25, 0.7, 3.0),
-    new THREE.Vector3(2.05, 2.4, 2.2),
-    new THREE.Vector3(1.85, 4.2, 1.0),
-    new THREE.Vector3(1.7, 5.2, 0.05),
+    new THREE.Vector3(2.25, 0.55, 2.9),
+    new THREE.Vector3(2.05, 1.45, 1.9),
+    new THREE.Vector3(1.85, 2.15, 0.9),
+    new THREE.Vector3(1.7, 2.4, 0.1),
   ], false, 'centripetal');
-  // le drone reste du côté du pignon +x, loin du texte ; le balayage traverse ensuite le toit vers l'autre pignon
-  const SCAN_Y = 5.2, SCAN_X0 = 1.7, SCAN_X1 = -1.7;
+  // il monte du côté du pignon +x, puis le balayage traverse le toit vers l'autre pignon, juste au-dessus du faîtage
+  const SCAN_Y = 2.4, SCAN_X0 = 1.7, SCAN_X1 = -1.7;
   const droneEnd = new THREE.Vector3(-1.1, 3.9, 0.7);
   const drP = new THREE.Vector3(), drLast = new THREE.Vector3(), drVel = new THREE.Vector3(), drStep = new THREE.Vector3(), drWorld = new THREE.Vector3();
   const povP = new THREE.Vector3(), povQ = new THREE.Vector3(), lookA = new THREE.Vector3();
   function stepDrone(dt) {
     if (st.drone < 0.001) { drone.visible = false; U.uScan.value.z = 0; return; }
     flight.getPoint(clamp01(st.droneT), drP);
-    if (st.droneScan > 0) drP.set(SCAN_X0 + (SCAN_X1 - SCAN_X0) * st.droneScan, SCAN_Y, 0.05);
+    if (st.droneScan > 0) drP.set(SCAN_X0 + (SCAN_X1 - SCAN_X0) * st.droneScan, SCAN_Y, 0.1);
     if (st.droneUp > 0) drP.lerp(droneEnd, st.droneUp);
     // vitesse lissée : le drone s'incline dans le sens de son déplacement, puis se remet à plat
     if (dt > 0) drVel.lerp(drStep.subVectors(drP, drLast).divideScalar(dt), Math.min(1, dt * 5));
@@ -739,15 +738,26 @@ export function createMaquette(canvas) {
     isolation: anchor(layers.isolation, -L * 0.2, 0.09, S * 0.6),
     chenau: anchor(gutters[0].gg, -L * 0.36, 0.04, 0),
   };
+  // la maquette fait un demi-tour en s'ouvrant : une fois retournée, chaque étiquette vise la même pièce
+  // de l'autre côté (la maison est symétrique), qui se trouve alors à la même place à l'écran
+  const twins = {
+    faitage: anchor(layers.faitage, -L * 0.3, 0.13, 0),
+    tuiles: anchor(front.g.tuiles, -L * 0.18, 0.1, R * 0.42),
+    liteaux: anchor(front.g.liteaux, -L * 0.3, 0.05, R * 0.8),
+    rive: anchor(front.riveL, 0, 0.09, R * 0.55),
+    charpente: anchor(layers.charpente, L / 2 - 0.06, HR * 0.42, 0),
+    isolation: anchor(layers.isolation, L * 0.2, 0.09, -S * 0.6),
+    chenau: anchor(gutters[1].gg, L * 0.36, 0.04, 0),
+  };
   // ce que le drone repère
   {
     const t = slopes[0].tileInfo[SLIP_K];
     anchors.drnTuile = anchor(slopes[0].g.tuiles, t.x, 0.1, t.z + TL * 0.5 + 0.08);
-    const mk = mossK.map(([k]) => slopes[1].tileInfo[k]);
+    const mk = mossK.map(([k]) => slopes[0].tileInfo[k]);
     const mx = mk.reduce((a, b) => a + b.x, 0) / mk.length, mz = mk.reduce((a, b) => a + b.z, 0) / mk.length;
-    anchors.drnMousse = anchor(slopes[1].g.tuiles, mx, 0.1, mz + TL * 0.5);
+    anchors.drnMousse = anchor(slopes[0].g.tuiles, mx, 0.1, mz + TL * 0.5);
     anchors.drnFaitage = anchor(layers.faitage, ridgeInfo[RIDGE_BAD].x, 0.14, 0);
-    anchors.drnChenau = anchor(gutters[0].gg, -1.17, 0, 0);
+    anchors.drnChenau = anchor(gutters[0].gg, -0.32, 0, 0);
   }
 
   /* ---------- SOS : le pignon devient un mur, la pluie mouille les tuiles ---------- */
@@ -1055,7 +1065,7 @@ export function createMaquette(canvas) {
     elAxis.set(-Math.cos(az), 0, Math.sin(az));
     fInfo.forEach((f, i) => {
       const arrive = easeOut(clamp01((st.float - f.delay) / 0.65));
-      dummy.position.copy(f.base).addScaledVector(f.out, (1 - arrive) * 5);
+      dummy.position.copy(f.base).addScaledVector(f.out, (1 - arrive) * 5 + (1 - st.air) * 9);
       dummy.position.sub(target).applyAxisAngle(Y_UP, orbit * f.follow).applyAxisAngle(elAxis, tilt * f.follow).add(target);
       dummy.position.x += Math.sin(clock * f.w + f.ph) * 0.1;
       dummy.position.y += Math.sin(clock * f.w * 0.8 + f.ph * 2) * 0.16;
@@ -1279,7 +1289,10 @@ export function createMaquette(canvas) {
 
   function applyBuild() {
     const b = st.build, e = st.explode;
-    const eo = easeOut(e);
+    // la vue éclatée se fait couche par couche : les tuiles et le faîtage d'abord, puis les liteaux, l'écran,
+    // et enfin le bas du toit (isolation, chéneaux)
+    const peel = (a, b) => easeOut(seg(e, a, b));
+    const eT = peel(0, 0.62), eLi = peel(0.12, 0.74), eE = peel(0.24, 0.86), eB = peel(0.36, 1);
     for (const s of slopes) {
       // chevrons
       const pr = seg(b, 0.0, 0.14);
@@ -1330,12 +1343,12 @@ export function createMaquette(canvas) {
       s.riveR.scale.set(1, 1, Math.max(0.0001, prv));
 
       // vue éclatée : chaque couche s'écarte le long de la normale du pan
-      s.g.ecran.position.y = 0.32 * eo;
-      s.g.liteaux.position.y = 0.66 * eo;
-      s.g.tuiles.position.y = 1.08 * eo;
-      s.g.rive.position.y = 1.08 * eo;
-      s.riveL.position.x = -L / 2 - 0.016 - 0.5 * eo;
-      s.riveR.position.x = L / 2 + 0.016 + 0.5 * eo;
+      s.g.ecran.position.y = 0.32 * eE;
+      s.g.liteaux.position.y = 0.66 * eLi;
+      s.g.tuiles.position.y = 1.08 * eT;
+      s.g.rive.position.y = 1.08 * eT;
+      s.riveL.position.x = -L / 2 - 0.016 - 0.5 * eT;
+      s.riveR.position.x = L / 2 + 0.016 + 0.5 * eT;
     }
     // faîtage
     const pf = seg(b, 0.86, 1);
@@ -1349,7 +1362,7 @@ export function createMaquette(canvas) {
       ridgeTiles.setMatrixAt(i, dummy.matrix);
     }
     ridgeTiles.instanceMatrix.needsUpdate = true;
-    layers.faitage.position.y = HR + 0.085 + 1.62 * eo;
+    layers.faitage.position.y = HR + 0.085 + 1.62 * eT;
     // charpente (fermes) visibles avec les chevrons
     const pch = easeOutExpo(seg(b, 0.02, 0.16));
     layers.charpente.scale.set(1, Math.max(0.0001, pch), 1);
@@ -1357,13 +1370,13 @@ export function createMaquette(canvas) {
     // isolation
     const pi = easeOut(seg(b, 0.06, 0.18));
     layers.isolation.scale.set(1, Math.max(0.0001, pi), 1);
-    layers.isolation.position.y = -0.78 * eo;
+    layers.isolation.position.y = -0.78 * eB;
     // chéneaux
     const pg = easeOut(seg(b, 0.9, 1));
     for (const gt of gutters) {
       gt.gg.scale.set(Math.max(0.0001, pg), 1, 1);
-      gt.gg.position.y = gt.y - 0.36 * eo;
-      gt.gg.position.z = gt.z + gt.sz * 0.52 * eo;
+      gt.gg.position.y = gt.y - 0.36 * eB;
+      gt.gg.position.z = gt.z + gt.sz * 0.52 * eB;
     }
   }
 
@@ -1553,8 +1566,9 @@ export function createMaquette(canvas) {
   const v = new THREE.Vector3();
   function getAnchors() {
     const out = {};
+    const turned = Math.cos(root.rotation.y) < 0;
     for (const [k, o] of Object.entries(anchors)) {
-      o.getWorldPosition(v);
+      (turned && twins[k] ? twins[k] : o).getWorldPosition(v);
       v.project(camera);
       out[k] = { x: (v.x * 0.5 + 0.5) * W, y: (-v.y * 0.5 + 0.5) * H };
     }

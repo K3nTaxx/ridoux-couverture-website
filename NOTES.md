@@ -214,3 +214,30 @@ Suite du retour n° 15 (même jour) :
 | Drone, l'arrivée : comme avant, le drone monte, on le voit et on rentre dedans directement (trop long sinon, et une saccade) | Plus de longue poursuite : pendant que le drone monte, la caméra le suit du regard (il reste toujours dans le cadre, le toit derrière lui), puis plonge directement dedans d'un seul mouvement, en basculant vers sa propre vue. L'entrée dure un tiers de moins ; le balayage commence plus tôt. |
 | La sortie : la garder, mais la maison un peu plus à gauche et un peu plus haute, plus au milieu | Sortie inchangée ; dans la vue finale, la maison est décalée vers le centre et remontée. |
 | Partenaires : ne pas défiler plus vite quand on fait défiler la page ; toujours le même mouvement | Vitesse constante, quoi qu'on fasse sur la page. |
+
+### Retour n° 18 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Le client veut un site « un poil moins sophistiqué » : défiler sur les animations de la maison en haut et du drone est « un poil trop long » | Haut de page : 1 écran de défilement au lieu de 2,3 ; coupe : 1,3 au lieu de 1,8 ; drone : plus aucune séquence épinglée (2,6 écrans en moins). Soit 4,4 écrans de moins avant la suite du site. |
+| Tout laisser au début (le soir, le grand titre, « le couvreur qui s'enlève », les briques en l'air) ; au moment où on scrolle, au lieu de rentrer à l'intérieur, la maison se transforme en « La toiture, couche par couche » ; plus d'étapes où on passe au milieu ; une transition « complètement exceptionnelle » | Le haut de page est inchangé jusqu'au premier défilement. Ensuite, sur un seul écran : le grand titre se sépare comme les couches du toit (la première ligne monte, la seconde descend), les tuiles en suspens s'envolent, la caméra recule en tournant autour du toit, et la toiture s'ouvre sur place couche par couche (tuiles, liteaux, écran, isolation et chéneaux, en décalé). La coupe prend la suite sans arrêt. Plus de plongée, plus d'étapes traversées ni de légendes intermédiaires. |
+| « Pimper » le fond de la coupe : ne pas passer du fond incroyable du début à un fond terne | Le ciel du soir reste derrière la coupe et passe à l'heure bleue pendant la transformation : bleu profond, lumière froide derrière la maquette, dernière lueur chaude à l'horizon, fine trame de points comme un plan. |
+| Drone : pas besoin de scroller ; le texte à gauche, en haut à droite la maison qu'on peut bouger, le drone par terre | La section tient sur un écran, sans épinglage : texte à gauche, maison de trois quarts en haut à droite (elle suit le curseur), drone posé devant elle. |
+| En automatique : il monte, on voit le scan, on voit le bilan, il se repose, attend 2 secondes et repart, à l'infini | Mission en boucle : décollage, balayage au laser d'un pignon à l'autre (chaque défaut se verrouille au passage du trait), arrêt au bout du toit avec les quatre repères, retour, atterrissage, 2 secondes au sol, et il repart. |
+| Les points qui marquent les défauts doivent être visibles de notre côté (« passe de l'autre côté, ou alors tourne les trucs ») | Les quatre défauts sont sur le pan visible : mousses au milieu du pan avant, faîtière soulevée au centre du faîtage, tuile déplacée, feuilles dans le chéneau avant. Le vol est abaissé pour que le drone reste sous la navigation. |
+
+### Retour n° 19 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Les annotations de la coupe (charpente, chéneau…) arrivent un poil trop tard : tout est déplié, et après elles arrivent ; légèrement plus tôt | Les étiquettes se tracent pendant que les dernières couches s'écartent (à partir de 0,6 écran défilé au lieu de 1) ; elles restent accrochées à la maquette pendant que la section monte. Le titre « La toiture, couche par couche » apparaît en même temps, à sa place définitive. |
+| Un mouvement : « le truc est vers la droite, il va vers la gauche, et ensuite il revient vers la droite » ; peut-être qu'il tourne sur lui-même, un demi-tour | Pendant la transformation, la maquette part vers la gauche en faisant un demi-tour sur elle-même tout en s'ouvrant, puis revient se poser à droite pour la coupe. Chaque étiquette vise la même pièce, de l'autre côté de la maison retournée. |
+| Drone parfait, le scan exceptionnel ; mais l'affichage « Bilan du vol, 4 points repérés » fait beaucoup trop IA | Carte retirée. Le bilan, ce sont les quatre repères allumés ensemble pendant que le drone s'arrête au bout du toit. |
+| Que le drone se déclenche au moment où on arrive face à la section (drone à plat, et quand on est face à la section, ça démarre) | Le drone attend posé tant que la section n'est pas en face ; dès qu'elle occupe l'écran, il décolle (0,7 s plus tard), et la mission repart du sol à chaque nouvelle arrivée. |
+
+### Retour n° 20 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Le tout début est parfait ; mais pourquoi la maison va à gauche quand elle fait le flip, puis revient au milieu ? Elle doit juste tourner sur elle-même, « même en descendant un peu » | Plus d'écart vers la gauche : la maquette fait son demi-tour sur place, en descendant légèrement pendant qu'elle tourne, puis se pose pour la coupe. |
+| Une fois tous les points dévoilés, on doit scroller un peu trop avant la section suivante : réduire au moins de moitié | La coupe reste épinglée 0,5 écran au lieu de 1,3 : après la dernière étiquette, il faut 0,6 écran de défilement au lieu de 1,4 pour arriver aux prestations. |

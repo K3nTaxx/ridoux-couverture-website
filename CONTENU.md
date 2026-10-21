@@ -154,6 +154,7 @@ Le client propose la vérification de toiture à domicile par drone. Il n'a pas 
 - Titre (retour n° 13) : « Vérification de votre toiture par drone ».
 - « Avant de monter sur un toit, nous le regardons d'en haut. Le drone le survole, piloté depuis le sol : personne ne marche sur vos tuiles. »
 - (retour n° 14 : seule la légende « Chaque défaut, repéré » reste affichée ; les autres points ci-dessous ne sont plus à l'écran)
+- (retour n° 18 : plus de légende à l'écran ; seuls restent le titre, la phrase ci-dessus, « Demander une vérification » et les quatre repères posés sur la maquette : « Tuile déplacée », « Faîtage », « Mousses », « Chéneau encombré ». Une carte « Bilan du vol — 4 points repérés », ajoutée au retour n° 18, est retirée au retour n° 19.)
 - Tout le toit, sans échelle — pans, faîtage, rives et chéneaux : le drone voit de près ce que la rue vous cache. ✅ (principe même du drone)
 - Chaque défaut, repéré — une tuile qui a glissé, des mousses, un faîtage fatigué, un chéneau encombré. ✅ (cas cités par les sources)
 - Des images, pas des suppositions — « vous voyez l'état réel de votre toit avant de décider des travaux. » **À confirmer** : le client remet-il les photos ou vidéos au particulier ?

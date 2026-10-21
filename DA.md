@@ -250,3 +250,19 @@ La maquette suit la section à l'entrée et à la sortie, comme si elle y était
 - Le titre est le personnage principal : il glisse au centre dès qu'on défile, la caméra passe au travers ; la vue du drone occupe toute la largeur.
 - Une seule légende, « Chaque défaut, *repéré* », au milieu du balayage. Les repères restent visibles hors du cadre.
 - En sortant du drone, la vue s'incline vers 45° et tourne en s'éloignant ; le drone reste visible au-dessus du toit, le texte revient à gauche.
+
+### Retour n° 18 — moins de défilement, la toiture qui se transforme
+
+- **Haut de page → coupe** (1 écran, puis 1,3 pour la coupe) : on ne plonge plus dans la toiture. Dès qu'on défile, le grand titre se sépare comme les couches (ligne du haut qui monte, ligne du bas qui descend), les tuiles en suspens s'envolent, et la maquette s'ouvre sur place, couche par couche, en décalé (tuiles, liteaux, écran, isolation et chéneaux). Le soir passe à l'**heure bleue** : bleu profond, lumière froide derrière la maquette, dernière lueur chaude à l'horizon, trame de points très fine comme un plan. Ce ciel reste derrière toute la coupe.
+- **Vérification par drone** : un écran, sans épinglage. Texte à gauche ; la maison en haut à droite (le curseur la fait tourner), le drone posé devant. La mission tourne seule, en boucle : décollage, balayage au laser (chaque défaut verrouillé au passage du trait), arrêt au bout du toit avec les quatre repères, retour, atterrissage, deux secondes au sol. Les défauts sont tous sur le pan visible.
+
+### Retour n° 19 — le demi-tour
+
+- La transformation devient une figure : la maquette part vers la gauche en faisant un demi-tour sur elle-même pendant qu'elle s'ouvre, puis revient se poser à droite. La maison étant symétrique, chaque étiquette vise après le demi-tour la pièce équivalente de l'autre côté.
+- Les étiquettes et le titre de la coupe arrivent pendant que les dernières couches s'écartent, à leur place définitive (ils ne montent pas avec la section).
+- Drone : plus de carte de bilan (trop « tableau de bord ») ; le bilan, ce sont les quatre repères allumés ensemble. La mission ne part qu'une fois la section en face, drone posé.
+
+### Retour n° 20 — le demi-tour sur place
+
+- Le demi-tour se fait sur place : la maquette tourne sur elle-même en descendant légèrement, sans écart sur le côté.
+- Une fois les étiquettes tracées, la coupe ne reste épinglée que 0,5 écran avant que « Nos prestations » ne la recouvre.

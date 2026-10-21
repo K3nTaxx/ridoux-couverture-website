@@ -76,6 +76,26 @@ main { position: relative; z-index: 1; }
   animation-duration: 19s;
   animation-direction: alternate-reverse;
 }
+.sky-glow { opacity: calc(1 - var(--night, 0) * .75); }
+/* l'heure bleue : le soir s'assombrit en bleu profond, une lumière froide se pose derrière la maquette,
+   la dernière lueur chaude reste à l'horizon, et une trame de points très fine, comme un plan, se dessine */
+.sky-night {
+  position: absolute;
+  inset: 0;
+  opacity: var(--night, 0);
+  background:
+    radial-gradient(38% 44% at 60% 54%, rgba(150, 180, 198, .2) 0%, rgba(150, 180, 198, .06) 55%, rgba(150, 180, 198, 0) 100%),
+    radial-gradient(70% 26% at 56% 104%, rgba(232, 128, 70, .24) 0%, rgba(232, 128, 70, 0) 100%),
+    linear-gradient(180deg, #0c141a 0%, #121e27 34%, #19272f 64%, #24313a 88%, #2d3438 100%);
+}
+.sky-night::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(236, 238, 236, .1) 0 1px, transparent 1.4px) 0 0 / 26px 26px;
+  -webkit-mask: radial-gradient(52% 58% at 60% 54%, #000 0%, rgba(0, 0, 0, .5) 50%, transparent 100%);
+  mask: radial-gradient(52% 58% at 60% 54%, #000 0%, rgba(0, 0, 0, .5) 50%, transparent 100%);
+}
 @keyframes sky-breathe {
   from { transform: translate3d(-2%, 0, 0) scale(1); opacity: .85; }
   to { transform: translate3d(2%, -1.5%, 0) scale(1.06); opacity: 1; }
@@ -209,44 +229,6 @@ main { position: relative; z-index: 1; }
   color: var(--zinc-50);
 }
 
-/* ce que l'on traverse en entrant dans la toiture : une couche à la fois */
-.hero-layers {
-  position: absolute;
-  left: var(--m);
-  bottom: clamp(48px, 9vh, 96px);
-  z-index: 2;
-  pointer-events: none;
-}
-/* un voile sombre très doux sous la légende, pour qu'elle se lise sur les tuiles comme sur l'écran */
-.hero-layers::before {
-  content: '';
-  position: absolute;
-  left: calc(var(--m) * -1 - 6vw);
-  bottom: -14vh;
-  width: 52vw;
-  height: 46vh;
-  background: radial-gradient(closest-side, rgba(18, 23, 26, .5), rgba(18, 23, 26, 0));
-  opacity: var(--scrim, 0);
-}
-.hero-layers li {
-  position: absolute;
-  left: 0; bottom: 0;
-  width: 30em;
-  display: grid;
-  gap: 6px;
-  opacity: 0;
-  will-change: transform, opacity;
-}
-.hero-layers strong {
-  font-size: clamp(40px, 3.4vw, 56px);
-  font-weight: 620;
-  font-stretch: 110%;
-  line-height: 1.04;
-  letter-spacing: -0.012em;
-  color: var(--zinc-50);
-}
-.hero-layers span { font-family: var(--f-serif); font-size: var(--fs-lead); color: rgba(236, 238, 236, .8); }
-
 /* ---------- 2. L'ENTREPRISE ---------- */
 .fam {
   --fam-bg: #E1E4E0;
@@ -328,7 +310,8 @@ main { position: relative; z-index: 1; }
 
 /* ---------- 3. SAVOIR-FAIRE : LA COUPE ---------- */
 .cpe { position: relative; z-index: 1; color: var(--zinc-50); margin-top: -100vh; }
-.cpe-pin { position: relative; height: 100vh; overflow: hidden; }
+/* pas de découpe : les étiquettes se tracent avant que la coupe ne s'épingle, au-dessus de son bord */
+.cpe-pin { position: relative; height: 100vh; }
 .cpe-head { position: absolute; left: var(--m); top: calc(var(--nav-h) + 6vh); width: calc(var(--col) * 4 + var(--g) * 3); }
 .cpe-title { margin-bottom: 22px; }
 .cpe-lead { font-family: var(--f-serif); font-size: var(--fs-lead); line-height: 1.5; color: rgba(236, 238, 236, .72); max-width: 24em; }
@@ -432,24 +415,24 @@ main { position: relative; z-index: 1; }
 
 /* ---------- 4. ENTRETIEN ---------- */
 /* ---------- VÉRIFICATION PAR DRONE ----------
-   un bloc à part, aux bords nets : la 3D peint elle-même l'ardoise de la section */
+   un bloc à part, aux bords nets : la 3D peint elle-même l'ardoise de la section.
+   Le texte à gauche, la maison en haut à droite ; le drone joue sa mission tout seul */
 .drn {
   position: relative;
   z-index: 2;
   height: 100vh;
+  min-height: 720px;
   color: var(--zinc-50);
   overflow: hidden;
 }
 .drn-copy {
   position: absolute;
   left: var(--m);
-  top: calc(var(--nav-h) + 6vh);
+  top: 50%;
+  transform: translateY(-50%);
   width: calc(var(--col) * 4 + var(--g) * 3);
   z-index: 3;
-  pointer-events: none;
 }
-.drn-copy .drn-cta { pointer-events: auto; }
-.drn-title, .drn-lead { will-change: transform, opacity; }
 /* le nom de la prestation, en grand : la linéale large et l'italique, comme les autres titres */
 .drn-title {
   font-size: clamp(50px, 4.5vw, 82px);
@@ -464,127 +447,34 @@ main { position: relative; z-index: 1; }
   color: rgba(236, 238, 236, .76);
   max-width: 23em;
 }
-.drn-cta { margin-top: 30px; opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ease), transform .9s var(--ease); visibility: hidden; }
-.drn.is-done .drn-cta { opacity: 1; transform: none; visibility: visible; }
+.drn-cta { margin-top: 32px; }
 
-/* une seule légende, au milieu du balayage, posée en bas du cadre de visée */
-.drn-says {
-  position: absolute;
-  left: calc(var(--m) + 30px);
-  bottom: calc(5vh + 62px);
-  z-index: 3;
-  display: grid;
-  gap: 10px;
-  max-width: 30em;
-  pointer-events: none;
-  opacity: 0;
-  will-change: transform, opacity;
-}
-.drn-says::before {
-  content: '';
-  position: absolute;
-  left: -14vw; right: -10vw; top: -16vh; bottom: -12vh;
-  z-index: -1;
-  background: radial-gradient(closest-side, rgba(14, 19, 21, .62), rgba(14, 19, 21, 0));
-}
-.drn-says strong {
-  font-size: clamp(32px, 2.7vw, 48px);
-  font-weight: 620;
-  font-stretch: 110%;
-  line-height: 1.04;
-  letter-spacing: -0.012em;
-}
-.drn-says em { font-family: var(--f-serif); font-style: italic; font-weight: 400; font-stretch: 100%; letter-spacing: -0.01em; }
-.drn-says span { font-family: var(--f-serif); font-size: var(--fs-lead); line-height: 1.5; color: rgba(236, 238, 236, .8); max-width: 26em; }
-
-/* le cadre de visée */
-.drn-hud {
-  position: absolute;
-  left: var(--m);
-  right: var(--m);
-  top: calc(var(--nav-h) + 3vh);
-  bottom: 5vh;
-  z-index: 2;
-  pointer-events: none;
-  font-size: 11.5px;
-  font-weight: 650;
-  font-stretch: 112%;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: rgba(236, 238, 236, .86);
-}
-.drn-hud > * { opacity: var(--hud, 0); }
-/* le passage dans la caméra du drone : un battement d'obturateur sur toute l'image */
-.drn-blink { position: absolute; inset: 0; z-index: 2; background: #0e1315; opacity: var(--blink, 0); pointer-events: none; }
-.drn-hello {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  font-size: clamp(18px, 1.5vw, 24px);
-  letter-spacing: .34em;
-  white-space: nowrap;
-  color: var(--zinc-50);
-  transform: translate(-50%, calc(-50% - 54px));
-}
-.drn-hud > .drn-hello { opacity: var(--hello, 0); }
-.drn-corner { position: absolute; width: 34px; height: 34px; border: 0 solid rgba(236, 238, 236, .8); }
-.drn-corner--tl { left: 0; top: 0; border-width: 1.5px 0 0 1.5px; transform: translate(calc(var(--snap, 0) * -18px), calc(var(--snap, 0) * -18px)); }
-.drn-corner--tr { right: 0; top: 0; border-width: 1.5px 1.5px 0 0; transform: translate(calc(var(--snap, 0) * 18px), calc(var(--snap, 0) * -18px)); }
-.drn-corner--bl { left: 0; bottom: 0; border-width: 0 0 1.5px 1.5px; transform: translate(calc(var(--snap, 0) * -18px), calc(var(--snap, 0) * 18px)); }
-.drn-corner--br { right: 0; bottom: 0; border-width: 0 1.5px 1.5px 0; transform: translate(calc(var(--snap, 0) * 18px), calc(var(--snap, 0) * 18px)); }
-/* la croix suit le point du toit à la verticale du drone, là où passe le trait */
-.drn-cross { position: absolute; left: 0; top: 0; width: 64px; height: 64px; margin: -32px 0 0 -32px; will-change: transform; }
-.drn-cross::before, .drn-cross::after { content: ''; position: absolute; background: var(--zinc-50); box-shadow: 0 0 0 .5px rgba(14, 19, 21, .4); }
-.drn-cross::before { left: 0; right: 0; top: 50%; height: 1.5px; margin-top: -.75px; -webkit-mask: linear-gradient(90deg, #000 38%, transparent 38% 62%, #000 62%); mask: linear-gradient(90deg, #000 38%, transparent 38% 62%, #000 62%); }
-.drn-cross::after { top: 0; bottom: 0; left: 50%; width: 1.5px; margin-left: -.75px; -webkit-mask: linear-gradient(#000 38%, transparent 38% 62%, #000 62%); mask: linear-gradient(#000 38%, transparent 38% 62%, #000 62%); }
-.drn-top { position: absolute; left: 22px; right: 22px; top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
-.drn-rec { display: flex; align-items: center; gap: 9px; }
-.drn-rec i { width: 8px; height: 8px; border-radius: 50%; background: var(--cordeau); animation: drn-blink 1.2s steps(2, jump-none) infinite; }
-.drn-rec b, .drn-pct { font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: .08em; }
-@keyframes drn-blink { 50% { opacity: .15; } }
-.drn-compass {
-  position: relative;
-  width: min(300px, 22vw);
-  height: 14px;
-  overflow: hidden;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
-  mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
-}
-.drn-compass::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 1px; height: 11px; background: var(--cordeau); }
-.drn-tape { position: absolute; left: 0; bottom: 0; height: 100%; display: flex; align-items: flex-end; will-change: transform; }
-.drn-tape span { flex: none; width: 12px; display: flex; justify-content: center; }
-.drn-tape span::after { content: ''; width: 1px; height: 5px; background: rgba(236, 238, 236, .5); }
-.drn-tape span.is-major::after { height: 9px; background: rgba(236, 238, 236, .85); }
-.drn-bottom { position: absolute; left: 22px; right: 22px; bottom: 18px; display: flex; align-items: center; gap: 16px; }
-.drn-bar { flex: 1; height: 1px; background: rgba(236, 238, 236, .22); position: relative; }
-.drn-bar i { position: absolute; left: 0; top: -1px; height: 3px; width: 100%; background: var(--cordeau); transform-origin: left; transform: scaleX(var(--scan, 0)); }
-
-/* les repères verrouillés sur ce que le drone voit : ils restent lisibles même hors du cadre */
+/* les repères verrouillés sur ce que le drone repère : un point posé sur le toit, le réticule centré dessus,
+   l'étiquette rangée à côté */
 .drn-marks { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
-/* chaque repère est un point posé sur le toit : le réticule s'y centre, l'étiquette se range à côté */
-.drn-marks li { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; will-change: transform, opacity; }
+.drn-marks li { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; transition: opacity .4s var(--ease); will-change: transform, opacity; }
 .drn-marks i {
   position: absolute;
-  left: -23px;
-  top: -23px;
-  width: 46px;
-  height: 46px;
+  left: -21px;
+  top: -21px;
+  width: 42px;
+  height: 42px;
   transform: scale(1.9);
   transition: transform .7s var(--ease);
   background:
-    linear-gradient(var(--cordeau), var(--cordeau)) left top / 12px 2px no-repeat,
-    linear-gradient(var(--cordeau), var(--cordeau)) left top / 2px 12px no-repeat,
-    linear-gradient(var(--cordeau), var(--cordeau)) right top / 12px 2px no-repeat,
-    linear-gradient(var(--cordeau), var(--cordeau)) right top / 2px 12px no-repeat,
-    linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 12px 2px no-repeat,
-    linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 2px 12px no-repeat,
-    linear-gradient(var(--cordeau), var(--cordeau)) right bottom / 12px 2px no-repeat,
-    linear-gradient(var(--cordeau), var(--cordeau)) right bottom / 2px 12px no-repeat;
+    linear-gradient(var(--cordeau), var(--cordeau)) left top / 11px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) left top / 2px 11px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right top / 11px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right top / 2px 11px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 11px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 2px 11px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right bottom / 11px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right bottom / 2px 11px no-repeat;
 }
 .drn-marks i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: var(--cordeau); }
 .drn-marks span {
   position: absolute;
-  left: 34px;
+  left: 30px;
   top: -14px;
   padding: 6px 10px;
   font-size: 11.5px;
@@ -594,16 +484,17 @@ main { position: relative; z-index: 1; }
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--zinc-50);
-  background: rgba(27, 35, 38, .8);
+  background: rgba(27, 35, 38, .82);
   border-left: 2px solid var(--cordeau);
   transform: translateX(-8px);
   opacity: 0;
   transition: opacity .5s var(--ease) .12s, transform .7s var(--ease) .12s;
 }
-.drn-marks li[data-side="left"] span { left: auto; right: 34px; border-left: 0; border-right: 2px solid var(--cordeau); transform: translateX(8px); }
+.drn-marks li[data-side="left"] span { left: auto; right: 30px; border-left: 0; border-right: 2px solid var(--cordeau); transform: translateX(8px); }
 .drn-marks li.is-on { opacity: 1; }
 .drn-marks li.is-on i { transform: scale(1); }
 .drn-marks li.is-on span { opacity: 1; transform: none; }
+
 
 .lav { position: relative; z-index: 2; padding: clamp(100px, 13vh, 150px) var(--m) 0; }
 .lav-inner { display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--g); }

@@ -39,13 +39,23 @@ export function initCoupe(ctx) {
   measure();
   window.addEventListener('resize', measure);
 
-  /* placement des étiquettes à chaque image, d'après les ancres projetées */
-  let reveal = 0;
+  /* placement des étiquettes à chaque image, d'après les ancres projetées.
+     Elles se tracent pendant que les dernières couches s'écartent, avant que la coupe ne s'épingle :
+     tant que la section monte encore sous le haut de page, on compense son décalage pour les garder sur la maquette. */
+  const labelsBox = section.querySelector('.cpe-labels');
+  const head = section.querySelector('.cpe-head');
   function layout() {
     const W = window.innerWidth;
     const H = window.innerHeight;
     const m = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--m')) || 64;
     const a = maquette.getAnchors();
+    const reveal = gsap.utils.clamp(0, 1, (ctx.journeyS() - 0.6) / 0.4);
+    const off = Math.max(0, pin.getBoundingClientRect().top);
+    const shift = off ? `translate3d(0, ${(-off).toFixed(1)}px, 0)` : '';
+    svg.style.transform = shift;
+    labelsBox.style.transform = shift;
+    // le titre aussi reste à sa place (translate, qui s'ajoute au mouvement de son apparition)
+    head.style.translate = off ? `0 ${(-off).toFixed(1)}px` : '';
     const xRight = W - m - LABEL_W;
     const xLeft = Math.max(m, W * 0.235 - LABEL_W);
     for (const side of ['left', 'right']) {
@@ -114,8 +124,6 @@ export function initCoupe(ctx) {
     onUpdate: (self) => {
       ctx.cam.cpeP = self.progress;
       ctx.updateCam();
-      // les étiquettes arrivent quand la toiture s'est refermée puis éclatée
-      reveal = Math.min(1, Math.max(0, (self.progress - 0.52) / 0.34));
     },
   });
 
@@ -152,14 +160,14 @@ export function initCoupe(ctx) {
     onUpdate: (self) => { canvasEl.style.transform = `translate3d(0, ${(-self.progress * window.innerHeight).toFixed(1)}px, 0)`; },
     onLeaveBack: () => { canvasEl.style.transform = ''; },
   });
-  // le titre de la coupe n'apparaît qu'une fois sorti des combles (la section arrive par-dessous le haut de page)
+  // le titre de la coupe apparaît quand la toiture finit de s'ouvrir (la section arrive par-dessous le haut de page)
   gsap.fromTo('.cpe-head', { opacity: 0, y: 24 }, {
     opacity: 1,
     y: 0,
     duration: 1.1,
     ease: 'expo.out',
-    // après le retour des tuiles, pour qu'aucune ne passe sur le texte
-    scrollTrigger: { trigger: section, start: 'top -90%', toggleActions: 'play none none reverse' },
+    // pendant que les étiquettes se tracent, à sa place définitive
+    scrollTrigger: { trigger: section, start: 'top 32%', toggleActions: 'play none none reverse' },
   });
 
   maquette.onFrame = () => {
