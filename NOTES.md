@@ -136,3 +136,9 @@ Précisions du client (même jour) :
 | SOS Toiture : la toiture sous la pluie est exceptionnelle, mais le fond noir est un peu basique ; quelque chose de plus complexe, plus design | Le mur du pignon devient un mur de moellons sombres posés en assises, comme les maisons de pierre du pays, mouillé : un film d'eau et quelques filets ruissellent, l'ombre du débord de toit tombe en haut. Toutes les 6 à 11 s, un éclair double (bref, doux) illumine la toiture et révèle la pierre. Derrière le numéro, une lueur chaude respire lentement, comme une lampe restée allumée pendant l'orage. Le texte reste lisible à chaque instant. |
 
 Précision du client (même jour) : la légende « Dépose » reste telle quelle.
+
+### Retour n° 11 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Changer les photos de « Du toit jusqu'au sol » par les deux photos envoyées | La façade aux trois garages remplace l'ancienne : la photo fissurée en « avant », la façade refaite en « après ». Les deux photos sont recalées l'une sur l'autre (7 px de décalage vertical et un léger écart de perspective au niveau des garages corrigés) pour que le balayage du fil à plomb tombe juste. Textes alternatifs mis à jour ; anciennes photos rangées dans `sources/`. |
