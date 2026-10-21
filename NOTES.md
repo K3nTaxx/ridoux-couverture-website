@@ -142,3 +142,9 @@ Précision du client (même jour) : la légende « Dépose » reste telle quelle
 | Demande | Ce qui est fait |
 |---|---|
 | Changer les photos de « Du toit jusqu'au sol » par les deux photos envoyées | La façade aux trois garages remplace l'ancienne : la photo fissurée en « avant », la façade refaite en « après ». Les deux photos sont recalées l'une sur l'autre (7 px de décalage vertical et un léger écart de perspective au niveau des garages corrigés) pour que le balayage du fil à plomb tombe juste. Textes alternatifs mis à jour ; anciennes photos rangées dans `sources/`. |
+
+### Retour n° 12 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Une partie exceptionnelle, pas très longue, au milieu du site, sur la vérification de toiture à domicile par drone ; pas de prix ; chercher des informations générales sur Internet ; repousser les limites de la direction artistique et du site | Nouvelle section « Votre toit, vu du ciel », entre « Une histoire de famille » et « Entretien ». La maquette 3D revient : un drone en 3D (hélices qui tournent, feux, nacelle) décolle devant la maison et monte au-dessus du toit ; la caméra le rejoint et bascule dans sa vue, de dessus, dans un cadre de visée (REC, minuteur, compas, croix, progression). Le drone balaie le toit d'un pignon à l'autre en tirant un trait orange (le cordeau de la marque), et se verrouille sur ce qu'il repère : tuile déplacée, faîtage, mousses, chéneau encombré, réellement visibles sur la maquette. Puis il monte pour montrer tout le toit. À gauche, le texte : la promesse, puis quatre points qui arrivent pendant le balayage, puis « Demander une vérification ». Écran partagé : un panneau sombre en fondu garde le texte lisible. Textes généraux, sources et points à confirmer listés dans CONTENU.md (section 12). Ajouté aussi aux prestations et aux choix du formulaire. |

@@ -18,6 +18,7 @@ import { initHero } from './modules/hero.js';
 import { initFamille } from './modules/famille.js';
 import { initCoupe } from './modules/coupe.js';
 import { initServices } from './modules/services.js';
+import { initDrone } from './modules/drone.js';
 import { initLavage } from './modules/lavage.js';
 import { initRealisations } from './modules/realisations.js';
 import { initExterieurs } from './modules/exterieurs.js';
@@ -55,6 +56,7 @@ async function boot() {
   initFamille(ctx);
   initCoupe(ctx);
   initServices(ctx);
+  initDrone(ctx);
   initLavage(ctx);
   initRealisations(ctx);
   initExterieurs(ctx);

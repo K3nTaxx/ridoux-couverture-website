@@ -227,3 +227,12 @@ Ce qui est en l'air (tuiles, liteaux) ne se fige jamais : même sans défilement
 ### Retour n° 10 — SOS Toiture, le mur dans l'orage
 
 Le pignon n'est plus un aplat : moellons sombres en assises (pierre du pays), mur mouillé où l'eau ruisselle, ombre du débord de toit ; un éclair double toutes les 6 à 11 s éclaire la toiture et révèle la pierre ; une lueur chaude derrière le numéro, comme une lampe allumée pendant l'orage. Le contraste reste bas pour que le texte se lise toujours.
+
+### Retour n° 12 — « Votre toit, vu du ciel » (vérification par drone)
+
+Au milieu du site, la maquette revient pour une séquence épinglée de 2,6 écrans, en écran partagé (texte à gauche sur ardoise, caméra à droite) :
+1. **Décollage** — la maison de trois quarts ; un drone en 3D décolle devant elle, s'incline dans le sens de son vol et monte au-dessus du pignon.
+2. **Vue du drone** — la caméra rejoint le drone et regarde sous lui, objectif plus large ; le cadre de visée se referme sur l'image (coins, croix, REC, compas).
+3. **Balayage** — le drone traverse le toit d'un pignon à l'autre ; sous lui, un trait orange (le cordeau) balaie les tuiles. Chaque défaut franchi est verrouillé par un réticule et une étiquette : tuile déplacée, faîtage, mousses, chéneau encombré — tous réellement modélisés sur la maquette. Les quatre points du texte arrivent au même rythme.
+4. **Vue d'ensemble** — le drone monte, tout le toit et ses repères tiennent dans le cadre ; « Demander une vérification ».
+La maquette suit la section à l'entrée et à la sortie, comme si elle y était posée.

@@ -94,6 +94,8 @@ const U = {
   uCloud: { value: 1 },
   // le trou ouvert dans la toiture : centre (monde) et rayon
   uHole: { value: new THREE.Vector4(0, 0, 0, 0) },
+  // le trait orange que tire le drone en balayant le toit : position (x monde), largeur du halo, intensité
+  uScan: { value: new THREE.Vector3(0, 0.3, 0) },
 };
 
 /* bord déchiré du trou, partagé par les matières et par leurs ombres */
@@ -137,6 +139,7 @@ function patchMaterial(material, grain = 0, hole = false) {
     shader.uniforms.uTime = U.uTime;
     shader.uniforms.uCloud = U.uCloud;
     shader.uniforms.uHole = U.uHole;
+    shader.uniforms.uScan = U.uScan;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
       .replace(
@@ -155,6 +158,7 @@ function patchMaterial(material, grain = 0, hole = false) {
         varying vec3 vWPos;
         uniform float uTime;
         uniform float uCloud;
+        uniform vec3 uScan;
         ${HOLE_GLSL}
         float gHash(vec3 p){ p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
         float gNoise(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f*f*(3.0-2.0*f);
@@ -177,6 +181,16 @@ function patchMaterial(material, grain = 0, hole = false) {
         reflectedLight.directSpecular *= cShade;
         #include <aomap_fragment>`
       );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      '#include <tonemapping_fragment>',
+      `if (uScan.z > 0.0) {
+        float sd = abs(vWPos.x - uScan.x);
+        float core = 1.0 - smoothstep(0.0, 0.014, sd);
+        float halo = exp(-sd * sd / (uScan.y * uScan.y));
+        gl_FragColor.rgb += vec3(0.81, 0.13, 0.012) * (core * 2.4 + halo * 0.2) * uScan.z;
+      }
+      #include <tonemapping_fragment>`
+    );
     if (hole) {
       shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n  if (inHole(vWPos)) discard;');
     }
@@ -353,6 +367,7 @@ export function createMaquette(canvas) {
       }
     }
     tiles.instanceColor.needsUpdate = true;
+    const baseCol = tiles.instanceColor.array.slice();
     g.tuiles.add(tiles);
 
     // planches de rive (aux deux pignons)
@@ -366,7 +381,7 @@ export function createMaquette(canvas) {
 
     slopes.push({
       side, slope, g, rafters, ecran, cl, lit, cord, tiles, tileInfo, litZ, cordZ, pieceR, riveL, riveR,
-      litP: new Float32Array(NC),
+      litP: new Float32Array(NC), baseCol,
       lift: new Float32Array(tileInfo.length), vel: new Float32Array(tileInfo.length),
       snapAt: new Float32Array(NC).fill(-1), snapped: new Uint8Array(NC),
     });
@@ -578,6 +593,127 @@ export function createMaquette(canvas) {
   floor.receiveShadow = true;
   scene.add(floor);
 
+  /* ---------- vérification par drone : ce que le drone repère sur la maquette ----------
+     une tuile glissée sur le pan avant, des mousses en bas du pan arrière, une faîtière soulevée,
+     des feuilles dans le chéneau avant. Ils n'apparaissent que pendant la vérification (st.defect). */
+  const SLIP_K = 4 * COLS + 12;
+  const mossK = [];
+  for (const t of slopes[1].tileInfo) {
+    const k = t.j * COLS + t.i;
+    const d = Math.hypot((t.i - 5.5) / 3.2, t.j / 1.6);
+    if (d < 1.15 && rand() < 1.1 - d * 0.6) mossK.push([k, Math.min(1, 1.25 - d * 0.7)]);
+  }
+  const RIDGE_BAD = 8;
+  const mossCol = new THREE.Color('#5d6a2c');
+  const leafGeo = new THREE.BoxGeometry(0.045, 0.006, 0.028);
+  const LEAVES = 16;
+  const leaves = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }), LEAVES);
+  const leafBase = [];
+  for (let i = 0; i < LEAVES; i++) {
+    leafBase.push({ x: -1.55 + rand() * 0.75, y: rand() * 0.02, z: (rand() - 0.5) * 0.07, r: rand() * 6.28, t: rand() * 0.6 });
+    leaves.setColorAt(i, new THREE.Color().setHSL(0.08 + rand() * 0.1, 0.45, 0.22 + rand() * 0.12));
+  }
+  leaves.instanceColor.needsUpdate = true;
+  leaves.visible = false;
+  gutters[0].gg.add(leaves);
+  function writeDefects() {
+    const d = st.defect;
+    // mousses
+    const s1 = slopes[1], col = s1.tiles.instanceColor.array, mc = [mossCol.r, mossCol.g, mossCol.b];
+    for (const [k, w] of mossK) {
+      for (let c = 0; c < 3; c++) col[k * 3 + c] = s1.baseCol[k * 3 + c] + (mc[c] - s1.baseCol[k * 3 + c]) * d * w * 0.85;
+    }
+    s1.tiles.instanceColor.needsUpdate = true;
+    // faîtière soulevée
+    dummy.position.set(ridgeInfo[RIDGE_BAD].x, 0.045 * d, 0);
+    dummy.rotation.set(0, 0, 0.16 * d);
+    dummy.scale.set(1, 1, 1);
+    dummy.updateMatrix();
+    ridgeTiles.setMatrixAt(RIDGE_BAD, dummy.matrix);
+    ridgeTiles.instanceMatrix.needsUpdate = true;
+    // feuilles dans le chéneau
+    leaves.visible = d > 0.001;
+    leafBase.forEach((l, i) => {
+      dummy.position.set(l.x, l.y - 0.035, l.z);
+      dummy.rotation.set(l.t, l.r, l.t * 0.5);
+      const k = Math.max(0.0001, d);
+      dummy.scale.set(k, k, k);
+      dummy.updateMatrix();
+      leaves.setMatrixAt(i, dummy.matrix);
+    });
+    leaves.instanceMatrix.needsUpdate = true;
+  }
+
+  /* ---------- le drone : un quadricoptère, hélices en rotation, qui décolle devant la maison ---------- */
+  const drone = new THREE.Group();
+  const dBody = new THREE.MeshStandardMaterial({ color: 0x23292c, roughness: 0.36, metalness: 0.3 });
+  const dGrey = new THREE.MeshStandardMaterial({ color: 0x4a5357, roughness: 0.5, metalness: 0.2 });
+  const dLed = new THREE.MeshBasicMaterial({ color: 0xe8641c });
+  const dWhite = new THREE.MeshBasicMaterial({ color: 0xf2f4f5 });
+  const dDisc = new THREE.MeshBasicMaterial({ color: 0xdfe5e8, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false });
+  const dPart = (geo, mat, x, y, z) => { const m = shadowy(new THREE.Mesh(geo, mat)); m.position.set(x, y, z); drone.add(m); return m; };
+  dPart(new THREE.BoxGeometry(0.15, 0.05, 0.24), dBody, 0, 0, 0);
+  dPart(new THREE.BoxGeometry(0.11, 0.035, 0.17), dGrey, 0, 0.038, 0.01);
+  const props = [];
+  for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+    const arm = dPart(new THREE.BoxGeometry(0.022, 0.018, 0.25), dBody, sx * 0.085, 0.005, sz * 0.085);
+    arm.rotation.y = Math.atan2(sx, sz);
+    dPart(new THREE.CylinderGeometry(0.022, 0.024, 0.036, 16), dGrey, sx * 0.17, 0.02, sz * 0.17);
+    const prop = new THREE.Group();
+    prop.position.set(sx * 0.17, 0.042, sz * 0.17);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(0.11, 40), dDisc);
+    disc.rotation.x = -Math.PI / 2;
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.003, 0.018), dGrey);
+    prop.add(disc, blade);
+    prop.userData.dir = sx * sz;
+    drone.add(prop);
+    props.push(prop);
+    // feux à l'avant (orange), à l'arrière (blanc)
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.009, 8, 8), sz < 0 ? dLed : dWhite);
+    led.position.set(sx * 0.17, 0, sz * 0.194);
+    drone.add(led);
+  }
+  // nacelle et caméra, sous l'avant
+  dPart(new THREE.SphereGeometry(0.03, 20, 14), dGrey, 0, -0.045, -0.1);
+  dPart(new THREE.CylinderGeometry(0.014, 0.014, 0.02, 16), dBody, 0, -0.045, -0.128).rotation.x = Math.PI / 2;
+  drone.scale.setScalar(1.8);
+  drone.visible = false;
+  model.add(drone);
+  // trajet : décollage devant la maison, montée, puis vol stationnaire au-dessus du faîtage ;
+  // le balayage traverse le toit d'un pignon à l'autre, puis le drone monte pour voir tout le toit
+  const flight = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(2.3, -0.36, 3.1),
+    new THREE.Vector3(2.25, 0.7, 3.0),
+    new THREE.Vector3(2.05, 2.4, 2.2),
+    new THREE.Vector3(1.85, 4.2, 1.0),
+    new THREE.Vector3(1.7, 5.2, 0.05),
+  ], false, 'centripetal');
+  // le drone reste du côté du pignon +x, loin du texte ; le balayage traverse ensuite le toit vers l'autre pignon
+  const SCAN_Y = 5.2, SCAN_X0 = 1.7, SCAN_X1 = -1.7;
+  const droneEnd = new THREE.Vector3(0, 9.6, 0.15);
+  const drP = new THREE.Vector3(), drLast = new THREE.Vector3(), drVel = new THREE.Vector3(), drStep = new THREE.Vector3(), drWorld = new THREE.Vector3();
+  const povP = new THREE.Vector3(), povQ = new THREE.Vector3();
+  function stepDrone(dt) {
+    if (st.drone < 0.001) { drone.visible = false; U.uScan.value.z = 0; return; }
+    flight.getPoint(clamp01(st.droneT), drP);
+    if (st.droneScan > 0) drP.set(SCAN_X0 + (SCAN_X1 - SCAN_X0) * st.droneScan, SCAN_Y, 0.05);
+    if (st.droneUp > 0) drP.lerp(droneEnd, st.droneUp);
+    // vitesse lissée : le drone s'incline dans le sens de son déplacement, puis se remet à plat
+    if (dt > 0) drVel.lerp(drStep.subVectors(drP, drLast).divideScalar(dt), Math.min(1, dt * 5));
+    drLast.copy(drP);
+    drone.position.copy(drP);
+    drone.position.y += Math.sin(clock * 1.7) * 0.018 * Math.min(1, st.droneT * 20);
+    const lim = (v) => Math.max(-0.35, Math.min(0.35, v));
+    drone.rotation.set(lim(drVel.z * 0.2), Math.sin(clock * 0.4) * 0.04, lim(-drVel.x * 0.2));
+    // les hélices tournent dès que le drone est à l'écran
+    const spin = (st.droneT > 0.005 ? 38 : 30) * dt;
+    for (const pr of props) pr.rotation.y += spin * pr.userData.dir;
+    drone.visible = st.droneCam < 0.7;
+    drWorld.copy(drone.position);
+    model.localToWorld(drWorld);
+    U.uScan.value.set(drWorld.x, 0.34, st.scan);
+  }
+
   /* ---------- ancres pour les étiquettes de la coupe ---------- */
   const front = slopes[0];
   const anchor = (parent, x, y, z) => { const o = new THREE.Object3D(); o.position.set(x, y, z); parent.add(o); return o; };
@@ -592,6 +728,16 @@ export function createMaquette(canvas) {
     isolation: anchor(layers.isolation, -L * 0.2, 0.09, S * 0.6),
     chenau: anchor(gutters[0].gg, -L * 0.36, 0.04, 0),
   };
+  // ce que le drone repère
+  {
+    const t = slopes[0].tileInfo[SLIP_K];
+    anchors.drnTuile = anchor(slopes[0].g.tuiles, t.x, 0.1, t.z + TL * 0.5 + 0.08);
+    const mk = mossK.map(([k]) => slopes[1].tileInfo[k]);
+    const mx = mk.reduce((a, b) => a + b.x, 0) / mk.length, mz = mk.reduce((a, b) => a + b.z, 0) / mk.length;
+    anchors.drnMousse = anchor(slopes[1].g.tuiles, mx, 0.1, mz + TL * 0.5);
+    anchors.drnFaitage = anchor(layers.faitage, ridgeInfo[RIDGE_BAD].x, 0.14, 0);
+    anchors.drnChenau = anchor(gutters[0].gg, -1.17, 0, 0);
+  }
 
   /* ---------- SOS : le pignon devient un mur, la pluie mouille les tuiles ---------- */
   const WALL_X = L / 2 + 0.07;
@@ -946,13 +1092,20 @@ export function createMaquette(canvas) {
     glowEcran: 0,
     float: 0,     // les tuiles en suspens arrivent (intro)
     air: 1,       // et s'effacent quand on plonge
+    drone: 0,     // vérification par drone : le drone est à l'écran
+    droneT: 0,    // décollage (0 → 1)
+    droneScan: 0, // balayage d'un pignon à l'autre
+    droneUp: 0,   // montée finale
+    droneCam: 0,  // 0 : caméra en orbite ; 1 : vue du drone
+    scan: 0,      // intensité du trait de balayage
+    defect: 0,    // les défauts repérés apparaissent
   };
   const pointer = { x: 0, y: 0, sx: 0, sy: 0, inside: false };
   let clock = 0;
   let lastNow = performance.now();
   slopes.forEach((s) => { s.cordP = new Float32Array(NC); s.pt = 0; s.lifting = false; });
   let focus = null;
-  let lastBuild = -1, lastExplode = -1, lastHole = 0, lastLath = 0;
+  let lastBuild = -1, lastExplode = -1, lastHole = 0, lastLath = 0, lastDefect = 0;
 
   /* liteaux et cordeaux, travée par travée : posés de gauche à droite pendant la construction,
      déposés autour du point d'entrée quand on entre dans le toit.
@@ -1041,6 +1194,13 @@ export function createMaquette(canvas) {
       }
       dummy.position.set(t.x, 0.05 + fall + lf * 0.3, t.z - (1 - p) * 0.12);
       dummy.rotation.set(-TILT - (1 - p) * 0.25 - lf * 1.9, 0, 0);
+      if (k === SLIP_K && s === slopes[0] && st.defect > 0) {
+        // la tuile a glissé vers l'égout et pivoté
+        dummy.position.x += 0.035 * st.defect;
+        dummy.position.y += 0.03 * st.defect;
+        dummy.position.z += 0.15 * st.defect;
+        dummy.rotation.y += 0.24 * st.defect;
+      }
       const sc2 = p <= 0 ? 0.0001 : 1;
       dummy.scale.set(sc2, sc2, sc2);
       dummy.updateMatrix();
@@ -1276,7 +1436,23 @@ export function createMaquette(canvas) {
       camera.position.lerp(pathP, st.pathMix);
       target.lerp(pathQ, st.pathMix);
     }
+    if (st.droneCam > 0.0001) {
+      // la caméra rejoint le drone et regarde le toit sous lui, presque à la verticale
+      povP.copy(drone.position);
+      povP.y -= 0.06;
+      povQ.copy(drone.position);
+      povQ.y -= 3;
+      // légèrement incliné vers l'arrière : l'avant de la maison reste en bas de l'image, comme à l'approche
+      povQ.z += -0.12 + pointer.sy * 0.08;
+      povQ.x += pointer.sx * 0.14;
+      model.localToWorld(povP);
+      model.localToWorld(povQ);
+      camera.position.lerp(povP, st.droneCam);
+      target.lerp(povQ, st.droneCam);
+    }
     camera.lookAt(target);
+    // l'objectif du drone est plus large que celui de la maquette
+    camera.fov = 22 + 20 * st.droneCam;
     camera.setViewOffset(W, H, -W * st.shiftX, -H * st.shiftY, W, H);
     // le trou suit la toiture
     entryWorld.copy(E_m);
@@ -1392,6 +1568,8 @@ export function createMaquette(canvas) {
     } else {
       for (const s of slopes) if (s.snapAt.some((t) => t >= 0 && clock - t < 0.7)) writeLath(s);
     }
+    stepDrone(dt);
+    if (st.defect !== lastDefect) { lastDefect = st.defect; writeDefects(); writeTiles(slopes[0]); }
     updateCamera();
     // tant que des tuiles ou des liteaux sont en l'air, on les réécrit à chaque image : ils flottent
     if (st.hole > 0 || st.hole !== lastHole) { writeTiles(slopes[0]); lastHole = st.hole; }

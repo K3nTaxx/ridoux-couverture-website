@@ -1,5 +1,5 @@
 /* Haut de page : la toiture se pose rang par rang dans le soir, puis on entre dedans.
-   Ce module dirige aussi la caméra de la maquette pour toute la page (haut de page, coupe, SOS). */
+   Ce module dirige aussi la caméra de la maquette pour toute la page (haut de page, coupe, drone, SOS). */
 
 export function initHero(ctx) {
   const { gsap, ScrollTrigger, maquette } = ctx;
@@ -8,9 +8,9 @@ export function initHero(ctx) {
   const sky = document.querySelector('.sky');
   const glow = sky.querySelector('.sky-glow');
   const back = document.querySelector('.hero-back');
-  const cv = { hero: 0, cpe: 0, sos: 0, sky: 1 };
+  const cv = { hero: 0, cpe: 0, drone: 0, sos: 0, sky: 1 };
   const applyCanvas = () => {
-    canvas.style.opacity = String(Math.max(cv.hero, cv.cpe, cv.sos));
+    canvas.style.opacity = String(Math.max(cv.hero, cv.cpe, cv.drone, cv.sos));
     sky.style.opacity = String(cv.hero * cv.sky);
   };
   ctx.canvasVis = cv;
@@ -30,12 +30,15 @@ export function initHero(ctx) {
   const HI = { ...H0, shiftY: 0, sunAz: 12, sunEl: 52, exposure: 1.08 };
   const C1 = { az: 52, el: 17, dist: 25.5, tx: 0, ty: 0.6, tz: 0, shiftX: 0.035, shiftY: -0.03, sunAz: 70, sunEl: 30, yaw: -10, exposure: 1.12 };
   const C2 = { ...C1, az: 57, yaw: -24 };
+  // drone : la maison de trois quarts, décalée à droite pour laisser le texte à gauche
+  const D0 = { az: 34, el: 13, dist: 18, tx: 0.2, ty: 0.45, tz: 0, shiftX: 0.2, shiftY: 0.03, sunAz: 115, sunEl: 34, yaw: 0, exposure: 1.06 };
+  const D1 = { ...D0, az: 46, el: 20, dist: 13 };
   // SOS : la maquette vue depuis le pignon, comme une maison sous la pluie
   const S0 = { az: 90, el: 34, dist: 12.8, tx: 2.0, ty: 0.2, tz: 0, shiftX: 0, shiftY: 0, sunAz: 140, sunEl: 38, yaw: 0, exposure: 0.98 };
   const S1 = { ...S0, el: 13, dist: 11.4 };
   const keys = Object.keys(H0);
   const intro = { dist: 0, el: 0, az: 0 };
-  const cam = { heroP: 0, cpeP: 0, sosP: 0, sosOn: false };
+  const cam = { heroP: 0, cpeP: 0, sosP: 0, sosOn: false, droneP: 0, droneOn: false };
   const lerp = (a, b, t) => a + (b - a) * t;
   const io = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
   const clamp01 = (t) => Math.min(1, Math.max(0, t));
@@ -69,7 +72,23 @@ export function initHero(ctx) {
   const pathU = spline([[0, 0], [0.75, 1], [1.05, 2], [1.4, 3], [1.8, 4], [2.1, 5], [2.32, 6], [2.6, 7], [3.0, 8], [3.3, 9], [3.72, 10], [4.15, 11]]);
 
   ctx.updateCam = () => {
-    if (cam.sosOn) {
+    st.drone = 0; st.droneCam = 0; st.scan = 0; st.defect = 0; st.floor = 0;
+    if (cam.droneOn) {
+      // vérification par drone : il décolle devant la maison, la caméra le rejoint et regarde sous lui,
+      // il balaie le toit d'un pignon à l'autre, puis monte pour le montrer en entier
+      const p = cam.droneP;
+      mixState(D0, D1, io(ramp(p, 0, 0.4)));
+      st.explode = 0; st.sos = 0;
+      st.pathMix = 0; st.hole = 0; st.lath = 0; st.tear = 0; st.inside = 0; st.dark = 0; st.air = 0;
+      st.drone = 1;
+      st.floor = 1;
+      st.defect = 1;
+      st.droneT = io(ramp(p, 0.04, 0.36));
+      st.droneCam = io(ramp(p, 0.3, 0.47));
+      st.droneScan = io(ramp(p, 0.48, 0.84));
+      st.droneUp = io(ramp(p, 0.86, 1));
+      st.scan = bump(p, 0.45, 0.5, 0.82, 0.87);
+    } else if (cam.sosOn) {
       mixState(S0, S1, 1 - Math.pow(1 - clamp01(cam.sosP), 3));
       st.explode = 0;
       st.sos = 1;
@@ -133,8 +152,8 @@ export function initHero(ctx) {
      le titre s'efface, la caméra plonge, les tuiles s'envolent, puis les liteaux sont déposés,
      l'écran se déchire, on passe entre deux chevrons et l'on recule le long de la charpente.
      La coupe « couche par couche » reprend ce mouvement sans le casser. */
-  const vis = { hero: true, cpe: false, sos: false };
-  const apply = () => maquette.setActive(vis.hero || vis.cpe || vis.sos);
+  const vis = { hero: true, cpe: false, drone: false, sos: false };
+  const apply = () => maquette.setActive(vis.hero || vis.cpe || vis.drone || vis.sos);
   const copy = document.querySelector('.hero-copy');
   const layersBox = document.querySelector('.hero-layers');
   const layers = [...layersBox.querySelectorAll('li')];
@@ -184,4 +203,5 @@ export function initHero(ctx) {
   });
   ctx.setCoupeVisible = (v) => { vis.cpe = v; apply(); };
   ctx.setSosVisible = (v) => { vis.sos = v; apply(); };
+  ctx.setDroneVisible = (v) => { vis.drone = v; apply(); };
 }

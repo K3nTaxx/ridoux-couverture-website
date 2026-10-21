@@ -146,3 +146,23 @@ Mention : devis gratuit. Envoi : [À FOURNIR : service d'envoi des formulaires, 
 
 Nom de domaine (aucun), hébergement (aucun), outils à intégrer (aucun), calendrier (aucun) ✅.
 Documents existants (devis type, plaquette, carte de visite) : le client en a ✅ mais ne les a pas transmis. [À FOURNIR]
+
+## 12. Vérification de toiture par drone (retour n° 12, 21/10/2026)
+
+Le client propose la vérification de toiture à domicile par drone. Il n'a pas encore les détails (pas de prix : ne pas en afficher). Les textes de la section sont **généraux**, écrits à partir d'informations publiques sur l'inspection de toiture par drone, et restent à valider par le client :
+
+- Titre : « Votre toit, vu du ciel » — surtitre : « Vérification de toiture par drone ».
+- « Avant de monter sur un toit, nous le regardons d'en haut. Le drone survole votre toiture, piloté depuis le sol : personne ne marche sur les tuiles. »
+- Tout le toit, sans y monter — pans, faîtage, rives et chéneaux vus de près. ✅ (principe même du drone)
+- Les défauts repérés — tuiles déplacées ou cassées, mousses, faîtage abîmé, chéneaux encombrés. ✅ (cas cités par les sources)
+- Des images à l'appui — « l'état réel de votre toit, en images : les travaux se décident sur pièces. » **À confirmer** : le client remet-il les photos ou vidéos au particulier ?
+- Quand y penser — après un orage ou un coup de vent, avant un achat, avant des travaux, pour un simple contrôle. **À confirmer** par le client.
+- Ajouté aussi à la liste des prestations (« Vérification par drone — sans monter sur le toit ») et aux choix du formulaire.
+
+Non affiché, faute d'information du client : tarifs, matériel (caméra thermique ou non), déclarations et formation de télépilote, délais.
+
+Sources consultées (informations générales) :
+- DJI Enterprise, « Comment réaliser une inspection de toiture par drone » : https://enterprise-insights.dji.com/fr/blog/drone-toit-inspections
+- FFB, « Utilisation d'un drone en couverture » (vol strictement encadré) : https://www.ffbatiment.fr/techniques-batiment/enveloppe-du-batiment/couverture/dossier/utilisation-drone-couverture
+- Kiwa, « Inspections par drone des structures de toiture et de façade » : https://www.kiwa.com/be/fr-be/domaines-dexpertise/inspections-intelligentes/inspections-par-drone-des-structures-de-toiture-et-de-facade/
+- SeLoger, « Toiture : 7 signes qui montrent qu'elle doit être vérifiée avant l'hiver » : https://edito.seloger.com/node/23805

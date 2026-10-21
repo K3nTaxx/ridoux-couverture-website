@@ -431,6 +431,160 @@ main { position: relative; z-index: 1; }
 .svc-more a { color: var(--ink); background: linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 100% 1.5px no-repeat; padding-bottom: 2px; }
 
 /* ---------- 4. ENTRETIEN ---------- */
+/* ---------- VÉRIFICATION PAR DRONE ----------
+   à gauche le texte, à droite le cadre de visée du drone posé sur la maquette 3D */
+.drn {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  color: var(--zinc-50);
+  overflow: hidden;
+}
+/* écran partagé : un panneau sombre en fondu à gauche, la caméra du drone à droite */
+.drn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, #1b2326 0, #1b2326 30vw, rgba(27, 35, 38, .7) 34vw, rgba(27, 35, 38, 0) 39vw);
+}
+.drn-copy {
+  position: absolute;
+  left: var(--m);
+  top: calc(var(--nav-h) + 7vh);
+  width: calc(var(--col) * 4 + var(--g) * 3);
+  z-index: 3;
+}
+.drn-kicker {
+  font-size: 12.5px;
+  font-weight: 650;
+  font-stretch: 112%;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--cordeau-pale);
+  margin-bottom: 18px;
+}
+.drn-title { margin-bottom: 22px; }
+.drn-lead {
+  font-family: var(--f-serif);
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: rgba(236, 238, 236, .78);
+  max-width: 24em;
+  transition: opacity .6s var(--ease), transform .8s var(--ease);
+}
+.drn.is-scanning .drn-lead { opacity: 0; transform: translateY(-14px); }
+/* les quatre points remplacent la phrase d'introduction pendant le balayage (même case de grille) */
+.drn-swap { display: grid; align-items: start; }
+.drn-swap > * { grid-area: 1 / 1; }
+.drn-points { display: grid; gap: 16px; }
+.drn-points li {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(236, 238, 236, .18);
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .6s var(--ease), transform .9s var(--ease), border-color .6s;
+}
+.drn-points li.is-on { opacity: 1; transform: none; border-color: var(--cordeau); }
+.drn-points strong { font-size: 17px; font-weight: 650; font-stretch: 108%; }
+.drn-points span { font-family: var(--f-serif); font-size: 16px; line-height: 1.45; color: rgba(236, 238, 236, .7); }
+.drn-cta { margin-top: 28px; opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ease), transform .9s var(--ease); pointer-events: none; }
+.drn.is-done .drn-cta { opacity: 1; transform: none; pointer-events: auto; }
+
+/* le cadre de visée */
+.drn-hud {
+  position: absolute;
+  left: 37vw;
+  right: var(--m);
+  top: calc(var(--nav-h) + 3vh);
+  bottom: 5vh;
+  pointer-events: none;
+  opacity: var(--hud, 0);
+  font-size: 11.5px;
+  font-weight: 650;
+  font-stretch: 112%;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: rgba(236, 238, 236, .86);
+}
+.drn-corner { position: absolute; width: 34px; height: 34px; border: 0 solid rgba(236, 238, 236, .8); transition: transform .9s var(--ease); }
+.drn-corner--tl { left: 0; top: 0; border-width: 1.5px 0 0 1.5px; transform: translate(calc(var(--snap, 0) * -18px), calc(var(--snap, 0) * -18px)); }
+.drn-corner--tr { right: 0; top: 0; border-width: 1.5px 1.5px 0 0; transform: translate(calc(var(--snap, 0) * 18px), calc(var(--snap, 0) * -18px)); }
+.drn-corner--bl { left: 0; bottom: 0; border-width: 0 0 1.5px 1.5px; transform: translate(calc(var(--snap, 0) * -18px), calc(var(--snap, 0) * 18px)); }
+.drn-corner--br { right: 0; bottom: 0; border-width: 0 1.5px 1.5px 0; transform: translate(calc(var(--snap, 0) * 18px), calc(var(--snap, 0) * 18px)); }
+.drn-cross { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; }
+.drn-cross::before, .drn-cross::after { content: ''; position: absolute; background: rgba(236, 238, 236, .7); }
+.drn-cross::before { left: 0; right: 0; top: 50%; height: 1px; -webkit-mask: linear-gradient(90deg, #000 38%, transparent 38% 62%, #000 62%); mask: linear-gradient(90deg, #000 38%, transparent 38% 62%, #000 62%); }
+.drn-cross::after { top: 0; bottom: 0; left: 50%; width: 1px; -webkit-mask: linear-gradient(#000 38%, transparent 38% 62%, #000 62%); mask: linear-gradient(#000 38%, transparent 38% 62%, #000 62%); }
+.drn-top { position: absolute; left: 22px; right: 22px; top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.drn-rec { display: flex; align-items: center; gap: 9px; }
+.drn-rec i { width: 8px; height: 8px; border-radius: 50%; background: var(--cordeau); animation: drn-blink 1.2s steps(2, jump-none) infinite; }
+.drn-rec b, .drn-pct { font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: .08em; }
+@keyframes drn-blink { 50% { opacity: .15; } }
+.drn-compass {
+  position: relative;
+  width: min(300px, 22vw);
+  height: 22px;
+  overflow: hidden;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+}
+.drn-compass::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 1px; height: 9px; background: var(--cordeau); }
+.drn-tape { position: absolute; left: 0; top: 0; height: 100%; display: flex; align-items: flex-end; will-change: transform; }
+.drn-tape span { flex: none; width: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.drn-tape span::after { content: ''; width: 1px; height: 5px; background: rgba(236, 238, 236, .5); }
+.drn-tape span.is-major::after { height: 8px; background: rgba(236, 238, 236, .85); }
+.drn-tape em { font-style: normal; font-size: 10px; line-height: 1; letter-spacing: 0; }
+.drn-bottom { position: absolute; left: 22px; right: 22px; bottom: 18px; display: flex; align-items: center; gap: 16px; }
+.drn-bar { flex: 1; height: 1px; background: rgba(236, 238, 236, .22); position: relative; }
+.drn-bar i { position: absolute; left: 0; top: -1px; height: 3px; width: 100%; background: var(--cordeau); transform-origin: left; transform: scaleX(var(--scan, 0)); }
+
+/* les repères verrouillés sur ce que le drone voit */
+/* même cadre que la visée : un repère qui sort du cadre disparaît derrière son bord */
+.drn-marks { position: absolute; left: 37vw; right: var(--m); top: calc(var(--nav-h) + 3vh); bottom: 5vh; overflow: hidden; pointer-events: none; z-index: 2; }
+.drn-marks li { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 14px; opacity: 0; will-change: transform, opacity; }
+.drn-marks i {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  margin: -23px 0 0 -23px;
+  transform: scale(1.9);
+  transition: transform .7s var(--ease);
+  background:
+    linear-gradient(var(--cordeau), var(--cordeau)) left top / 12px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) left top / 2px 12px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right top / 12px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right top / 2px 12px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 12px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 2px 12px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right bottom / 12px 2px no-repeat,
+    linear-gradient(var(--cordeau), var(--cordeau)) right bottom / 2px 12px no-repeat;
+}
+.drn-marks i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: var(--cordeau); }
+.drn-marks span {
+  margin-top: -23px;
+  padding: 6px 10px 6px 10px;
+  font-size: 11.5px;
+  font-weight: 650;
+  font-stretch: 112%;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--zinc-50);
+  background: rgba(27, 35, 38, .78);
+  border-left: 2px solid var(--cordeau);
+  transform: translateX(-8px);
+  opacity: 0;
+  transition: opacity .5s var(--ease) .12s, transform .7s var(--ease) .12s;
+}
+.drn-marks li.is-on { opacity: 1; }
+.drn-marks li.is-on i { transform: scale(1); }
+.drn-marks li.is-on span { opacity: 1; transform: none; }
+
 .lav { position: relative; z-index: 2; padding: clamp(100px, 13vh, 150px) var(--m) 0; }
 .lav-inner { display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--g); }
 .lav-stage { grid-column: 1 / span 6; position: relative; }

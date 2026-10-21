@@ -125,6 +125,7 @@
           <li><a href="#contact" data-service="Isolation des combles"><span class="svc-name">Isolation des combles</span><svg class="svc-arrow" viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6H18M13 1.5L18 6L13 10.5" /></svg></a></li>
           <li><a href="#contact" data-service="Nettoyage de façade"><span class="svc-name">Nettoyage de façade</span><svg class="svc-arrow" viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6H18M13 1.5L18 6L13 10.5" /></svg></a></li>
           <li><a href="#contact" data-service="Nettoyage de dallage"><span class="svc-name">Nettoyage de dallage</span><svg class="svc-arrow" viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6H18M13 1.5L18 6L13 10.5" /></svg></a></li>
+          <li><a href="#contact" data-service="Vérification par drone"><span class="svc-name">Vérification par drone</span><span class="svc-mat">sans monter sur le toit</span><svg class="svc-arrow" viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6H18M13 1.5L18 6L13 10.5" /></svg></a></li>
           <li><a href="#contact" data-service="Petits travaux de maçonnerie"><span class="svc-name">Petits travaux de maçonnerie</span><svg class="svc-arrow" viewBox="0 0 20 12" aria-hidden="true"><path d="M1 6H18M13 1.5L18 6L13 10.5" /></svg></a></li>
         </ul>
         <p class="svc-more">Et tout autre service&nbsp;: <a href="#contact" data-service="Autre demande">parlez-nous de votre projet</a>.</p>
@@ -171,6 +172,49 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ============ VÉRIFICATION PAR DRONE ============
+         la maquette revient : un drone décolle devant la maison, on bascule dans sa caméra,
+         il balaie le toit et se verrouille sur ce qu'il repère -->
+    <section class="drn" id="drone">
+      <div class="drn-copy">
+        <p class="drn-kicker">Vérification de toiture par drone</p>
+        <h2 class="drn-title">Votre toit, <em>vu du ciel</em></h2>
+        <div class="drn-swap">
+          <p class="drn-lead">Avant de monter sur un toit, nous le regardons d’en haut. Le drone survole votre toiture, piloté depuis le sol&nbsp;: personne ne marche sur les tuiles.</p>
+          <ul class="drn-points">
+            <li><strong>Tout le toit, sans y monter</strong><span>Pans, faîtage, rives et chéneaux&nbsp;: le drone voit de près ce que l’on ne voit pas depuis la rue.</span></li>
+            <li><strong>Les défauts repérés</strong><span>Tuiles déplacées ou cassées, mousses, faîtage abîmé, chéneaux encombrés.</span></li>
+            <li><strong>Des images à l’appui</strong><span>L’état réel de votre toit, en images&nbsp;: les travaux se décident sur pièces.</span></li>
+            <li><strong>Quand y penser</strong><span>Après un orage ou un coup de vent, avant un achat, avant des travaux, ou pour un simple contrôle.</span></li>
+          </ul>
+        </div>
+        <a class="btn btn--light magnetic drn-cta" href="#contact" data-service="Vérification par drone"><span>Demander une vérification</span></a>
+      </div>
+
+      <div class="drn-hud" aria-hidden="true">
+        <span class="drn-corner drn-corner--tl"></span><span class="drn-corner drn-corner--tr"></span>
+        <span class="drn-corner drn-corner--bl"></span><span class="drn-corner drn-corner--br"></span>
+        <span class="drn-cross"></span>
+        <div class="drn-top">
+          <span class="drn-rec"><i></i>REC <b class="drn-time">00:00</b></span>
+          <div class="drn-compass"><div class="drn-tape"></div></div>
+          <span class="drn-mode">Décollage</span>
+        </div>
+        <div class="drn-bottom">
+          <span class="drn-status">Balayage</span>
+          <span class="drn-bar"><i></i></span>
+          <b class="drn-pct">0&nbsp;%</b>
+        </div>
+      </div>
+
+      <ul class="drn-marks" aria-hidden="true">
+        <li data-mark="drnTuile"><i></i><span>Tuile déplacée</span></li>
+        <li data-mark="drnFaitage"><i></i><span>Faîtage</span></li>
+        <li data-mark="drnMousse"><i></i><span>Mousses</span></li>
+        <li data-mark="drnChenau"><i></i><span>Chéneau encombré</span></li>
+      </ul>
     </section>
 
     <!-- ============ 4. ENTRETIEN ============ -->
@@ -366,6 +410,7 @@
               <label><input type="checkbox" name="travaux" value="Nettoyage de façade" /><span>Façade</span></label>
               <label><input type="checkbox" name="travaux" value="Nettoyage de dallage" /><span>Dallage</span></label>
               <label><input type="checkbox" name="travaux" value="Petits travaux de maçonnerie" /><span>Maçonnerie</span></label>
+              <label><input type="checkbox" name="travaux" value="Vérification par drone" /><span>Vérification par drone</span></label>
               <label><input type="checkbox" name="travaux" value="Autre demande" /><span>Autre</span></label>
             </div>
           </fieldset>

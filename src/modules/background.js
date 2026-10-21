@@ -1,4 +1,4 @@
-/* Le fond descend la maison : soir → ardoise (coupe) → zinc → pierre → zinc.
+/* Le fond descend la maison : soir → ardoise (coupe) → zinc → ardoise (drone) → zinc → pierre → zinc.
    La navigation passe en sombre au-dessus des zones ardoise (coupe, mur du SOS, pied de page). */
 
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -10,6 +10,8 @@ export function initBackground({ lenis, gsap }) {
     ['.hero', '#1E272B'],
     ['.cpe', '#252D30'],
     ['.svc', '#E3E6E3', 0.02, 0.12],
+    ['.drn', '#1B2326'],
+    ['.lav', '#E3E6E3'],
     ['.rea', '#E4E5E1'],
     ['.ext', '#D8D2C8'],
     ['.zone', '#E3E5E1'],
