@@ -127,3 +127,10 @@ Précisions du client (même jour) :
 | Demande | Ce qui est fait |
 |---|---|
 | Une animation à la fin du chargement : le logo vient en haut à gauche, hyper fluide, avec de beaux mouvements | Le nom s'efface, l'anneau se referme pendant que le logo prend une petite inspiration, puis il s'envole en courbe (il monte d'abord, puis glisse vers la gauche et se pose à l'horizontale) jusqu'au logo de la navigation, au pixel près. La courbe de vitesse est lisse de bout en bout (aucune cassure d'accélération), avec une arrivée longue et douce. L'anneau s'enroule autour du logo et disparaît juste avant qu'il se pose ; le voile s'efface pendant le vol et le haut de page se lève derrière ; le nom de l'entreprise et les liens se déposent ensuite dans la navigation. Durée : 1,4 s une fois la 3D prête. |
+
+### Retour n° 10 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Mettre la photo envoyée à la place de la photo « Dépose » (tout à gauche de « Dépose · Écran et liteaux · Tuiles neuves ») | Remplacée, au même cadre que les deux autres (3:4, 1050 × 1400). La photo d'origine est rangée dans `sources/ref-1-depose-ancienne.webp`. Le texte alternatif décrit la nouvelle photo ; la légende « Dépose — L'ancienne couverture est retirée » est inchangée. |
+| SOS Toiture : la toiture sous la pluie est exceptionnelle, mais le fond noir est un peu basique ; quelque chose de plus complexe, plus design | Le mur du pignon devient un mur de moellons sombres posés en assises, comme les maisons de pierre du pays, mouillé : un film d'eau et quelques filets ruissellent, l'ombre du débord de toit tombe en haut. Toutes les 6 à 11 s, un éclair double (bref, doux) illumine la toiture et révèle la pierre. Derrière le numéro, une lueur chaude respire lentement, comme une lampe restée allumée pendant l'orage. Le texte reste lisible à chaque instant. |

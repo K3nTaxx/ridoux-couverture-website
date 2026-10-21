@@ -599,9 +599,8 @@ export function createMaquette(canvas) {
   const WALL_H = 3.1;
   const wallGeo = new THREE.BufferGeometry();
   {
-    const wallCol = new THREE.Color('#262E31');
     const pos = [], col = [], idx = [];
-    const push = (z, y, a) => { pos.push(WALL_X, y, z); col.push(wallCol.r, wallCol.g, wallCol.b, a); return pos.length / 3 - 1; };
+    const push = (z, y, a) => { pos.push(WALL_X, y, z); col.push(a); return pos.length / 3 - 1; };
     // pignon (triangle sous la toiture)
     const a0 = push(-S, yUnder(S), 1), a1 = push(S, yUnder(S), 1), a2 = push(0, yUnder(0), 1);
     idx.push(a0, a1, a2);
@@ -619,10 +618,72 @@ export function createMaquette(canvas) {
       prev = [l, r];
     }
     wallGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    wallGeo.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
+    wallGeo.setAttribute('aFade', new THREE.Float32BufferAttribute(col, 1));
     wallGeo.setIndex(idx);
   }
-  const wall = new THREE.Mesh(wallGeo, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, toneMapped: false, side: THREE.DoubleSide }));
+  /* le mur du pignon : des moellons sombres à peine visibles, comme les maisons de pierre du pays,
+     un film d'eau qui ruisselle, l'ombre du débord de toit ; un éclair révèle la pierre une fraction de seconde */
+  const wallMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: U.uTime, uFlash: { value: 0 }, uHR: { value: HR }, uTan: { value: Math.tan(PITCH) } },
+    vertexShader: `
+      attribute float aFade;
+      varying vec2 vP;
+      varying float vFade;
+      void main() {
+        vP = position.zy;
+        vFade = aFade;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      uniform float uTime;
+      uniform float uFlash;
+      uniform float uHR;
+      uniform float uTan;
+      varying vec2 vP;
+      varying float vFade;
+      vec2 h2(vec2 p) { p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return fract(sin(p) * 43758.5453); }
+      float h1(float n) { return fract(sin(n * 91.345) * 47453.5453); }
+      float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(h2(i).x, h2(i + vec2(1.0, 0.0)).x, f.x), mix(h2(i + vec2(0.0, 1.0)).x, h2(i + vec2(1.0, 1.0)).x, f.x), f.y); }
+      void main() {
+        // moellons posés en assises : cellules irrégulières, allongées, alignées à peu près par rangs ; joints un peu plus clairs
+        vec2 q = vP * vec2(4.3, 7.6);
+        vec2 ip = floor(q), fp = fract(q);
+        float d1 = 8.0, d2 = 8.0; vec2 id = ip;
+        for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) {
+          vec2 g = vec2(float(i), float(j));
+          vec2 hp = h2(ip + g);
+          vec2 r = g + vec2(0.1 + hp.x * 0.8, 0.32 + hp.y * 0.36) - fp;
+          float d = dot(r, r);
+          if (d < d1) { d2 = d1; d1 = d; id = ip + g; } else if (d < d2) { d2 = d; }
+        }
+        float joint = 1.0 - smoothstep(0.04, 0.12, sqrt(d2) - sqrt(d1));
+        float tone = h2(id).x;
+        float grain = vn(vP * 60.0) * 0.5 + vn(vP * 23.0) * 0.5;
+        // l'ardoise du site (#262E31), en couleur linéaire
+        vec3 base = vec3(0.0194, 0.0272, 0.0307);
+        vec3 stone = base * (0.8 + 0.34 * tone + 0.16 * grain);
+        vec3 col = mix(stone, base * 1.45, joint * 0.55);
+        // un film d'eau qui descend le long du mur, et quelques filets plus nets
+        float film = vn(vec2(vP.x * 16.0, vP.y * 1.1 + uTime * 0.55));
+        col += vec3(0.75, 0.82, 0.86) * smoothstep(0.6, 0.95, film) * 0.012;
+        float lane = floor(vP.x * 11.0);
+        float run = fract(vP.y * 0.9 + uTime * (0.25 + h1(lane) * 0.35) + h1(lane + 7.0));
+        float wire = 1.0 - smoothstep(0.0, 0.05, abs(fract(vP.x * 11.0) - 0.3 - h1(lane + 3.0) * 0.4));
+        col += vec3(0.8, 0.86, 0.9) * wire * smoothstep(0.75, 1.0, run) * step(0.55, h1(lane + 11.0)) * 0.03;
+        // l'ombre du débord de toit, sous les rives
+        float top = uHR - abs(vP.x) * uTan - 0.16;
+        col *= 1.0 - 0.38 * smoothstep(0.55, 0.0, top - vP.y);
+        // l'éclair : la pierre apparaît, bleutée, une fraction de seconde
+        col = mix(col, col * 4.0 + vec3(0.02, 0.026, 0.036), uFlash * 0.8);
+        gl_FragColor = vec4(col, vFade);
+        #include <colorspace_fragment>
+      }`,
+    transparent: true,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+  });
+  const wall = new THREE.Mesh(wallGeo, wallMat);
   wall.visible = false;
   model.add(wall);
   const eaveTop = HR - VMAX * Math.sin(PITCH) + 0.06;
@@ -642,6 +703,21 @@ export function createMaquette(canvas) {
   };
   const sosEave = sosPts.wallL;
   const sun0 = new THREE.Color(0xffd8b0), sunWet = new THREE.Color(0xcfdbe4);
+  const flashCol = new THREE.Color(0xe4ecff);
+  // l'orage : un éclair double toutes les 6 à 11 s tant que la maison du SOS est à l'écran
+  let flash = 0, flashT = -1, flashNext = 2.5;
+  function stepFlash(dt) {
+    if (st.sos < 0.5) { flash = 0; flashT = -1; flashNext = 2.5; wallMat.uniforms.uFlash.value = 0; return; }
+    flashNext -= dt;
+    if (flashNext <= 0) { flashT = 0; flashNext = 6 + Math.random() * 5; }
+    if (flashT >= 0) {
+      flashT += dt;
+      const t = flashT;
+      flash = (t < 0.05 ? t / 0.05 : Math.exp(-(t - 0.05) * 14)) + 0.65 * Math.exp(-Math.pow((t - 0.2) / 0.045, 2));
+      if (t > 0.8) { flash = 0; flashT = -1; }
+    }
+    wallMat.uniforms.uFlash.value = flash;
+  }
   const hemi0 = new THREE.Color(0xe2e9ec), hemiWet = new THREE.Color(0xb9c7cf);
 
   /* ---------- l'entrée dans la toiture ----------
@@ -1233,7 +1309,8 @@ export function createMaquette(canvas) {
     const sAz = (st.sunAz - pointer.sx * 14 + Math.sin(clock * 0.07) * 7 * (1 - st.sos)) * DEG;
     const sEl = st.sunEl * DEG;
     sun.position.set(Math.cos(sEl) * Math.sin(sAz) * 12, Math.sin(sEl) * 12, Math.cos(sEl) * Math.cos(sAz) * 12);
-    sun.intensity = 3.2 - 0.8 * w;
+    sun.intensity = 3.2 - 0.8 * w + 5 * flash;
+    if (flash > 0) sun.color.lerp(flashCol, Math.min(1, flash));
     sun.target.position.set(0, 0, 0);
     // le rai suit la direction du soleil
     beam.visible = st.tear > 0.05;
@@ -1307,6 +1384,7 @@ export function createMaquette(canvas) {
     pointer.sx += (pointer.x - pointer.sx) * 0.04;
     pointer.sy += (pointer.y - pointer.sy) * 0.04;
     stepGlow();
+    stepFlash(dt);
     if (st.build !== lastBuild || st.explode !== lastExplode) {
       applyBuild();
       lastBuild = st.build;
@@ -1380,6 +1458,7 @@ export function createMaquette(canvas) {
     setFocus,
     getAnchors,
     getSosOutline,
+    getFlash: () => flash,
     placeFloaters,
     set onFrame(fn) { onFrame = fn; },
     renderer,

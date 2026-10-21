@@ -578,6 +578,21 @@ main { position: relative; z-index: 1; }
   justify-items: center;
   text-align: center;
 }
+/* une lumière chaude derrière l'appel, comme une lampe restée allumée pendant l'orage */
+.sos-inner::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 72%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(closest-side, rgba(232, 100, 28, .2), rgba(232, 100, 28, .07) 55%, rgba(232, 100, 28, 0));
+  z-index: -1;
+  pointer-events: none;
+  animation: sos-lamp 5.5s ease-in-out infinite alternate;
+}
+@keyframes sos-lamp { from { opacity: .75; } to { opacity: 1; } }
 .sos-title { font-size: clamp(40px, 3.4vw, 56px); }
 .sos-lead { font-family: var(--f-serif); font-size: var(--fs-lead); line-height: 1.55; color: rgba(236, 238, 236, .74); margin-top: 18px; max-width: 30em; }
 .sos-title { text-transform: uppercase; font-stretch: 118%; font-weight: 700; letter-spacing: 0; }

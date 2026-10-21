@@ -223,3 +223,7 @@ Les couches traversées s'affichent au passage, en grand, en bas à gauche.
 Ce qui est en l'air (tuiles, liteaux) ne se fige jamais : même sans défilement, chaque pièce tangue et dérive doucement.
 
 **Chargement.** Le logo, l'anneau orange qui tourne et le nom de l'entreprise s'affichent dès la première image, en CSS (le logo est inclus dans la page). Dès que la 3D est prête (retour n° 9) : le nom s'efface, l'anneau se referme, le logo inspire puis s'envole en courbe vers la navigation (montée d'abord, glissement vers la gauche ensuite, arrivée à l'horizontale), sur une courbe de vitesse sans cassure ; l'anneau s'enroule et disparaît, le voile s'efface pendant le vol, puis le nom et les liens se déposent.
+
+### Retour n° 10 — SOS Toiture, le mur dans l'orage
+
+Le pignon n'est plus un aplat : moellons sombres en assises (pierre du pays), mur mouillé où l'eau ruisselle, ombre du débord de toit ; un éclair double toutes les 6 à 11 s éclaire la toiture et révèle la pierre ; une lueur chaude derrière le numéro, comme une lampe allumée pendant l'orage. Le contraste reste bas pour que le texte se lise toujours.
