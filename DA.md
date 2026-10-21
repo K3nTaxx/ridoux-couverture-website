@@ -91,7 +91,7 @@ Rythme vertical sur 8 px. Les lignes rouges tombent toujours sur un bord de colo
 
 ## Plan section par section
 
-### 0. Intro (≈ 2 s)
+### 0. Intro (chargement, puis ≈ 1,3 s)
 Fond ciel. Le toit du logo se trace d'un trait rouge, le monogramme RC se pose dessous.
 Puis le toit du logo s'agrandit et glisse jusqu'au faîtage de la toiture 3D : le voile s'ouvre sur le haut de page.
 *Transition* : le trait du logo devient le faîtage.
@@ -204,3 +204,22 @@ Le raccord vers une photo est abandonné. Le haut de page devient un voyage cont
 3. On passe entre deux chevrons et l'on se retrouve dans les combles : la charpente en enfilade, la pénombre, un rai de lumière qui tombe du trou, des poussières en suspension.
 4. La coupe reprend sans coupure : la caméra ressort, les tuiles reviennent se poser, et le toit s'éclate couche par couche avec ses étiquettes.
 Les couches traversées s'affichent au passage, en grand, en bas à gauche.
+
+### Retours n° 7 et 8 — « Un soir, une couche après l'autre »
+
+**Le haut de page avant le défilement.** Fini le « texte à gauche, 3D à droite » et la mer de nuages :
+- un ciel de fin de journée en dégradé (ardoise en haut, lueur chaude à l'horizon qui respire lentement), sans photo ;
+- le titre « Couvreur et charpentier » en très grand, sur toute la largeur, posé derrière la maquette : la toiture se construit devant les lettres et en masque le bas ;
+- autour, des tuiles en suspens à plusieurs profondeurs qui tournent lentement, et une poussière dorée dans l'air ; au curseur, les plus proches bougent moins que la caméra, pour donner de la profondeur sans traverser l'écran ;
+- en bas : la zone (« dans la Loire et la Haute-Loire ») à gauche, la phrase de présentation à droite, sans bouton.
+
+**La descente, couche par couche** (en écrans défilés : 3 pour le haut de page, 2 pour la coupe) :
+1. Les tuiles s'envolent autour du point d'entrée (vue d'assez haut pour voir le trou s'ouvrir).
+2. **Les liteaux** : la caméra ralentit au-dessus des liteaux et des cordeaux, en lumière rasante ; ils s'éclairent un instant, puis sont déposés travée par travée (coupés au droit des chevrons).
+3. **L'écran sous-toiture** : l'écran nu, qui s'éclaire à son tour, puis se déchire ; la lumière plonge dans les combles.
+4. **La charpente** : on passe entre deux chevrons, puis l'on recule lentement le long de la charpente.
+5. La coupe reprend ce recul sans le casser : on ressort par le pignon, le toit se referme dans l'ordre inverse (écran, liteaux, tuiles), puis s'éclate.
+
+Ce qui est en l'air (tuiles, liteaux) ne se fige jamais : même sans défilement, chaque pièce tangue et dérive doucement.
+
+**Chargement.** Le logo, l'anneau orange qui tourne et le nom de l'entreprise s'affichent dès la première image, en CSS (le logo est inclus dans la page). Dès que la 3D est prête, l'anneau se referme et rejoint le logo de la navigation pendant que le voile s'ouvre sur le soir.

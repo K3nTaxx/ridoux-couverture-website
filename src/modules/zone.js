@@ -9,11 +9,11 @@ const el = (name, attrs = {}, parent) => {
   return n;
 };
 
-export async function initZone({ gsap }) {
+export async function initZone({ gsap, zoneData }) {
   const svg = document.querySelector('.zone-svg');
   let data;
   try {
-    data = await fetch('/geo/zone.json').then((r) => r.json());
+    data = await zoneData;
   } catch (e) {
     return;
   }

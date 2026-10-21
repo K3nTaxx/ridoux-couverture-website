@@ -4,38 +4,91 @@
 
 main { position: relative; z-index: 1; }
 
-/* ---------- INTRO ---------- */
+/* ---------- CHARGEMENT ----------
+   tout est en CSS : l'anneau tourne et le logo apparaît avant même que le JavaScript soit arrivé */
 .intro {
   position: fixed;
   inset: 0;
   z-index: 300;
   display: grid;
   place-items: center;
-  background: var(--zinc-50);
+  align-content: center;
+  gap: 26px;
+  background: #1b2326;
 }
 .intro-mark { position: relative; width: 120px; height: 120px; display: grid; place-items: center; will-change: transform; }
-.intro-ring { position: absolute; inset: 0; width: 120px; height: 120px; overflow: visible; transform: rotate(-90deg); }
-/* le logo attend l'animation pour apparaître */
-.intro-logo { position: relative; width: 106px; height: 106px; opacity: 0; }
-/* invisible tant que l'animation n'a pas commencé : aucun flash au chargement */
-.intro-ring circle { stroke: var(--cordeau); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.intro-ring {
+  position: absolute;
+  inset: 0;
+  width: 120px;
+  height: 120px;
+  overflow: visible;
+  animation: intro-spin 1.15s linear infinite;
+}
+@keyframes intro-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
+.intro-ring circle { stroke: var(--cordeau); stroke-width: 4; stroke-linecap: round; stroke-dasharray: .26 1; }
+.intro-logo {
+  position: relative;
+  width: 106px;
+  height: 106px;
+  border-radius: 50%;
+  animation: intro-in .7s cubic-bezier(.16, 1, .3, 1) both;
+}
+.intro-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  font-stretch: 122%;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: rgba(236, 238, 236, .72);
+  animation: intro-in .9s .25s cubic-bezier(.16, 1, .3, 1) both;
+}
+@keyframes intro-in { from { opacity: 0; transform: translateY(8px) scale(.94); } }
 
-/* ---------- CIEL ---------- */
+/* ---------- CIEL DU SOIR ----------
+   pas de photo : un dégradé de fin de journée, et une lueur chaude à l'horizon qui respire lentement */
 .sky {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -2;
   overflow: hidden;
   pointer-events: none;
   opacity: 0;
+  background: linear-gradient(180deg, #1b2326 0%, #232d32 26%, #36424a 52%, #66625d 76%, #a8846a 93%, #b88a6a 100%);
 }
-.sky img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; transform-origin: 60% 70%; will-change: transform; }
-/* voile clair derrière le texte : le titre reste lisible sur les nuages */
-.sky::after {
+.sky-glow {
+  position: absolute;
+  inset: -10%;
+  transform-origin: 50% 80%;
+  will-change: transform;
+}
+.sky-glow::before, .sky-glow::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(236, 238, 236, .62) 0%, rgba(236, 238, 236, .3) 38%, rgba(236, 238, 236, 0) 62%);
+  background: radial-gradient(46% 34% at 54% 86%, rgba(255, 196, 140, .55) 0%, rgba(255, 170, 120, .18) 45%, rgba(255, 170, 120, 0) 100%);
+  animation: sky-breathe 14s ease-in-out infinite alternate;
+}
+.sky-glow::after {
+  background: radial-gradient(60% 22% at 30% 92%, rgba(232, 100, 28, .16) 0%, rgba(232, 100, 28, 0) 100%);
+  animation-duration: 19s;
+  animation-direction: alternate-reverse;
+}
+@keyframes sky-breathe {
+  from { transform: translate3d(-2%, 0, 0) scale(1); opacity: .85; }
+  to { transform: translate3d(2%, -1.5%, 0) scale(1.06); opacity: 1; }
+}
+
+/* ---------- TITRE, DERRIÈRE LA MAQUETTE ---------- */
+.hero-back {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  padding: calc(var(--nav-h) + clamp(18px, 3.6vh, 44px)) var(--m) 0;
+  color: var(--zinc-50);
+  transform-origin: 50% 40%;
+  will-change: transform, opacity;
 }
 
 /* ---------- 3D ---------- */
@@ -110,11 +163,50 @@ main { position: relative; z-index: 1; }
   min-height: 720px;
   z-index: 1;
   display: flex;
-  align-items: center;
-  padding: var(--nav-h) var(--m) 0;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: var(--nav-h) var(--m) clamp(40px, 7vh, 76px);
   overflow: hidden;
+  color: var(--zinc-50);
 }
 .hero-copy { position: relative; z-index: 2; will-change: transform, opacity; }
+.hero-lead {
+  font-family: var(--f-serif);
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  max-width: 22em;
+  color: rgba(236, 238, 236, .82);
+}
+
+/* le grand titre : deux lignes qui tiennent toute la largeur, la toiture se pose devant */
+.hero-title {
+  font-size: 10.4vw;
+  font-weight: 760;
+  font-stretch: 116%;
+  text-transform: uppercase;
+  letter-spacing: -0.022em;
+  line-height: 0.86;
+}
+.hero-line { display: block; overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em; }
+.hero-line > span { display: block; }
+.hero-line--b { text-align: right; }
+.hero-line--place {
+  position: fixed;
+  left: var(--m);
+  bottom: clamp(40px, 7vh, 76px);
+  padding-bottom: .2em;
+  margin-bottom: -.2em;
+}
+.hero-line--place em {
+  display: block;
+  text-transform: none;
+  font-size: clamp(30px, 2.5vw, 44px);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--zinc-50);
+}
+
 /* ce que l'on traverse en entrant dans la toiture : une couche à la fois */
 .hero-layers {
   position: absolute;
@@ -122,6 +214,17 @@ main { position: relative; z-index: 1; }
   bottom: clamp(48px, 9vh, 96px);
   z-index: 2;
   pointer-events: none;
+}
+/* un voile sombre très doux sous la légende, pour qu'elle se lise sur les tuiles comme sur l'écran */
+.hero-layers::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--m) * -1 - 6vw);
+  bottom: -14vh;
+  width: 52vw;
+  height: 46vh;
+  background: radial-gradient(closest-side, rgba(18, 23, 26, .5), rgba(18, 23, 26, 0));
+  opacity: var(--scrim, 0);
 }
 .hero-layers li {
   position: absolute;
@@ -138,42 +241,9 @@ main { position: relative; z-index: 1; }
   font-stretch: 110%;
   line-height: 1.04;
   letter-spacing: -0.012em;
-  color: var(--ink);
-  transition: color .4s;
+  color: var(--zinc-50);
 }
-.hero-layers span { font-family: var(--f-serif); font-size: var(--fs-lead); color: var(--ardoise-700); transition: color .4s; }
-.hero-layers.is-dark strong { color: var(--zinc-50); }
-.hero-layers.is-dark span { color: rgba(236, 238, 236, .74); }
-
-.hero-copy { width: calc(var(--col) * 6 + var(--g) * 5); }
-.hero-title {
-  font-size: clamp(52px, 4.3vw, 76px);
-  font-weight: 720;
-  font-stretch: 112%;
-  text-transform: uppercase;
-  letter-spacing: -0.006em;
-  line-height: 0.98;
-  margin-bottom: 30px;
-}
-.hero-line { display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
-.hero-line > span { display: block; }
-.hero-line--place { margin-top: .1em; padding-bottom: .2em; margin-bottom: -.2em; }
-.hero-line--place em {
-  display: block;
-  text-transform: none;
-  font-size: 0.6em;
-  line-height: 1.2;
-  letter-spacing: -0.012em;
-  color: var(--ardoise-700);
-}
-.hero-lead {
-  font-family: var(--f-serif);
-  font-size: var(--fs-lead);
-  line-height: 1.5;
-  max-width: 27em;
-  color: var(--ardoise-700);
-  margin-bottom: 30px;
-}
+.hero-layers span { font-family: var(--f-serif); font-size: var(--fs-lead); color: rgba(236, 238, 236, .8); }
 
 /* ---------- 2. L'ENTREPRISE ---------- */
 .fam {
@@ -308,7 +378,17 @@ main { position: relative; z-index: 1; }
   display: grid;
   gap: 2px;
   padding: 22px 44px 21px 0;
-  background: linear-gradient(var(--zinc-300), var(--zinc-300)) left top / calc(var(--l, 1) * 100%) 1px no-repeat;
+}
+/* le filet de chaque ligne, tiré de gauche à droite (transformation seule : aucun recalcul de mise en page) */
+.svc-grid a::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--zinc-300);
+  transform: scaleX(var(--l, 1));
+  transform-origin: left;
 }
 .svc-arrow {
   position: absolute;
@@ -337,6 +417,7 @@ main { position: relative; z-index: 1; }
   transform: scaleX(0);
   transform-origin: left;
   transition: transform .8s var(--ease);
+  z-index: 1;
 }
 .svc-grid a:hover::before { transform: scaleX(1); }
 .svc-grid a > span { opacity: var(--t, 1); }

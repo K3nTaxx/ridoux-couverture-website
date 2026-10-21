@@ -101,3 +101,23 @@ Précisions du client (même jour) :
 |---|---|
 | L'idée de la photo qui arrive ne plaît pas du tout : on l'oublie | Photo et légende « De la maquette au chantier » retirées. |
 | Garder le ciel, aller beaucoup plus loin : entrer dans le modèle 3D, qui forme le haut de la maison, et continuer vers la suite du site | Au défilement, la caméra plonge vers le toit, les tuiles s'envolent autour d'un point, l'écran se déchire, on passe entre deux chevrons et l'on entre dans les combles (charpente en enfilade, pénombre, rai de lumière et poussières). La coupe « couche par couche » reprend exactement là : la caméra ressort, les tuiles reviennent se poser, puis le toit s'éclate en couches. Pour que le voyage soit continu, la coupe suit maintenant directement le haut de page ; « Une histoire de famille » passe après les prestations. Les couches traversées s'affichent au passage : les tuiles, liteaux et écran, la charpente. |
+
+### Retour n° 7 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Le zoom sur les tuiles qui s'ouvrent : très beau, à garder | Gardé. |
+| On passe trop vite sur « liteaux et écran », on ne s'en rend pas compte ; mieux les séparer | Deux temps distincts, chacun avec sa légende : « Les liteaux » (la caméra ralentit au-dessus des liteaux et des cordeaux, en lumière rasante ; ils s'éclairent, puis sont déposés travée par travée), puis « L'écran sous-toiture » (l'écran nu s'éclaire, puis se déchire). Le haut de page passe de 2,2 à 3 écrans de défilement pour laisser ce temps. |
+| Sous la charpente, un vrai arrêt avant la coupe : enchaîner sans arrêt, comme ailleurs | Le haut de page et la coupe suivent une seule courbe de caméra : on recule lentement le long de la charpente, on ressort par le pignon, puis le toit se referme et s'éclate, sans jamais s'arrêter. |
+| Le dézoom de la toiture : exceptionnel | Gardé, et rallongé (coupe : 2 écrans au lieu de 1,7). |
+| « Nos prestations » : un chargement plus propre, ça bugue un peu | La liste ne dépend plus de la position exacte du défilement (des lignes restaient à moitié affichées si l'on s'arrêtait) : elle se pose d'un seul geste quand elle arrive, chaque ligne se tire au cordeau rang après rang puis son texte monte. |
+| Tout en haut de page : toujours texte à gauche, image à droite ; plus immersif, le fond de nuages est bizarre ; ajouter des éléments | Nouveau haut de page : ciel de fin de journée en dégradé (sans photo), titre « Couvreur et charpentier » en très grand derrière la toiture, qui se construit devant les lettres ; tuiles en suspens à plusieurs profondeurs et poussière dorée dans l'air, qui réagissent au curseur. |
+
+### Retour n° 8 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Enlever le bouton « Demander un devis » en bas à droite, garder juste le texte « Réfection de toiture… » | Bouton retiré du haut de page, la phrase reste seule. Le bouton de la navigation est conservé. |
+| Un bien meilleur temps de chargement, avec une animation du logo pendant l'attente, le plus rapide possible | Le logo, l'anneau orange qui tourne et le nom de l'entreprise s'affichent dès la première image (sans attendre le JavaScript). Ouverture à la première visite : 1,3 s au lieu de 2,8 s (0,5 s ensuite). Gains : une recompilation complète des shaders au premier rendu supprimée (type d'ombre retiré de three.js), shaders des ombres préparés en parallèle, polices, 3D et carte chargées en même temps, éclairage HDR réduit de 1,3 Mo à 130 Ko, photo de ciel retirée. |
+| Les tuiles : super au zoom, mais on voit qu'elles s'arrêtent de bouger (et à nouveau au dézoom après la charpente) | Tout ce qui est en l'air (tuiles, liteaux) tangue et dérive doucement en permanence, même quand on ne défile plus, à l'aller comme au retour. |
+| La partie liteaux : bien mieux, on voit vraiment | Gardée. |

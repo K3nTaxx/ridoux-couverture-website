@@ -26,6 +26,6 @@ Relier ce dépôt à Netlify : la configuration est dans `netlify.toml`
 
 ## Crédits
 
-- Ciel du haut de page et éclairage de la 3D : « Evening Road 01 (Pure Sky) », Poly Haven (Sergej Majboroda, Jarod Guest), licence CC0.
+- Éclairage de la 3D : « Evening Road 01 (Pure Sky) », Poly Haven (Sergej Majboroda, Jarod Guest), licence CC0, réduit à 256 px (`public/env/ciel-256.hdr`). Le ciel du haut de page est un dégradé en CSS.
 - Contours des départements : france-geojson (Grégoire David), données IGN Admin Express, Licence ouverte.
 - Photos et vidéos : Ridoux Couverture.

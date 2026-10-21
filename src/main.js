@@ -38,13 +38,15 @@ gsap.ticker.add((time) => lenis.raf(time * 1000));
 gsap.ticker.lagSmoothing(0);
 lenis.stop();
 
-const ctx = { gsap, ScrollTrigger, SplitText, lenis };
+// la carte est demandée dès le départ, en même temps que tout le reste
+const zoneData = fetch('/geo/zone.json').then((r) => r.json());
+const ctx = { gsap, ScrollTrigger, SplitText, lenis, zoneData };
 
 async function boot() {
-  await document.fonts.ready;
-
+  // la 3D (ciel d'éclairage puis shaders) se prépare pendant que les polices arrivent
   const maquette = createMaquette(document.querySelector('.maquette'));
-  await maquette.ready;
+  await Promise.all([document.fonts.ready, maquette.ready]);
+  performance.mark('ridoux:3d');
   gsap.ticker.add(maquette.tick);
   ctx.maquette = maquette;
 
@@ -63,6 +65,7 @@ async function boot() {
   initTitles(ctx);
 
   ScrollTrigger.refresh();
+  performance.mark('ridoux:modules');
 
   const params = new URLSearchParams(location.search);
   if (params.has('nointro')) {
@@ -74,13 +77,15 @@ async function boot() {
     if (s) lenis.scrollTo(Number(s) || `#${s}`, { immediate: true, force: true });
   } else {
     // première image de la 3D calculée derrière le voile, puis on attend que le navigateur soit au calme :
-    // l'intro ne démarre qu'après trois images régulières d'affilée (1,5 s d'attente au plus)
+    // l'intro ne démarre qu'après trois images régulières d'affilée (0,8 s d'attente au plus)
     // la maquette est rendue une fois entière puis vide : tous les programmes sont prêts avant la construction
     maquette.st.build = 1;
     maquette.render();
     maquette.st.build = 0;
     maquette.render();
-    await waitForSteadyFrames(3, 1500);
+    performance.mark('ridoux:warm');
+    await waitForSteadyFrames(3, 800);
+    performance.mark('ridoux:intro');
     // pendant l'intro, une image lente ralentit l'animation au lieu de la faire sauter
     gsap.ticker.lagSmoothing(200, 33);
     // ?freeze : l'intro démarre figée, pour la vérifier image par image

@@ -1,25 +1,31 @@
-/* Intro (≈ 1,8 s) : l'anneau orange se trace, le logo apparaît à l'intérieur, puis l'ensemble
-   va se poser sur le logo de la navigation pendant que le voile s'ouvre sur la toiture.
-   Le logo reste invisible tant qu'il n'est pas décodé : rien ne clignote au chargement. */
+/* Chargement puis ouverture (≈ 1,3 s une fois la 3D prête).
+   Pendant le chargement, tout est en CSS : le logo est là dès la première image, l'anneau orange tourne.
+   Dès que la 3D est prête, l'anneau se referme, l'ensemble va se poser sur le logo de la navigation
+   et le voile s'ouvre sur la toiture. */
 
 export async function playIntro({ gsap }, onReveal) {
   const intro = document.querySelector('.intro');
   const mark = intro.querySelector('.intro-mark');
-  const circle = intro.querySelector('.intro-ring circle');
+  const ring = intro.querySelector('.intro-ring');
+  const circle = ring.querySelector('circle');
   const logo = intro.querySelector('.intro-logo');
+  const name = intro.querySelector('.intro-name');
   const navLogo = document.querySelector('.nav-logo');
 
-  await logo.decode().catch(() => {});
+  // on laisse finir l'apparition du logo et du nom (si la page est prête très vite), puis GSAP prend la main
+  await Promise.all([logo, name].flatMap((el) => el.getAnimations().map((a) => a.finished))).catch(() => {});
+  logo.style.animation = 'none';
+  name.style.animation = 'none';
 
   gsap.set('.nav-links a, .nav-actions > *, .nav-wordmark', { opacity: 0 });
   gsap.set(navLogo, { opacity: 0 });
 
   return new Promise((resolve) => {
     const tl = gsap.timeline({ defaults: { ease: 'expo.out' }, onComplete: resolve });
-    // le tracé est piloté à la main : la feuille de style fixe le décalage, on l'écrase image par image
-    const draw = { v: 1 };
-    tl.to(draw, { v: 0, duration: 0.6, ease: 'power3.inOut', onUpdate: () => { circle.style.strokeDashoffset = draw.v.toFixed(4); } }, 0.05)
-      .fromTo(logo, { opacity: 0, scale: 0.82 }, { opacity: 1, scale: 1, duration: 0.6 }, 0.3)
+    // l'arc qui tournait se referme en anneau complet
+    const arc = { v: 0.26 };
+    tl.to(arc, { v: 1, duration: 0.5, ease: 'power2.inOut', onUpdate: () => { circle.style.strokeDasharray = `${arc.v.toFixed(4)} 1`; } }, 0)
+      .to(name, { opacity: 0, y: -6, duration: 0.35, ease: 'power2.in' }, 0.05)
       .add(() => {
         // l'anneau et le logo rejoignent ensemble le logo de la navigation
         const a = mark.getBoundingClientRect();
@@ -32,12 +38,12 @@ export async function playIntro({ gsap }, onReveal) {
           ease: 'expo.inOut',
         });
         onReveal();
-      }, 0.8)
-      .to(intro, { backgroundColor: 'rgba(236,238,236,0)', duration: 0.6, ease: 'power2.inOut' }, 0.88)
-      .to(intro.querySelector('.intro-ring'), { opacity: 0, duration: 0.3, ease: 'power1.out' }, 1.35)
-      .set(navLogo, { opacity: 1 }, 1.55)
-      .set(intro, { display: 'none' }, 1.56)
-      .to('.nav-wordmark', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 1.4)
-      .to('.nav-links a, .nav-actions > *', { opacity: 1, duration: 0.6, stagger: 0.03, ease: 'power2.out' }, 1.3);
+      }, 0.5)
+      .to(intro, { backgroundColor: 'rgba(27,35,38,0)', duration: 0.6, ease: 'power2.inOut' }, 0.56)
+      .to(ring, { opacity: 0, duration: 0.3, ease: 'power1.out' }, 1.0)
+      .set(navLogo, { opacity: 1 }, 1.25)
+      .set(intro, { display: 'none' }, 1.26)
+      .to('.nav-wordmark', { opacity: 1, duration: 0.5, ease: 'power2.out' }, 1.1)
+      .to('.nav-links a, .nav-actions > *', { opacity: 1, duration: 0.6, stagger: 0.03, ease: 'power2.out' }, 1.0);
   });
 }

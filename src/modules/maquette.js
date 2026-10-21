@@ -23,6 +23,10 @@ const VMAX = R + OVER;
 const NC = Math.ceil((VMAX - 0.16) / TP); // nombre de rangs
 const NR = 9;                        // chevrons par pan
 const TILT = 3.2 * DEG;
+// les liteaux sont coupés au droit de chaque chevron : une travée peut être déposée seule
+const RAFTER_X = Array.from({ length: NR }, (_, i) => -L / 2 + 0.06 + (i * (L - 0.12)) / (NR - 1));
+const CUTS = [-L / 2, ...RAFTER_X.slice(1, -1), L / 2];
+const BAYS = CUTS.length - 1;
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
@@ -107,7 +111,7 @@ const HOLE_GLSL = `
 
 /* les ombres de l'écran et des liteaux respectent le trou : la lumière entre dans les combles */
 function holeDepthMaterial() {
-  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+  const m = new THREE.MeshDepthMaterial();
   m.onBeforeCompile = (shader) => {
     shader.uniforms.uHole = U.uHole;
     shader.vertexShader = shader.vertexShader
@@ -196,10 +200,14 @@ export function createMaquette(canvas) {
   renderer.setPixelRatio(DPR);
   renderer.setClearColor(0x000000, 0);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // PCFSoftShadowMap n'existe plus : three.js le remplaçait au premier rendu et recompilait tous les shaders
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.02;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  // en ligne, on ne relit pas les journaux de compilation : ANGLE y laisse des avertissements sans gravité,
+  // et chaque lecture force le navigateur à attendre la fin de la compilation
+  renderer.debug.checkShaderErrors = import.meta.env.DEV;
 
   const scene = new THREE.Scene();
   // pas de carte d'environnement : son précalcul coûtait près d'une seconde au chargement.
@@ -212,7 +220,7 @@ export function createMaquette(canvas) {
     ridge: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.66, metalness: 0, side: THREE.DoubleSide }), 0.16),
     rafter: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xc39a66, roughness: 0.8 }), 0.1),
     truss: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xa97f4e, roughness: 0.82 }), 0.1),
-    batten: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xd3ae7b, roughness: 0.8 }), 0.12, true),
+    batten: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xd3ae7b, roughness: 0.8 }), 0.12),
     ecran: patchMaterial(new THREE.MeshStandardMaterial({ color: 0x4a5357, roughness: 0.92, side: THREE.DoubleSide }), 0, true),
     insul: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xc8b88f, roughness: 1 }), 0.22),
     zinc: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xa5aeb1, roughness: 0.42, metalness: 0.18, side: THREE.DoubleSide })),
@@ -307,30 +315,23 @@ export function createMaquette(canvas) {
     const clGeo = new THREE.BoxGeometry(0.036, 0.02, R);
     clGeo.translate(0, 0.016, R / 2);
     const cl = shadowy(new THREE.InstancedMesh(clGeo, M.batten, NR));
-    cl.customDepthMaterial = holeDepth;
     rafterX.forEach((x, i) => { dummy.position.set(x, 0, 0); dummy.updateMatrix(); cl.setMatrixAt(i, dummy.matrix); });
     g.liteaux.add(cl);
 
-    // liteaux + cordeaux (un par rang)
-    const litGeo = new THREE.BoxGeometry(L, 0.024, 0.042);
-    litGeo.translate(L / 2, 0.038, 0);
-    const lit = shadowy(new THREE.InstancedMesh(litGeo, M.batten, NC));
-    lit.customDepthMaterial = holeDepth;
-    const cordGeo = new THREE.BoxGeometry(L, 0.007, 0.022);
-    cordGeo.translate(L / 2, 0.053, 0);
-    const cord = new THREE.InstancedMesh(cordGeo, M.cord, NC);
-    const litZ = [];
+    // liteaux + cordeaux : un par rang, en pièces d'une travée (d'un chevron à l'autre)
+    const litGeo = new THREE.BoxGeometry(1, 0.024, 0.042);
+    litGeo.translate(0, 0.038, 0);
+    const lit = shadowy(new THREE.InstancedMesh(litGeo, M.batten, NC * BAYS));
+    const cordGeo = new THREE.BoxGeometry(1, 0.007, 0.022);
+    cordGeo.translate(0, 0.053, 0);
+    const cord = new THREE.InstancedMesh(cordGeo, M.cord, NC * BAYS);
+    const litZ = [], cordZ = [];
     for (let j = 0; j < NC; j++) {
       const vBottom = VMAX - j * TP;
-      const z = Math.max(0.05, vBottom - TL + 0.05);
-      litZ.push(z);
-      dummy.position.set(-L / 2, 0, z);
-      dummy.updateMatrix();
-      lit.setMatrixAt(j, dummy.matrix);
-      dummy.position.set(-L / 2, 0, Math.max(0.04, vBottom - 0.02));
-      dummy.updateMatrix();
-      cord.setMatrixAt(j, dummy.matrix);
+      litZ.push(Math.max(0.05, vBottom - TL + 0.05));
+      cordZ.push(Math.max(0.04, vBottom - 0.02));
     }
+    const pieceR = Float32Array.from({ length: NC * BAYS * 3 }, () => rand());
     g.liteaux.add(lit, cord);
 
     // tuiles
@@ -364,7 +365,8 @@ export function createMaquette(canvas) {
     g.rive.add(riveL, riveR);
 
     slopes.push({
-      side, slope, g, rafters, ecran, cl, lit, cord, tiles, tileInfo, litZ, riveL, riveR,
+      side, slope, g, rafters, ecran, cl, lit, cord, tiles, tileInfo, litZ, cordZ, pieceR, riveL, riveR,
+      litP: new Float32Array(NC),
       lift: new Float32Array(tileInfo.length), vel: new Float32Array(tileInfo.length),
       snapAt: new Float32Array(NC).fill(-1), snapped: new Uint8Array(NC),
     });
@@ -531,17 +533,25 @@ export function createMaquette(canvas) {
   }
 
   /* ---------- le ciel réel éclaire la toiture ----------
-     « Evening Road 01 (Pure Sky) », Poly Haven, CC0. Chargé après la première image :
-     tant qu'il n'est pas prêt, la lumière ambiante fait le travail. */
+     « Evening Road 01 (Pure Sky) », Poly Haven, CC0, réduit à 256 px : il pèse peu et arrive avant
+     la compilation des shaders, pour que rien ne se recompile pendant l'animation.
+     S'il tarde (réseau lent), on s'en passe : la lumière ambiante fait le travail. */
   let envReady = false;
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  new HDRLoader().load('/env/ciel-1k.hdr', (hdr) => {
-    hdr.mapping = THREE.EquirectangularReflectionMapping;
-    scene.environment = pmrem.fromEquirectangular(hdr).texture;
-    scene.environmentRotation.y = -1.1;
-    hdr.dispose();
-    pmrem.dispose();
-    envReady = true;
+  const envLoaded = new Promise((resolve) => {
+    let late = false;
+    const giveUp = setTimeout(() => { late = true; resolve(); }, 2500);
+    new HDRLoader().load('/env/ciel-256.hdr', (hdr) => {
+      if (late) return;
+      clearTimeout(giveUp);
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      hdr.mapping = THREE.EquirectangularReflectionMapping;
+      scene.environment = pmrem.fromEquirectangular(hdr).texture;
+      scene.environmentRotation.y = -1.1;
+      hdr.dispose();
+      pmrem.dispose();
+      envReady = true;
+      resolve();
+    }, undefined, () => { clearTimeout(giveUp); resolve(); });
   });
 
   /* ---------- lumière ---------- */
@@ -644,21 +654,38 @@ export function createMaquette(canvas) {
   const nrm = new THREE.Vector3(0, Math.cos(PITCH), Math.sin(PITCH));
   const E_m = onSlope(ENTRY.x, 0.1, ENTRY.z);
   const B_m = onSlope(ENTRY.x, -0.2, ENTRY.z);
+  // chaque point est une étape ; le haut de page et la coupe avancent d'un point à l'autre (st.u = indice du point)
+  const EX = ENTRY.x, EZ = ENTRY.z;
   const camPath = new THREE.CatmullRomCurve3([
-    E_m.clone().addScaledVector(nrm, 7.5).add(new THREE.Vector3(2.6, 0.4, 1.6)),
-    E_m.clone().addScaledVector(nrm, 2.6).add(new THREE.Vector3(0.7, 0, 0.35)),
-    E_m.clone().addScaledVector(nrm, 0.75),
-    B_m.clone().addScaledVector(nrm, -0.22),
-    new THREE.Vector3(1.72, 0.58, -0.4),
+    onSlope(EX + 2.4, 6.6, EZ + 5.0),
+    onSlope(EX + 0.9, 3.4, EZ + 2.3),        // les tuiles s'envolent
+    onSlope(EX + 0.55, 2.3, EZ + 1.6),       // les liteaux, en lumière rasante
+    onSlope(EX + 0.3, 1.95, EZ + 1.25),
+    onSlope(EX + 0.12, 1.45, EZ + 0.75),     // l'écran, puis sa déchirure
+    onSlope(EX + 0.02, 0.55, EZ + 0.2),
+    onSlope(EX, -0.28, EZ - 0.05),           // entre deux chevrons
+    new THREE.Vector3(1.15, 0.56, -0.2),     // dans les combles
+    new THREE.Vector3(1.7, 0.58, -0.36),     // fin du haut de page : on recule le long de la charpente
+    new THREE.Vector3(2.55, 0.64, -0.42),    // on ressort par le pignon
+    new THREE.Vector3(4.3, 1.4, 0.3),
+    new THREE.Vector3(7.2, 2.9, 2.9),
   ], false, 'centripetal');
   const lookPath = new THREE.CatmullRomCurve3([
-    E_m.clone(),
-    E_m.clone(),
+    onSlope(EX, 0.05, EZ),
+    onSlope(EX, 0.05, EZ),
+    onSlope(EX, 0.03, EZ - 0.15),
+    onSlope(EX, 0.02, EZ - 0.2),
+    onSlope(EX, 0.0, EZ - 0.12),
+    onSlope(EX, -0.4, EZ - 0.35),
     // en passant le trou, le regard se tourne déjà vers la charpente, pas vers le plancher
-    new THREE.Vector3(0.35, 0.5, 0.45),
-    new THREE.Vector3(-1.2, 0.48, 0.15),
-    new THREE.Vector3(-2.5, 0.52, 0.18),
+    new THREE.Vector3(0.3, 0.48, 0.45),
+    new THREE.Vector3(-1.2, 0.48, 0.12),
+    new THREE.Vector3(-2.5, 0.52, 0.15),
+    new THREE.Vector3(-2.2, 0.56, 0.08),
+    new THREE.Vector3(-0.6, 0.8, 0),
+    new THREE.Vector3(0, 1.0, 0),
   ], false, 'centripetal');
+  const PATH_N = camPath.points.length;
   const pathP = new THREE.Vector3(), pathQ = new THREE.Vector3();
   const entryWorld = new THREE.Vector3();
 
@@ -722,6 +749,102 @@ export function createMaquette(canvas) {
   motes.frustumCulled = false;
   beam.add(motes);
 
+  /* ---------- haut de page : des tuiles en suspens autour de la toiture, et la poussière du soir ----------
+     placées dans le cadre du haut de page (x, y à l'écran, distance à la caméra, taille) */
+  // les plus proches restent sur les bords, loin du titre et des textes du bas
+  const FLOAT_SPEC = [
+    [-0.97, -0.3, 6.2, 1], [0.96, -0.12, 7, 1], [-0.12, -1.06, 6.4, 1],
+    [-0.74, 0.08, 11.5, 1], [0.76, 0.02, 12.5, 1], [-0.52, -0.46, 10.5, 1], [0.54, -0.44, 13, 1], [-0.88, -0.56, 14, 1],
+    [-0.5, 0.6, 22, 1], [0.3, 0.5, 25, 1], [0.86, 0.14, 23, 1], [-0.72, -0.34, 27, 1], [0.16, -0.5, 21, 1], [-0.16, 0.68, 29, 1],
+  ];
+  const floaters = new THREE.InstancedMesh(tileGeo, M.tile, FLOAT_SPEC.length);
+  floaters.frustumCulled = false;
+  floaters.visible = false;
+  scene.add(floaters);
+  const fInfo = FLOAT_SPEC.map((f, i) => {
+    floaters.setColorAt(i, new THREE.Color(tileBase).offsetHSL(0, (rand() - 0.5) * 0.04, (rand() - 0.5) * 0.05));
+    return {
+      base: new THREE.Vector3(), out: new THREE.Vector3(), size: f[3],
+      // les tuiles proches suivent en partie la caméra : un peu de profondeur au curseur, sans qu'elles traversent l'écran
+      follow: 1 - Math.min(1, Math.max(0.3, f[2] / 22)),
+      q0: new THREE.Quaternion().setFromEuler(new THREE.Euler(rand() * 6.28, rand() * 6.28, rand() * 6.28)),
+      axis: new THREE.Vector3(rand() - 0.5, rand() - 0.5, rand() - 0.5).normalize(),
+      spin: (0.08 + rand() * 0.14) * (rand() > 0.5 ? 1 : -1), ph: rand() * 6.28, w: 0.25 + rand() * 0.25, delay: rand() * 0.35,
+    };
+  });
+  floaters.instanceColor.needsUpdate = true;
+  const AIR_N = 420;
+  const aPos = new Float32Array(AIR_N * 3), aBase = new Float32Array(AIR_N * 3);
+  const aAlpha = new Float32Array(AIR_N), aSize = new Float32Array(AIR_N), aPh = new Float32Array(AIR_N);
+  const airGeo = new THREE.BufferGeometry();
+  airGeo.setAttribute('position', new THREE.BufferAttribute(aPos, 3));
+  airGeo.setAttribute('aAlpha', new THREE.BufferAttribute(aAlpha, 1));
+  airGeo.setAttribute('aSize', new THREE.BufferAttribute(aSize, 1));
+  const airMat = dustMat.clone();
+  airMat.uniforms.uColor.value = new THREE.Color('#ffd7a6');
+  airMat.blending = THREE.AdditiveBlending;
+  airMat.uniforms.uNear.value = 1.2;
+  const air = new THREE.Points(airGeo, airMat);
+  air.frustumCulled = false;
+  air.visible = false;
+  scene.add(air);
+  const qSpin = new THREE.Quaternion();
+  const Y_UP = new THREE.Vector3(0, 1, 0), elAxis = new THREE.Vector3();
+  // une fois la caméra du haut de page en place, on répartit les tuiles et la poussière dans son cadre
+  function placeFloaters() {
+    updateCamera();
+    camera.updateMatrixWorld();
+    const center = new THREE.Vector3(0, 0.3, 0);
+    FLOAT_SPEC.forEach((f, i) => {
+      v.set(f[0], f[1], 0.5).unproject(camera).sub(camera.position).normalize();
+      fInfo[i].base.copy(camera.position).addScaledVector(v, f[2]);
+      fInfo[i].out.copy(fInfo[i].base).sub(center).normalize();
+    });
+    for (let i = 0; i < AIR_N; i++) {
+      const d = 3 + Math.pow(Math.random(), 0.7) * 26;
+      v.set(Math.random() * 2.2 - 1.1, Math.random() * 2.2 - 1.1, 0.5).unproject(camera).sub(camera.position).normalize();
+      v.multiplyScalar(d).add(camera.position);
+      aBase[i * 3] = v.x; aBase[i * 3 + 1] = v.y; aBase[i * 3 + 2] = v.z;
+      aSize[i] = 0.012 + Math.random() * 0.03;
+      aPh[i] = Math.random() * 6.28;
+    }
+    airGeo.attributes.aSize.needsUpdate = true;
+  }
+  function stepFloaters() {
+    const vis = st.float * st.air;
+    floaters.visible = vis > 0.001;
+    air.visible = floaters.visible;
+    if (!floaters.visible) return;
+    // la part du mouvement de caméra (curseur) que chaque tuile suit
+    const orbit = pointer.sx * 9 * DEG;
+    const tilt = -pointer.sy * 3.5 * DEG;
+    const az = st.az * DEG + orbit;
+    elAxis.set(-Math.cos(az), 0, Math.sin(az));
+    fInfo.forEach((f, i) => {
+      const arrive = easeOut(clamp01((st.float - f.delay) / 0.65));
+      dummy.position.copy(f.base).addScaledVector(f.out, (1 - arrive) * 5);
+      dummy.position.sub(target).applyAxisAngle(Y_UP, orbit * f.follow).applyAxisAngle(elAxis, tilt * f.follow).add(target);
+      dummy.position.x += Math.sin(clock * f.w + f.ph) * 0.1;
+      dummy.position.y += Math.sin(clock * f.w * 0.8 + f.ph * 2) * 0.16;
+      qSpin.setFromAxisAngle(f.axis, clock * f.spin + f.ph);
+      dummy.quaternion.copy(f.q0).multiply(qSpin);
+      const k = Math.max(0.0001, f.size * arrive * st.air);
+      dummy.scale.set(k, k, k);
+      dummy.updateMatrix();
+      floaters.setMatrixAt(i, dummy.matrix);
+    });
+    floaters.instanceMatrix.needsUpdate = true;
+    for (let i = 0; i < AIR_N; i++) {
+      const t = clock * 0.05 + aPh[i];
+      aPos[i * 3] = aBase[i * 3] + Math.sin(t * 1.3) * 0.3 + clock * 0.02;
+      aPos[i * 3 + 1] = aBase[i * 3 + 1] + Math.sin(t * 0.9 + 1) * 0.22;
+      aPos[i * 3 + 2] = aBase[i * 3 + 2] + Math.cos(t) * 0.3;
+      aAlpha[i] = vis * (0.18 + 0.5 * Math.sin(clock * 0.7 + aPh[i] * 3) ** 2);
+    }
+    airGeo.attributes.position.needsUpdate = true;
+    airGeo.attributes.aAlpha.needsUpdate = true;
+  }
+
   /* ---------- état piloté par GSAP ---------- */
   const st = {
     build: 0,
@@ -737,33 +860,70 @@ export function createMaquette(canvas) {
     sos: 0,
     sosY: 0,
     pathMix: 0,   // 0 : caméra en orbite ; 1 : caméra sur la trajectoire d'entrée
-    u: 0,         // avancement sur la trajectoire
-    hole: 0,      // ouverture du toit
+    u: 0,         // avancement sur la trajectoire (indice du point, avec les décimales)
+    hole: 0,      // les tuiles s'envolent autour du point d'entrée
+    lath: 0,      // puis les liteaux sont déposés, travée par travée
+    tear: 0,      // puis l'écran se déchire
     inside: 0,    // dans les combles
     dark: 0,      // fond ardoise derrière la maquette
+    glowLath: 0,  // la couche traversée s'éclaire un instant
+    glowEcran: 0,
+    float: 0,     // les tuiles en suspens arrivent (intro)
+    air: 1,       // et s'effacent quand on plonge
   };
   const pointer = { x: 0, y: 0, sx: 0, sy: 0, inside: false };
   let clock = 0;
   let lastNow = performance.now();
   slopes.forEach((s) => { s.cordP = new Float32Array(NC); s.pt = 0; s.lifting = false; });
   let focus = null;
-  let lastBuild = -1, lastExplode = -1, lastHole = 0;
+  let lastBuild = -1, lastExplode = -1, lastHole = 0, lastLath = 0;
 
-  /* cordeaux : une fois claqués, ils vibrent une fraction de seconde */
-  function writeCords(s) {
-    let moving = false;
+  /* liteaux et cordeaux, travée par travée : posés de gauche à droite pendant la construction,
+     déposés autour du point d'entrée quand on entre dans le toit.
+     Une fois claqués, les cordeaux vibrent une fraction de seconde. */
+  function piece(mesh, k, x0, x1, grow, z, y, o, r1, r2, r3, ux, uz) {
+    const len = Math.min(x1 - x0, Math.max(0, grow * L - (x0 + L / 2)));
+    if (o > 0) {
+      const sw = o * o, tt = clock * (0.5 + r2 * 0.4) + r1 * 6.28;
+      dummy.position.set((x0 + x1) / 2 + ux * o * (0.4 + r2 * 0.5), y + o * (0.8 + r3 * 1.1) + Math.sin(tt) * 0.08 * sw, z + uz * o * (0.4 + r2 * 0.5));
+      dummy.rotation.set(o * (r1 - 0.5) * 1.4 + Math.sin(tt * 0.7) * 0.3 * sw, o * (r2 - 0.5) * 1.6, o * (0.5 + r3) * (r1 > 0.5 ? 1 : -1) + Math.cos(tt * 0.6) * 0.3 * sw);
+      dummy.scale.set(Math.max(0.0001, len * (1 - o * 0.2)), 1 - o * 0.2, 1 - o * 0.2);
+    } else {
+      dummy.position.set(x0 + len / 2, y, z);
+      dummy.rotation.set(0, 0, 0);
+      dummy.scale.set(Math.max(0.0001, len), 1, 1);
+    }
+    dummy.updateMatrix();
+    mesh.setMatrixAt(k, dummy.matrix);
+  }
+  function writeLath(s) {
+    const open = s === slopes[0] && st.lath > 0;
     for (let j = 0; j < NC; j++) {
       const age = s.snapAt[j] < 0 ? 9 : clock - s.snapAt[j];
       const vib = age < 0.7 ? Math.sin(age * 62) * Math.exp(-age * 7) * 0.035 : 0;
-      if (vib !== 0) moving = true;
-      dummy.position.set(-L / 2, vib, Math.max(0.04, VMAX - j * TP - 0.02));
-      dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(Math.max(0.0001, s.cordP[j]), 1, 1);
-      dummy.updateMatrix();
-      s.cord.setMatrixAt(j, dummy.matrix);
+      for (let b = 0; b < BAYS; b++) {
+        const k = j * BAYS + b;
+        const x0 = CUTS[b], x1 = CUTS[b + 1];
+        const r1 = s.pieceR[k * 3], r2 = s.pieceR[k * 3 + 1], r3 = s.pieceR[k * 3 + 2];
+        let o = 0, oc = 0, ux = 0, uz = 0;
+        if (open) {
+          const dx = (x0 + x1) / 2 - ENTRY.x;
+          const lift = (z) => {
+            const d = Math.hypot(dx, z - ENTRY.z);
+            const v = clamp01((st.lath * 0.95 - d + r1 * 0.22) / 0.3);
+            return v * v * (3 - 2 * v);
+          };
+          const d = Math.max(0.05, Math.hypot(dx, s.litZ[j] - ENTRY.z));
+          ux = dx / d; uz = (s.litZ[j] - ENTRY.z) / d;
+          o = lift(s.litZ[j]);
+          oc = lift(s.cordZ[j]);
+        }
+        piece(s.lit, k, x0, x1, s.litP[j], s.litZ[j], 0, o, r1, r2, r3, ux, uz);
+        piece(s.cord, k, x0, x1, s.cordP[j], s.cordZ[j], vib, oc, r2, r3, r1, ux, uz);
+      }
     }
+    s.lit.instanceMatrix.needsUpdate = true;
     s.cord.instanceMatrix.needsUpdate = true;
-    return moving;
   }
 
   /* tuiles : position de pose, plus le soulèvement sous le curseur */
@@ -784,12 +944,18 @@ export function createMaquette(canvas) {
         o = o * o * (3 - 2 * o);
         if (o > 0) {
           const k2 = 1 / Math.max(d, 0.05);
+          // en l'air, la tuile ne se fige jamais : elle tangue et dérive doucement, même sans défilement
+          const sw = o * o, tt = clock * (0.55 + t.r2 * 0.5) + t.r1 * 6.28;
           dummy.position.set(
-            t.x + dx * k2 * o * (0.8 + t.r2 * 0.9),
-            0.05 + fall + lf * 0.3 + o * (1.1 + t.r3 * 1.4),
-            t.z - (1 - p) * 0.12 + dz * k2 * o * (0.8 + t.r2 * 0.9)
+            t.x + dx * k2 * o * (0.8 + t.r2 * 0.9) + Math.cos(tt * 0.6) * 0.07 * sw,
+            0.05 + fall + lf * 0.3 + o * (1.1 + t.r3 * 1.4) + Math.sin(tt) * 0.1 * sw,
+            t.z - (1 - p) * 0.12 + dz * k2 * o * (0.8 + t.r2 * 0.9) + Math.sin(tt * 0.8 + 1) * 0.07 * sw
           );
-          dummy.rotation.set(-TILT - lf * 1.9 - o * (1.6 + t.r1 * 2.4), o * (t.r2 - 0.5) * 3, o * (t.r3 - 0.5) * 2.4);
+          dummy.rotation.set(
+            -TILT - lf * 1.9 - o * (1.6 + t.r1 * 2.4) + Math.sin(tt * 0.7) * 0.45 * sw,
+            o * (t.r2 - 0.5) * 3 + Math.sin(tt * 0.5 + 2) * 0.35 * sw,
+            o * (t.r3 - 0.5) * 2.4 + Math.cos(tt * 0.6) * 0.4 * sw
+          );
           const sc3 = 1 - o * 0.25;
           dummy.scale.set(sc3, sc3, sc3);
           dummy.updateMatrix();
@@ -881,14 +1047,7 @@ export function createMaquette(canvas) {
       s.ecran.visible = pe > 0.001;
       // liteaux (de l'égout vers le faîtage)
       const pl = seg(b, 0.18, 0.34);
-      for (let j = 0; j < NC; j++) {
-        const p = easeOutExpo(seg(pl, j / NC * 0.6, j / NC * 0.6 + 0.4));
-        dummy.position.set(-L / 2, 0, s.litZ[j]);
-        dummy.scale.set(Math.max(0.0001, p), 1, 1);
-        dummy.updateMatrix();
-        s.lit.setMatrixAt(j, dummy.matrix);
-      }
-      s.lit.instanceMatrix.needsUpdate = true;
+      for (let j = 0; j < NC; j++) s.litP[j] = easeOutExpo(seg(pl, j / NC * 0.6, j / NC * 0.6 + 0.4));
       const pcl = easeOut(seg(b, 0.16, 0.26));
       for (let i = 0; i < NR; i++) {
         dummy.position.set(-L / 2 + 0.06 + (i * (L - 0.12)) / (NR - 1), 0, 0);
@@ -910,7 +1069,7 @@ export function createMaquette(canvas) {
         }
         s.cordP[j] = p;
       }
-      writeCords(s);
+      writeLath(s);
       // tuiles : rang par rang, de l'égout au faîtage
       s.pt = seg(b, 0.44, 0.92);
       writeTiles(s);
@@ -965,7 +1124,7 @@ export function createMaquette(canvas) {
     [M.tile, '#d0602f'], [M.ridge, '#d0602f'], [M.rafter, '#c08a4c'], [M.truss, '#c08a4c'], [M.batten, '#c99a5c'],
     [M.ecran, '#5c686d'], [M.insul, '#c2b183'], [M.zinc, '#a9b8be'], [M.rive, '#c9cdc9'],
   ]);
-  glowMats.forEach((m) => { m.emissive = new THREE.Color(glowTint.get(m) || '#ffffff'); m.emissiveIntensity = 0; m.userData.glow = 0; });
+  glowMats.forEach((m) => { m.emissive = new THREE.Color(glowTint.get(m) || '#ffffff'); m.emissiveIntensity = 0; m.userData.glow = 0; m.userData.g = 0; });
   allMats.forEach((m) => { m.userData.alpha = 1; });
   const DIM = 0.14;
   function setFocus(name) {
@@ -981,8 +1140,10 @@ export function createMaquette(canvas) {
   function stepGlow() {
     for (const m of allMats) {
       if (m.isMeshStandardMaterial) {
-        const d = m.userData.glow - m.emissiveIntensity;
-        m.emissiveIntensity = Math.abs(d) > 0.002 ? m.emissiveIntensity + d * 0.14 : m.userData.glow;
+        const u = m.userData;
+        const d = u.glow - u.g;
+        u.g = Math.abs(d) > 0.002 ? u.g + d * 0.14 : u.glow;
+        m.emissiveIntensity = u.g + (m === M.batten ? st.glowLath : m === M.ecran ? st.glowEcran : 0);
       }
       const da = m.userData.alpha - m.opacity;
       if (da === 0) continue;
@@ -1008,6 +1169,7 @@ export function createMaquette(canvas) {
     camera.updateProjectionMatrix();
     dustMat.uniforms.uScale.value = (H / (2 * Math.tan((camera.fov * DEG) / 2))) * DPR;
     motesMat.uniforms.uScale.value = dustMat.uniforms.uScale.value;
+    airMat.uniforms.uScale.value = dustMat.uniforms.uScale.value;
   }
   resize();
   window.addEventListener('resize', resize);
@@ -1028,8 +1190,9 @@ export function createMaquette(canvas) {
     );
     if (st.pathMix > 0.0001) {
       // sur la trajectoire, la souris ne fait qu'incliner légèrement le regard
-      camPath.getPoint(clamp01(st.u), pathP);
-      lookPath.getPoint(clamp01(st.u), pathQ);
+      const t = clamp01(st.u / (PATH_N - 1));
+      camPath.getPoint(t, pathP);
+      lookPath.getPoint(t, pathQ);
       pathQ.x += pointer.sx * 0.25 * st.pathMix;
       pathQ.y -= pointer.sy * 0.12 * st.pathMix;
       model.localToWorld(pathP);
@@ -1042,7 +1205,7 @@ export function createMaquette(canvas) {
     // le trou suit la toiture
     entryWorld.copy(E_m);
     model.localToWorld(entryWorld);
-    U.uHole.value.set(entryWorld.x, entryWorld.y - 0.1, entryWorld.z, st.hole * 0.78);
+    U.uHole.value.set(entryWorld.x, entryWorld.y - 0.1, entryWorld.z, st.tear * 0.62);
     renderer.setClearColor(0x262e31, st.dark);
     const sosOn = st.sos > 0.001;
     wall.visible = sosOn;
@@ -1057,7 +1220,7 @@ export function createMaquette(canvas) {
     const w = st.sos;
     // avec le ciel réel, la lumière ambiante s'efface au profit de l'environnement ;
     // dans les combles, la pénombre : seul le rai de lumière éclaire
-    const dim = 1 - 0.8 * st.inside;
+    const dim = 1 - 0.8 * Math.max(st.inside, 0.75 * st.tear);
     amb.intensity = (envReady ? 0.55 : 1.5) * dim;
     hemi.intensity = (envReady ? 0.55 : 1.05) * dim;
     scene.environmentIntensity = (envReady ? 0.85 : 0) * dim;
@@ -1073,7 +1236,7 @@ export function createMaquette(canvas) {
     sun.intensity = 3.2 - 0.8 * w;
     sun.target.position.set(0, 0, 0);
     // le rai suit la direction du soleil
-    beam.visible = st.hole > 0.05;
+    beam.visible = st.tear > 0.05;
     if (beam.visible) {
       tmpV.copy(sun.position).normalize().negate();
       beam.position.copy(entryWorld).addScaledVector(tmpV, -0.15);
@@ -1083,7 +1246,7 @@ export function createMaquette(canvas) {
       const along = axisTmp.dot(tmpV);
       axisTmp.addScaledVector(tmpV, -along);
       const near = THREE.MathUtils.smoothstep(axisTmp.length(), 0.4, 1.3);
-      beamMat.uniforms.uAlpha.value = st.hole * (0.35 + 0.65 * st.inside) * near;
+      beamMat.uniforms.uAlpha.value = st.tear * (0.35 + 0.65 * st.inside) * near;
     }
     fill.position.set(-sun.position.x, 4, -sun.position.z);
     floor.material.opacity = 0.13 * st.floor;
@@ -1149,13 +1312,16 @@ export function createMaquette(canvas) {
       lastBuild = st.build;
       lastExplode = st.explode;
     } else {
-      for (const s of slopes) if (s.snapAt.some((t) => t >= 0 && clock - t < 0.7)) writeCords(s);
+      for (const s of slopes) if (s.snapAt.some((t) => t >= 0 && clock - t < 0.7)) writeLath(s);
     }
     updateCamera();
-    if (st.hole !== lastHole) { writeTiles(slopes[0]); lastHole = st.hole; }
+    // tant que des tuiles ou des liteaux sont en l'air, on les réécrit à chaque image : ils flottent
+    if (st.hole > 0 || st.hole !== lastHole) { writeTiles(slopes[0]); lastHole = st.hole; }
+    if (st.lath > 0 || st.lath !== lastLath) { writeLath(slopes[0]); lastLath = st.lath; }
     stepLift(dt);
     stepDust(dt);
     stepMotes(dt);
+    stepFloaters();
     renderer.render(scene, camera);
     if (onFrame) onFrame();
   }
@@ -1176,8 +1342,33 @@ export function createMaquette(canvas) {
   dust.visible = true;
   wall.visible = true;
   beam.visible = true;
-  const ready = (renderer.compileAsync ? renderer.compileAsync(scene, camera) : Promise.resolve(renderer.compile(scene, camera)))
-    .then(() => { dust.visible = false; wall.visible = false; beam.visible = false; });
+  floaters.visible = true;
+  air.visible = true;
+  // les ombres ont leurs propres shaders (la profondeur vue du soleil) : on les prépare aussi en parallèle,
+  // dans les conditions de la passe d'ombre (rendu dans une cible, sans tone mapping)
+  const shadowPrep = [];
+  function compileShadows() {
+    const pre = new THREE.Scene();
+    const box = new THREE.BoxGeometry(0.01, 0.01, 0.01);
+    const back = new THREE.MeshDepthMaterial({ side: THREE.BackSide });
+    const both = new THREE.MeshDepthMaterial({ side: THREE.DoubleSide });
+    const inst = (mat, color) => { const m = new THREE.InstancedMesh(box, mat, 1); if (color) m.setColorAt(0, new THREE.Color()); return m; };
+    holeDepth.side = THREE.DoubleSide;
+    pre.add(new THREE.Mesh(box, back), inst(back), inst(back, true), new THREE.Mesh(box, both), inst(both, true), new THREE.Mesh(box, holeDepth));
+    shadowPrep.push(pre); // gardés en mémoire : libérés, leurs programmes le seraient aussi
+    const rt = new THREE.WebGLRenderTarget(4, 4);
+    renderer.setRenderTarget(rt);
+    const done = renderer.compileAsync(pre, camera, scene);
+    renderer.setRenderTarget(null);
+    return done.then(() => rt.dispose());
+  }
+  const ready = envLoaded
+    .then(() => {
+      updateCamera();
+      if (!renderer.compileAsync) return renderer.compile(scene, camera);
+      return Promise.all([renderer.compileAsync(scene, camera), compileShadows()]);
+    })
+    .then(() => { dust.visible = false; wall.visible = false; beam.visible = false; floaters.visible = false; air.visible = false; });
 
   return {
     ready,
@@ -1189,6 +1380,7 @@ export function createMaquette(canvas) {
     setFocus,
     getAnchors,
     getSosOutline,
+    placeFloaters,
     set onFrame(fn) { onFrame = fn; },
     renderer,
   };

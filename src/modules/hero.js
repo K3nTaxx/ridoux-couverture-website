@@ -1,4 +1,4 @@
-/* Haut de page : la toiture se pose rang par rang, puis on descend la pente.
+/* Haut de page : la toiture se pose rang par rang dans le soir, puis on entre dedans.
    Ce module dirige aussi la caméra de la maquette pour toute la page (haut de page, coupe, SOS). */
 
 export function initHero(ctx) {
@@ -6,7 +6,8 @@ export function initHero(ctx) {
   const st = maquette.st;
   const canvas = document.querySelector('.maquette');
   const sky = document.querySelector('.sky');
-  const skyImg = sky.querySelector('img');
+  const glow = sky.querySelector('.sky-glow');
+  const back = document.querySelector('.hero-back');
   const cv = { hero: 0, cpe: 0, sos: 0, sky: 1 };
   const applyCanvas = () => {
     canvas.style.opacity = String(Math.max(cv.hero, cv.cpe, cv.sos));
@@ -16,13 +17,17 @@ export function initHero(ctx) {
   ctx.applyCanvas = applyCanvas;
 
   gsap.set('.hero-line > span', { yPercent: 110 });
-  gsap.set('.hero-lead, .hero-copy .btn', { opacity: 0, y: 16 });
+  gsap.set('.hero-lead', { opacity: 0, y: 16 });
   gsap.set('.hero-title .t-u', { backgroundSize: '0% 0.07em' });
 
-  /* ---------- directeur de caméra ---------- */
-  // H0 : la toiture flotte au-dessus des nuages ; HI : la lumière du soleil plonge dans le trou ouvert
-  const H0 = { az: 66, el: 14, dist: 19.4, tx: -0.5, ty: 0.15, tz: 0, shiftX: 0.21, shiftY: -0.03, sunAz: 100, sunEl: 14, yaw: 0, exposure: 1.04 };
-  const HI = { ...H0, shiftX: 0, shiftY: 0, sunAz: 12, sunEl: 52, exposure: 1.08 };
+  /* ---------- directeur de caméra ----------
+     tout le voyage se mesure en écrans défilés : le haut de page en dure HERO_VH, la coupe CPE_VH.
+     Une seule courbe pour les deux : la caméra ne s'arrête jamais en passant de l'un à l'autre. */
+  const HERO_VH = 3, CPE_VH = 2;
+  ctx.journey = { HERO_VH, CPE_VH };
+  // H0 : la toiture au milieu du soir ; HI : la lumière plonge dans le trou ouvert
+  const H0 = { az: 60, el: 12, dist: 16.5, tx: 0, ty: 0.1, tz: 0, shiftX: 0, shiftY: 0.02, sunAz: 100, sunEl: 14, yaw: 0, exposure: 1.04 };
+  const HI = { ...H0, shiftY: 0, sunAz: 12, sunEl: 52, exposure: 1.08 };
   const C1 = { az: 52, el: 17, dist: 25.5, tx: 0, ty: 0.6, tz: 0, shiftX: 0.035, shiftY: -0.03, sunAz: 70, sunEl: 30, yaw: -10, exposure: 1.12 };
   const C2 = { ...C1, az: 57, yaw: -24 };
   // SOS : la maquette vue depuis le pignon, comme une maison sous la pluie
@@ -34,106 +39,140 @@ export function initHero(ctx) {
   const lerp = (a, b, t) => a + (b - a) * t;
   const io = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
   const clamp01 = (t) => Math.min(1, Math.max(0, t));
+  const ramp = (s, a, b) => clamp01((s - a) / (b - a));
+  const bump = (s, a, b, c, d) => io(ramp(s, a, b)) * (1 - io(ramp(s, c, d)));
   function mixState(A, B, t) { for (const k of keys) st[k] = lerp(A[k], B[k], t); }
+
+  // interpolation cubique monotone : la caméra ralentit sur chaque couche sans jamais s'arrêter
+  function spline(knots) {
+    const n = knots.length, xs = knots.map((k) => k[0]), ys = knots.map((k) => k[1]);
+    const d = [], m = [];
+    for (let i = 0; i < n - 1; i++) d.push((ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i]));
+    m.push(d[0]);
+    for (let i = 1; i < n - 1; i++) m.push(d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2);
+    m.push(d[n - 2]);
+    for (let i = 0; i < n - 1; i++) {
+      const a = m[i] / d[i], b = m[i + 1] / d[i], h = a * a + b * b;
+      if (h > 9) { const t = 3 / Math.sqrt(h); m[i] = t * a * d[i]; m[i + 1] = t * b * d[i]; }
+    }
+    return (x) => {
+      if (x <= xs[0]) return ys[0];
+      if (x >= xs[n - 1]) return ys[n - 1];
+      let i = 0;
+      while (x > xs[i + 1]) i++;
+      const h = xs[i + 1] - xs[i], t = (x - xs[i]) / h, t2 = t * t, t3 = t2 * t;
+      return (2 * t3 - 3 * t2 + 1) * ys[i] + (t3 - 2 * t2 + t) * h * m[i] + (-2 * t3 + 3 * t2) * ys[i + 1] + (t3 - t2) * h * m[i + 1];
+    };
+  }
+  // écrans défilés → point de la trajectoire (voir maquette.js) :
+  // tuiles, liteaux, écran, passage entre deux chevrons, combles, puis sortie par le pignon dans la coupe
+  const pathU = spline([[0, 0], [0.75, 1], [1.05, 2], [1.4, 3], [1.8, 4], [2.1, 5], [2.32, 6], [2.6, 7], [3.0, 8], [3.3, 9], [3.72, 10], [4.15, 11]]);
+
   ctx.updateCam = () => {
     if (cam.sosOn) {
       mixState(S0, S1, 1 - Math.pow(1 - clamp01(cam.sosP), 3));
       st.explode = 0;
       st.sos = 1;
-      st.pathMix = 0; st.hole = 0; st.inside = 0; st.dark = 0;
-    } else if (cam.cpeP > 0) {
-      // la coupe commence là où le haut de page s'arrête : dans les combles.
-      // la caméra ressort, le toit se referme, puis s'éclate couche par couche
-      const p = cam.cpeP;
-      if (p < 0.5) mixState(HI, C1, io(clamp01(p / 0.45)));
-      else mixState(C1, C2, clamp01((p - 0.5) / 0.5));
-      st.pathMix = 1 - io(clamp01(p / 0.42));
-      st.u = 1;
-      st.hole = 1 - io(clamp01((p - 0.04) / 0.3));
-      st.inside = 1 - io(clamp01(p / 0.22));
-      st.dark = 1;
-      st.explode = io(clamp01((p - 0.14) / 0.48));
-      st.sos = 0;
+      st.pathMix = 0; st.hole = 0; st.lath = 0; st.tear = 0; st.inside = 0; st.dark = 0; st.air = 0;
     } else {
-      // le haut de page : la caméra plonge, le toit s'ouvre, on entre dans les combles
-      const p = cam.heroP;
-      const k = io(clamp01((p - 0.03) / 0.3));
-      mixState(H0, HI, k);
-      st.pathMix = k;
-      st.u = io(clamp01((p - 0.03) / 0.8));
-      st.hole = io(clamp01((p - 0.22) / 0.22));
-      st.inside = io(clamp01((p - 0.38) / 0.2));
-      st.dark = st.inside;
-      st.explode = 0;
+      const s = cam.cpeP > 0 ? HERO_VH + cam.cpeP * CPE_VH : cam.heroP * HERO_VH;
+      const k = io(ramp(s, 0.03, 0.7));     // de l'orbite à la trajectoire
+      const out = io(ramp(s, 3.25, 4.1));  // de la trajectoire à l'orbite de la coupe
+      if (s < 3.25) mixState(H0, HI, k);
+      else if (s < 4.1) mixState(HI, C1, out);
+      else mixState(C1, C2, ramp(s, 4.1, 5));
+      // les liteaux en lumière rasante, puis le soleil se redresse pour plonger dans la déchirure
+      const rake = bump(s, 0.7, 1.0, 1.55, 1.95);
+      st.sunAz = lerp(st.sunAz, 4, rake);
+      st.sunEl = lerp(st.sunEl, 19, rake);
+      st.pathMix = k * (1 - out);
+      st.u = pathU(s);
+      // on ouvre couche par couche, et la coupe referme dans l'ordre inverse
+      st.hole = io(ramp(s, 0.3, 0.8)) * (1 - io(ramp(s, 3.4, 3.95)));
+      st.lath = io(ramp(s, 1.15, 1.5)) * (1 - io(ramp(s, 3.28, 3.65)));
+      st.tear = io(ramp(s, 1.75, 2.1)) * (1 - io(ramp(s, 3.1, 3.38)));
+      st.inside = io(ramp(s, 2.05, 2.4)) * (1 - io(ramp(s, 3.1, 3.5)));
+      st.dark = s >= HERO_VH ? 1 : st.inside;
+      st.explode = io(ramp(s, 3.9, 4.55));
+      st.glowLath = 0.32 * bump(s, 0.75, 0.95, 1.1, 1.35);
+      st.glowEcran = 0.45 * bump(s, 1.45, 1.6, 1.72, 1.95);
+      st.air = 1 - ramp(s, 0.12, 0.55);
       st.sos = 0;
     }
     st.dist += intro.dist; st.el += intro.el; st.az += intro.az;
   };
   ctx.cam = cam;
   ctx.updateCam();
+  maquette.placeFloaters();
 
   ctx.heroEnter = (skip) => {
     maquette.setActive(true);
     if (skip) {
       st.build = 1;
+      st.float = 1;
       cv.hero = 1;
       cv.heroReady = true;
       applyCanvas();
       gsap.set('.hero-line > span', { yPercent: 0 });
-      gsap.set('.hero-lead, .hero-copy .btn', { opacity: 1, y: 0 });
+      gsap.set('.hero-lead', { opacity: 1, y: 0 });
       gsap.set('.hero-title .t-u', { backgroundSize: '100% 0.07em' });
       return;
     }
     const tl = gsap.timeline();
     tl.to(cv, { hero: 1, duration: 0.9, ease: 'power2.out', onUpdate: applyCanvas, onComplete: () => { cv.heroReady = true; } }, 0)
       .fromTo(st, { build: 0.0 }, { build: 1, duration: 3.1, ease: 'power1.inOut' }, 0)
+      .fromTo(st, { float: 0 }, { float: 1, duration: 2.8, ease: 'power2.out' }, 0.3)
       .fromTo(intro, { dist: 3, el: 7, az: -8 }, { dist: 0, el: 0, az: 0, duration: 3.6, ease: 'expo.out', onUpdate: ctx.updateCam }, 0)
-      .to('.hero-line > span', { yPercent: 0, duration: 1.25, stagger: 0.09, ease: 'expo.out' }, 0.25)
-      .to('.hero-lead', { opacity: 1, y: 0, duration: 1.1 }, 0.6)
-      .to('.hero-copy .btn', { opacity: 1, y: 0, duration: 1.1 }, 0.7)
+      .to('.hero-line > span', { yPercent: 0, duration: 1.3, stagger: 0.1, ease: 'expo.out' }, 0.2)
+      .to('.hero-lead', { opacity: 1, y: 0, duration: 1.1 }, 0.8)
       // le souligné claque comme un cordeau, au moment où la maquette claque les siens
       .to('.hero-title .t-u', { backgroundSize: '100% 0.07em', duration: 0.32, stagger: 0.16, ease: 'power4.out' }, 1.2);
   };
 
   /* ---------- l'entrée dans la toiture, au défilement ----------
-     le texte s'efface, la caméra plonge, les tuiles s'envolent, l'écran se déchire,
-     on passe entre deux chevrons et l'on se retrouve dans les combles, traversés par un rai de lumière.
-     La coupe « couche par couche » reprend exactement là. */
+     le titre s'efface, la caméra plonge, les tuiles s'envolent, puis les liteaux sont déposés,
+     l'écran se déchire, on passe entre deux chevrons et l'on recule le long de la charpente.
+     La coupe « couche par couche » reprend ce mouvement sans le casser. */
   const vis = { hero: true, cpe: false, sos: false };
   const apply = () => maquette.setActive(vis.hero || vis.cpe || vis.sos);
-  const heroEl = document.querySelector('.hero');
   const copy = document.querySelector('.hero-copy');
   const layersBox = document.querySelector('.hero-layers');
   const layers = [...layersBox.querySelectorAll('li')];
-  // fenêtres d'apparition de chaque couche traversée
-  const windows = [[0.2, 0.36], [0.36, 0.5], [0.56, 0.96]];
+  // fenêtres d'apparition de chaque couche traversée, en écrans défilés
+  const windows = [[0.3, 0.85], [0.85, 1.5], [1.5, 2.05], [2.25, 3.0]];
+  const FADE = 0.12;
   function heroScroll(p) {
     cam.heroP = p;
     ctx.updateCam();
-    const pc = clamp01(p / 0.12);
-    copy.style.transform = `translate3d(0, ${(-60 * io(pc)).toFixed(1)}px, 0)`;
+    const s = p * HERO_VH;
+    const pc = io(ramp(s, 0, 0.34));
+    copy.style.transform = `translate3d(0, ${(-50 * pc).toFixed(1)}px, 0)`;
     copy.style.opacity = String(1 - pc);
     copy.style.pointerEvents = pc > 0.5 ? 'none' : '';
-    const ps = io(clamp01(p / 0.6));
-    skyImg.style.transform = `translate3d(0, ${(-9 * ps).toFixed(2)}%, 0) scale(${(1 + 0.3 * ps).toFixed(4)})`;
+    // le grand titre s'écarte comme si l'on passait au travers
+    back.style.transform = `translate3d(0, ${(-70 * pc).toFixed(1)}px, 0) scale(${(1 + 0.08 * pc).toFixed(4)})`;
+    back.style.opacity = String(1 - pc);
+    back.style.visibility = pc >= 1 ? 'hidden' : '';
+    const ps = io(ramp(s, 0, 1.6));
+    glow.style.transform = `translate3d(0, ${(-6 * ps).toFixed(2)}%, 0) scale(${(1 + 0.35 * ps).toFixed(4)})`;
     cv.sky = 1 - st.inside;
+    let scrim = 0;
     layers.forEach((li, i) => {
       const [a, b] = windows[i];
-      const fin = clamp01((p - a) / 0.05), fout = 1 - clamp01((p - (b - 0.05)) / 0.05);
+      const fin = ramp(s, a, a + FADE), fout = 1 - ramp(s, b - FADE, b);
       const v = Math.min(fin, fout);
+      scrim = Math.max(scrim, v);
       li.style.opacity = v.toFixed(3);
       li.style.transform = `translate3d(0, ${((1 - fin) * 24 - (1 - fout) * 24).toFixed(1)}px, 0)`;
     });
-    layersBox.classList.toggle('is-dark', st.inside > 0.5);
-    heroEl.dataset.navdark = st.inside > 0.5 ? '1' : '';
+    layersBox.style.setProperty('--scrim', scrim.toFixed(3));
     if (cv.heroReady) applyCanvas();
   }
   ScrollTrigger.create({
     trigger: '.hero',
     start: 'top top',
-    end: '+=220%',
+    end: `+=${HERO_VH * 100}%`,
     pin: true,
-    scrub: 0.8,
     onUpdate: (self) => heroScroll(self.progress),
   });
   // la coupe prend le relais de la maquette quand elle atteint le haut de l'écran

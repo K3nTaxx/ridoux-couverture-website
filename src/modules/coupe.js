@@ -108,14 +108,14 @@ export function initCoupe(ctx) {
   ScrollTrigger.create({
     trigger: section,
     start: 'top top',
-    end: '+=170%',
+    end: `+=${ctx.journey.CPE_VH * 100}%`,
     pin,
-    scrub: 0.8,
     anticipatePin: 1,
     onUpdate: (self) => {
       ctx.cam.cpeP = self.progress;
       ctx.updateCam();
-      reveal = Math.min(1, Math.max(0, (self.progress - 0.42) / 0.4));
+      // les étiquettes arrivent quand la toiture s'est refermée puis éclatée
+      reveal = Math.min(1, Math.max(0, (self.progress - 0.52) / 0.34));
     },
   });
 
@@ -159,7 +159,7 @@ export function initCoupe(ctx) {
     duration: 1.1,
     ease: 'expo.out',
     // après le retour des tuiles, pour qu'aucune ne passe sur le texte
-    scrollTrigger: { trigger: section, start: 'top -45%', toggleActions: 'play none none reverse' },
+    scrollTrigger: { trigger: section, start: 'top -90%', toggleActions: 'play none none reverse' },
   });
 
   maquette.onFrame = () => {
