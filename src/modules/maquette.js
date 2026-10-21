@@ -610,7 +610,8 @@ export function createMaquette(canvas) {
   const mossK = [];
   for (const t of slopes[1].tileInfo) {
     const k = t.j * COLS + t.i;
-    const d = Math.hypot((t.i - 5.5) / 3.2, t.j / 1.6);
+    // près du faîtage, au milieu du pan : la caméra du drone passe juste au-dessus
+    const d = Math.hypot((t.i - 5) / 3.0, (NC - 1 - t.j) / 1.7);
     if (d < 1.4 && rand() < 1.2 - d * 0.55) mossK.push([k, Math.min(1, 1.35 - d * 0.6)]);
   }
   const RIDGE_BAD = 8;
@@ -700,7 +701,7 @@ export function createMaquette(canvas) {
   ], false, 'centripetal');
   // le drone reste du côté du pignon +x, loin du texte ; le balayage traverse ensuite le toit vers l'autre pignon
   const SCAN_Y = 5.2, SCAN_X0 = 1.7, SCAN_X1 = -1.7;
-  const droneEnd = new THREE.Vector3(0.5, 7.5, 0.4);
+  const droneEnd = new THREE.Vector3(-1.1, 3.9, 0.7);
   const drP = new THREE.Vector3(), drLast = new THREE.Vector3(), drVel = new THREE.Vector3(), drStep = new THREE.Vector3(), drWorld = new THREE.Vector3();
   const povP = new THREE.Vector3(), povQ = new THREE.Vector3();
   function stepDrone(dt) {

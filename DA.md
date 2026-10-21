@@ -243,3 +243,10 @@ La maquette suit la section à l'entrée et à la sortie, comme si elle y était
 - Dans la vue du drone, la caméra est fixe ; seul le curseur soulève les tuiles. L'entrée dans le drone est marquée par un battement d'obturateur et « Vue du drone ».
 - Le balayage : bande rouge-orangé à cœur blanc, zone balayée légèrement assombrie avec une fine grille rouge. La croix de visée suit le point du toit sous le drone.
 - Le fond ardoise est peint par la 3D ; deux fondus le relient à la page claire, avant et après.
+
+### Retour n° 14 — un bloc à part
+
+- La section drone est un bloc ardoise aux bords nets (plus de fondus) ; la maquette le suit au pixel près.
+- Le titre est le personnage principal : il glisse au centre dès qu'on défile, la caméra passe au travers ; la vue du drone occupe toute la largeur.
+- Une seule légende, « Chaque défaut, *repéré* », au milieu du balayage. Les repères restent visibles hors du cadre.
+- En sortant du drone, la vue s'incline vers 45° et tourne en s'éloignant ; le drone reste visible au-dessus du toit, le texte revient à gauche.

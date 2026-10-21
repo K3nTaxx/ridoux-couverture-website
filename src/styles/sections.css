@@ -432,10 +432,7 @@ main { position: relative; z-index: 1; }
 
 /* ---------- 4. ENTRETIEN ---------- */
 /* ---------- VÉRIFICATION PAR DRONE ----------
-   la 3D peint elle-même l'ardoise de la section ; deux fondus la relient doucement à la page claire */
-.drn-edge { position: relative; z-index: 2; height: 34vh; pointer-events: none; }
-.drn-edge--in { background: linear-gradient(to bottom, rgba(27, 35, 38, 0), rgba(27, 35, 38, .18) 30%, rgba(27, 35, 38, .62) 66%, #1b2326); }
-.drn-edge--out { background: linear-gradient(to top, rgba(27, 35, 38, 0), rgba(27, 35, 38, .18) 30%, rgba(27, 35, 38, .62) 66%, #1b2326); }
+   un bloc à part, aux bords nets : la 3D peint elle-même l'ardoise de la section */
 .drn {
   position: relative;
   z-index: 2;
@@ -443,22 +440,16 @@ main { position: relative; z-index: 1; }
   color: var(--zinc-50);
   overflow: hidden;
 }
-/* à gauche, une ardoise pleine qui se fond dans l'image : le texte ne passe jamais sur le toit */
-.drn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(90deg, #1b2326 0, #1b2326 31vw, rgba(27, 35, 38, .94) 33vw, rgba(27, 35, 38, .72) 35.5vw, rgba(27, 35, 38, .38) 38vw, rgba(27, 35, 38, .1) 40.5vw, rgba(27, 35, 38, 0) 43vw);
-}
 .drn-copy {
   position: absolute;
   left: var(--m);
   top: calc(var(--nav-h) + 6vh);
   width: calc(var(--col) * 4 + var(--g) * 3);
   z-index: 3;
+  pointer-events: none;
 }
+.drn-copy .drn-cta { pointer-events: auto; }
+.drn-title, .drn-lead { will-change: transform, opacity; }
 /* le nom de la prestation, en grand : la linéale large et l'italique, comme les autres titres */
 .drn-title {
   font-size: clamp(50px, 4.5vw, 82px);
@@ -473,42 +464,43 @@ main { position: relative; z-index: 1; }
   color: rgba(236, 238, 236, .76);
   max-width: 23em;
 }
-.drn-cta { margin-top: 30px; opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ease), transform .9s var(--ease); pointer-events: none; }
-.drn.is-done .drn-cta { opacity: 1; transform: none; pointer-events: auto; }
+.drn-cta { margin-top: 30px; opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ease), transform .9s var(--ease); visibility: hidden; }
+.drn.is-done .drn-cta { opacity: 1; transform: none; visibility: visible; }
 
-/* ce que la vérification apporte : une légende à la fois, en bas à gauche, au rythme du balayage
-   (comme les couches traversées du haut de page) */
+/* une seule légende, au milieu du balayage, posée en bas du cadre de visée */
 .drn-says {
   position: absolute;
-  left: var(--m);
-  bottom: clamp(48px, 9vh, 96px);
-  width: calc(var(--col) * 4 + var(--g) * 3);
+  left: calc(var(--m) + 30px);
+  bottom: calc(5vh + 62px);
   z-index: 3;
-  pointer-events: none;
-}
-.drn-says li {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
   display: grid;
   gap: 10px;
+  max-width: 30em;
+  pointer-events: none;
   opacity: 0;
   will-change: transform, opacity;
 }
+.drn-says::before {
+  content: '';
+  position: absolute;
+  left: -14vw; right: -10vw; top: -16vh; bottom: -12vh;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(14, 19, 21, .62), rgba(14, 19, 21, 0));
+}
 .drn-says strong {
-  font-size: clamp(30px, 2.5vw, 44px);
+  font-size: clamp(32px, 2.7vw, 48px);
   font-weight: 620;
   font-stretch: 110%;
   line-height: 1.04;
   letter-spacing: -0.012em;
-  text-wrap: balance;
 }
 .drn-says em { font-family: var(--f-serif); font-style: italic; font-weight: 400; font-stretch: 100%; letter-spacing: -0.01em; }
-.drn-says span { font-family: var(--f-serif); font-size: var(--fs-lead); line-height: 1.5; color: rgba(236, 238, 236, .74); max-width: 24em; }
+.drn-says span { font-family: var(--f-serif); font-size: var(--fs-lead); line-height: 1.5; color: rgba(236, 238, 236, .8); max-width: 26em; }
 
 /* le cadre de visée */
 .drn-hud {
   position: absolute;
-  left: 37vw;
+  left: var(--m);
   right: var(--m);
   top: calc(var(--nav-h) + 3vh);
   bottom: 5vh;
@@ -567,15 +559,16 @@ main { position: relative; z-index: 1; }
 .drn-bar { flex: 1; height: 1px; background: rgba(236, 238, 236, .22); position: relative; }
 .drn-bar i { position: absolute; left: 0; top: -1px; height: 3px; width: 100%; background: var(--cordeau); transform-origin: left; transform: scaleX(var(--scan, 0)); }
 
-/* les repères verrouillés sur ce que le drone voit (même cadre que la visée) */
-.drn-marks { position: absolute; left: 37vw; right: var(--m); top: calc(var(--nav-h) + 3vh); bottom: 5vh; overflow: hidden; pointer-events: none; z-index: 2; }
-.drn-marks li { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 14px; opacity: 0; will-change: transform, opacity; }
+/* les repères verrouillés sur ce que le drone voit : ils restent lisibles même hors du cadre */
+.drn-marks { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+/* chaque repère est un point posé sur le toit : le réticule s'y centre, l'étiquette se range à côté */
+.drn-marks li { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; will-change: transform, opacity; }
 .drn-marks i {
-  position: relative;
+  position: absolute;
+  left: -23px;
+  top: -23px;
   width: 46px;
   height: 46px;
-  flex: none;
-  margin: -23px 0 0 -23px;
   transform: scale(1.9);
   transition: transform .7s var(--ease);
   background:
@@ -590,7 +583,9 @@ main { position: relative; z-index: 1; }
 }
 .drn-marks i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: var(--cordeau); }
 .drn-marks span {
-  margin-top: -23px;
+  position: absolute;
+  left: 34px;
+  top: -14px;
   padding: 6px 10px;
   font-size: 11.5px;
   font-weight: 650;
@@ -605,6 +600,7 @@ main { position: relative; z-index: 1; }
   opacity: 0;
   transition: opacity .5s var(--ease) .12s, transform .7s var(--ease) .12s;
 }
+.drn-marks li[data-side="left"] span { left: auto; right: 34px; border-left: 0; border-right: 2px solid var(--cordeau); transform: translateX(8px); }
 .drn-marks li.is-on { opacity: 1; }
 .drn-marks li.is-on i { transform: scale(1); }
 .drn-marks li.is-on span { opacity: 1; transform: none; }
@@ -745,7 +741,8 @@ main { position: relative; z-index: 1; }
   height: 132vh;
   color: var(--zinc-50);
 }
-.sos-rain { position: absolute; left: 0; right: 0; top: -55vh; width: 100%; height: calc(100% + 55vh); pointer-events: none; }
+/* le haut et la hauteur sont posés en JS : la pluie part juste sous la section précédente */
+.sos-rain { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
 .sos-inner {
   position: absolute;
   left: 50%;

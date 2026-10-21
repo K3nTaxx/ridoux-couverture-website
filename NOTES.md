@@ -162,3 +162,17 @@ Précision du client (même jour) : la légende « Dépose » reste telle quelle
 | On voit mal le rouge sur les tuiles ; meilleur balayage | Le trait devient une bande rouge-orangé lumineuse à cœur blanc ; derrière lui, la zone balayée s'assombrit légèrement et garde une fine grille rouge qui s'efface. |
 | À la fin, le drone est trop haut : on ne voit plus les repères ni les tuiles vertes | Vue d'ensemble plus basse et recentrée : tout le toit tient dans le cadre avec ses quatre repères, les mousses sont plus franches. |
 | Fondu de gauche « dégueulasse » à l'arrivée, coupure blanche avant d'arriver et en repartant ; transition brute avec la section suivante | La 3D peint elle-même l'ardoise de la section (plus de dépendance au fond de page) ; deux fondus doux relient la page claire à l'ardoise, avant et après ; le panneau de gauche a la même couleur exacte que le fond et un fondu plus progressif ; la navigation passe en sombre au-dessus de l'ardoise. |
+
+### Retour n° 14 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| Les tuiles vertes sont à l'extrême : on ne les voit pas pendant le scan | Les mousses sont ramenées près du faîtage, au milieu du pan arrière : la caméra du drone passe juste au-dessus. |
+| Les étiquettes (tuile déplacée…) doivent se montrer même en dehors de la caméra | Plus de découpe au cadre : les repères et leurs étiquettes restent visibles partout ; l'étiquette des mousses se range à gauche pour ne pas chevaucher celle du faîtage. |
+| Fondu d'arrivée encore pixelisé, barre blanche qui clignote en haut quand on bouge ; après la section, pas de fondu, trop d'espace : quelque chose de net, une catégorie à part | Fondus retirés avant et après : la section est un bloc ardoise aux bords nets, collé aux sections voisines. La maquette se déplace au pixel près avec la section : plus de liseré qui clignote. |
+| Quatre textes pendant le défilement, c'est trop : garder « Chaque défaut repéré », un texte qui s'affiche au milieu | Une seule légende, « Chaque défaut, *repéré* », au milieu du balayage, en bas du cadre. |
+| Le titre doit être le principal : quand on commence à défiler, il va au milieu et on passe au travers ; plus de bande sur le côté pendant la vue du drone | Dès qu'on défile, le titre glisse au centre au-dessus de la maison pendant que le drone décolle, puis la caméra passe au travers. La vue du drone occupe toute la largeur, sans panneau sur le côté. |
+| La fin (vue qui remonte) est trop plate : légèrement inclinée, vers 45°, et qui tourne pendant qu'elle dézoome, et inversement ; le texte revient sur le côté | En sortant du drone, la vue s'incline jusqu'à environ 45° et tourne pendant qu'elle s'éloigne (et inversement en remontant) ; on retrouve la maison de trois quarts, le drone au-dessus du toit, les quatre repères, et le texte revient à gauche avec « Demander une vérification ». |
+| Remplacer la photo « Dépose » par la toiture découverte | Fait (cadre 3:4) ; la précédente est rangée dans `sources/`. |
+| Remplacer le camion d'« Une histoire de famille et de passion » (image de gauche) | Fait, recadré sur le camion-grue et ses deux logos ; l'ancien est rangé dans `sources/`. |
+| SOS : la pluie démarre trop sur l'image ; elle doit démarrer sous les éléments du dessus | La pluie démarre maintenant juste sous le dernier élément de la section précédente, jamais sur ses images. |

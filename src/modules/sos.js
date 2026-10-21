@@ -1,7 +1,7 @@
 /* SOS Toiture : la maquette revient, vue depuis le pignon, comme une maison sous la pluie.
    Le pignon suit la section ; la pluie frappe les tuiles, ruisselle vers l'égout et goutte des chéneaux. */
 
-const ABOVE = 0.55; // la pluie commence 55 % d'écran au-dessus de la section
+const ABOVE = 0.55; // au plus, la pluie commence 55 % d'écran au-dessus de la section
 const EAVE = 0.46;  // bas du pignon, en fraction d'écran sous le haut de la section (= --eave)
 const BIN = 6;
 
@@ -22,7 +22,13 @@ export function initSos(ctx) {
 
   function size() {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    off = window.innerHeight * ABOVE;
+    // la pluie commence juste sous le dernier élément de la section précédente, jamais sur ses images
+    const prev = section.previousElementSibling;
+    const inner = prev && (prev.querySelector('.ext-inner') || prev);
+    const gap = inner ? section.getBoundingClientRect().top - inner.getBoundingClientRect().bottom - 28 : window.innerHeight * ABOVE;
+    off = Math.round(Math.max(0, Math.min(window.innerHeight * ABOVE, gap)));
+    canvas.style.top = `${-off}px`;
+    canvas.style.height = `calc(100% + ${off}px)`;
     W = section.offsetWidth;
     H = section.offsetHeight + off;
     canvas.width = Math.round(W * dpr);

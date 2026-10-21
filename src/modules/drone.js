@@ -8,8 +8,6 @@ const DRN_VH = 2.6;
 export function initDrone(ctx) {
   const { gsap, ScrollTrigger, maquette, lenis } = ctx;
   const section = document.querySelector('.drn');
-  const edgeIn = document.querySelector('.drn-edge--in');
-  const edgeOut = document.querySelector('.drn-edge--out');
   const canvasEl = document.querySelector('.maquette');
   const hud = section.querySelector('.drn-hud');
   const blink = section.querySelector('.drn-blink');
@@ -19,7 +17,9 @@ export function initDrone(ctx) {
   const cross = hud.querySelector('.drn-cross');
   const box = section.querySelector('.drn-marks');
   const marks = [...box.querySelectorAll('li')].map((el) => ({ el, key: el.dataset.mark, on: false, at: 0 }));
-  const says = [...section.querySelectorAll('.drn-says li')];
+  const says = section.querySelector('.drn-says');
+  const title = section.querySelector('.drn-title');
+  const lead = section.querySelector('.drn-lead');
   const cv = ctx.canvasVis;
   const cam = ctx.cam;
   const st = maquette.st;
@@ -37,32 +37,56 @@ export function initDrone(ctx) {
   }
   const compassW = () => tape.parentElement.offsetWidth;
 
-  let p = 0, active = false, t0 = 0, bx = 0, by = 0;
-  const measure = () => { const r = box.getBoundingClientRect(), s = section.getBoundingClientRect(); bx = r.left - s.left; by = r.top - s.top; };
+  let p = 0, active = false, t0 = 0, bx = 0, by = 0, hx = 0, hy = 0, tdx = 0, tdy = 0;
+  // positions de repos (sans transformation) : le cadre de visée et le titre
+  const measure = () => {
+    const s = section.getBoundingClientRect();
+    const r = box.getBoundingClientRect();
+    bx = r.left - s.left; by = r.top - s.top;
+    const h = hud.getBoundingClientRect();
+    hx = h.left - s.left; hy = h.top - s.top;
+    const keep = title.style.transform;
+    title.style.transform = 'none';
+    const t = title.getBoundingClientRect();
+    title.style.transform = keep;
+    // le titre s'installe au centre, un peu au-dessus du milieu
+    tdx = s.width / 2 - (t.left - s.left + t.width / 2);
+    tdy = window.innerHeight * 0.34 - (t.top - s.top + t.height / 2);
+  };
   measure();
   window.addEventListener('resize', measure);
 
-  // ce que la vérification apporte : une légende à la fois, au rythme du balayage ; la dernière reste
-  const windows = [[0.49, 0.58], [0.58, 0.67], [0.67, 0.76], [0.76, 1.2]];
-  const FADE = 0.025;
 
   /* l'état de l'écran, selon l'avancement */
   function state() {
     // la caméra entre dans le drone : un battement d'obturateur, puis le cadre se referme sur l'image
     blink.style.setProperty('--blink', (0.88 * bump(p, 0.4, 0.445, 0.45, 0.5)).toFixed(3));
-    hud.style.setProperty('--hud', io(ramp(p, 0.45, 0.52)).toFixed(3));
+    hud.style.setProperty('--hud', (io(ramp(p, 0.45, 0.52)) * (1 - io(ramp(p, 0.86, 0.92)))).toFixed(3));
     hud.style.setProperty('--snap', (1 - io(ramp(p, 0.45, 0.56))).toFixed(3));
     hud.style.setProperty('--hello', bump(p, 0.45, 0.48, 0.53, 0.57).toFixed(3));
     const scan = ramp(p, 0.48, 0.84);
     hud.style.setProperty('--scan', scan.toFixed(4));
     pct.textContent = `${Math.round(scan * 100)} %`;
-    section.classList.toggle('is-done', p > 0.86);
-    says.forEach((li, i) => {
-      const [a, b] = windows[i];
-      const fin = ramp(p, a, a + FADE), fout = 1 - ramp(p, b - FADE, b);
-      li.style.opacity = Math.min(fin, fout).toFixed(3);
-      li.style.transform = `translate3d(0, ${((1 - fin) * 22 - (1 - fout) * 22).toFixed(1)}px, 0)`;
-    });
+    section.classList.toggle('is-done', p > 0.94);
+    // le titre : dès qu'on défile, il s'installe au centre ; la caméra passe au travers ;
+    // il revient à sa place, sur le côté, quand on sort du drone
+    if (p < 0.86) {
+      const k = io(ramp(p, 0.02, 0.15)), pass = io(ramp(p, 0.28, 0.42));
+      title.style.transform = `translate3d(${(tdx * k).toFixed(1)}px, ${(tdy * k).toFixed(1)}px, 0) scale(${(1 + 0.1 * k + 0.9 * pass).toFixed(4)})`;
+      title.style.opacity = (1 - pass).toFixed(3);
+      lead.style.opacity = (1 - ramp(p, 0.01, 0.07)).toFixed(3);
+      lead.style.transform = `translate3d(0, ${(-14 * ramp(p, 0.01, 0.07)).toFixed(1)}px, 0)`;
+    } else {
+      const back = io(ramp(p, 0.9, 0.97)), back2 = io(ramp(p, 0.92, 0.99));
+      title.style.transform = `translate3d(0, ${((1 - back) * 24).toFixed(1)}px, 0)`;
+      title.style.opacity = back.toFixed(3);
+      lead.style.opacity = back2.toFixed(3);
+      lead.style.transform = `translate3d(0, ${((1 - back2) * 18).toFixed(1)}px, 0)`;
+    }
+    // une seule légende, au milieu du balayage
+    const fin = ramp(p, 0.58, 0.61), fout = 1 - ramp(p, 0.77, 0.8);
+    says.style.opacity = Math.min(fin, fout).toFixed(3);
+    says.style.transform = `translate3d(0, ${((1 - fin) * 22 - (1 - fout) * 22).toFixed(1)}px, 0)`;
   }
 
   /* la maquette suit la section : elle monte avec elle à l'arrivée et repart avec elle à la sortie */
@@ -80,12 +104,10 @@ export function initDrone(ctx) {
       ctx.updateCam();
       ctx.applyCanvas();
     }
-    if (on) canvasEl.style.transform = Math.abs(r.top) < 0.5 ? '' : `translate3d(0, ${r.top.toFixed(1)}px, 0)`;
-    // la navigation passe en sombre dès que l'ardoise (ou la moitié sombre d'un fondu) est sous elle
-    const y = 42;
-    const a = edgeIn.getBoundingClientRect(), b = edgeOut.getBoundingClientRect();
-    const dark = (r.top <= y && r.bottom >= y) || (y > a.top + a.height * 0.5 && y < a.bottom) || (y > b.top && y < b.top + b.height * 0.5);
-    section.dataset.navdark = dark ? '1' : '';
+    // translation au pixel près : le bord de l'ardoise reste net, sans liseré qui clignote
+    if (on) canvasEl.style.transform = Math.abs(r.top) < 0.5 ? '' : `translate3d(0, ${Math.round(r.top)}px, 0)`;
+    // la navigation passe en sombre dès que l'ardoise est sous elle
+    section.dataset.navdark = r.top <= 42 && r.bottom >= 42 ? '1' : '';
   }
   lenis.on('scroll', follow);
 
@@ -109,14 +131,14 @@ export function initDrone(ctx) {
     time.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
     const heading = 200 + p * 46 + st.droneScan * 8;
     tape.style.transform = `translate3d(${(compassW() / 2 - heading * STEP - 6).toFixed(1)}px, 0, 0)`;
-    if (st.droneCam < 0.5) {
+    if (p < 0.45) {
       for (const m of marks) if (m.on) { m.on = false; m.el.classList.remove('is-on'); }
       return;
     }
     // la croix se pose sur le toit, à la verticale du drone : c'est là que passe le trait de balayage
     const sp = maquette.getScanPoint();
     const line = sp.x - bx;
-    cross.style.transform = `translate3d(${line.toFixed(1)}px, ${(sp.y - by).toFixed(1)}px, 0)`;
+    if (st.droneCam > 0.5) cross.style.transform = `translate3d(${(sp.x - hx).toFixed(1)}px, ${(sp.y - hy).toFixed(1)}px, 0)`;
     const a = maquette.getAnchors();
     for (const m of marks) {
       const q = a[m.key];

@@ -30,9 +30,9 @@ export function initHero(ctx) {
   const HI = { ...H0, shiftY: 0, sunAz: 12, sunEl: 52, exposure: 1.08 };
   const C1 = { az: 52, el: 17, dist: 25.5, tx: 0, ty: 0.6, tz: 0, shiftX: 0.035, shiftY: -0.03, sunAz: 70, sunEl: 30, yaw: -10, exposure: 1.12 };
   const C2 = { ...C1, az: 57, yaw: -24 };
-  // drone : la maison de trois quarts, décalée à droite pour laisser le texte à gauche
+  // drone : la maison de trois quarts, d'abord à droite du titre, puis au centre quand le titre s'y installe
   const D0 = { az: 34, el: 13, dist: 18, tx: 0.2, ty: 0.45, tz: 0, shiftX: 0.2, shiftY: 0.03, sunAz: 115, sunEl: 34, yaw: 0, exposure: 1.06 };
-  const D1 = { ...D0, az: 46, el: 20, dist: 13 };
+  const D1 = { ...D0, az: 46, el: 20, dist: 13, shiftX: 0 };
   // SOS : la maquette vue depuis le pignon, comme une maison sous la pluie
   const S0 = { az: 90, el: 34, dist: 12.8, tx: 2.0, ty: 0.2, tz: 0, shiftX: 0, shiftY: 0, sunAz: 140, sunEl: 38, yaw: 0, exposure: 0.98 };
   const S1 = { ...S0, el: 13, dist: 11.4 };
@@ -77,14 +77,23 @@ export function initHero(ctx) {
       // vérification par drone : il décolle devant la maison, la caméra le rejoint et regarde sous lui,
       // il balaie le toit d'un pignon à l'autre, puis monte pour le montrer en entier
       const p = cam.droneP;
-      mixState(D0, D1, io(ramp(p, 0, 0.4)));
+      const e = io(ramp(p, 0.86, 1));
+      if (p < 0.86) mixState(D0, D1, io(ramp(p, 0.02, 0.3)));
+      else {
+        // en sortant du drone, la vue s'incline vers 45° et tourne pendant qu'elle s'éloigne ;
+        // la maison repasse à droite pour laisser revenir le texte
+        st.az = lerp(0, -66, e); st.el = lerp(85, 40, e); st.dist = lerp(6.5, 19.5, e);
+        st.tx = lerp(-1.7, 0.1, e); st.ty = lerp(0.5, 0.9, e); st.tz = 0;
+        st.shiftX = 0.2 * e; st.shiftY = 0;
+        st.sunAz = D0.sunAz; st.sunEl = D0.sunEl; st.yaw = 0; st.exposure = D0.exposure;
+      }
       st.explode = 0; st.sos = 0;
       st.pathMix = 0; st.hole = 0; st.lath = 0; st.tear = 0; st.inside = 0; st.dark = 0; st.air = 0;
       st.drone = 1;
       st.floor = 1;
       st.defect = 1;
       st.droneT = io(ramp(p, 0.04, 0.36));
-      st.droneCam = io(ramp(p, 0.3, 0.47));
+      st.droneCam = io(ramp(p, 0.3, 0.47)) * (1 - io(ramp(p, 0.86, 0.98)));
       st.droneScan = io(ramp(p, 0.48, 0.84));
       st.droneUp = io(ramp(p, 0.86, 1));
       st.scan = bump(p, 0.45, 0.5, 0.82, 0.87);
