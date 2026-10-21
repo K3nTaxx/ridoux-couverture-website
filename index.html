@@ -177,30 +177,31 @@
     <!-- ============ VÉRIFICATION PAR DRONE ============
          la maquette revient : un drone décolle devant la maison, on bascule dans sa caméra,
          il balaie le toit et se verrouille sur ce qu'il repère -->
+    <div class="drn-edge drn-edge--in" aria-hidden="true"></div>
     <section class="drn" id="drone">
       <div class="drn-copy">
-        <p class="drn-kicker">Vérification de toiture par drone</p>
-        <h2 class="drn-title">Votre toit, <em>vu du ciel</em></h2>
-        <div class="drn-swap">
-          <p class="drn-lead">Avant de monter sur un toit, nous le regardons d’en haut. Le drone survole votre toiture, piloté depuis le sol&nbsp;: personne ne marche sur les tuiles.</p>
-          <ul class="drn-points">
-            <li><strong>Tout le toit, sans y monter</strong><span>Pans, faîtage, rives et chéneaux&nbsp;: le drone voit de près ce que l’on ne voit pas depuis la rue.</span></li>
-            <li><strong>Les défauts repérés</strong><span>Tuiles déplacées ou cassées, mousses, faîtage abîmé, chéneaux encombrés.</span></li>
-            <li><strong>Des images à l’appui</strong><span>L’état réel de votre toit, en images&nbsp;: les travaux se décident sur pièces.</span></li>
-            <li><strong>Quand y penser</strong><span>Après un orage ou un coup de vent, avant un achat, avant des travaux, ou pour un simple contrôle.</span></li>
-          </ul>
-        </div>
+        <h2 class="drn-title">Vérification de votre toiture <em>par drone</em></h2>
+        <p class="drn-lead">Avant de monter sur un toit, nous le regardons d’en haut. Le drone le survole, piloté depuis le sol&nbsp;: personne ne marche sur vos tuiles.</p>
         <a class="btn btn--light magnetic drn-cta" href="#contact" data-service="Vérification par drone"><span>Demander une vérification</span></a>
       </div>
 
+      <ol class="drn-says" aria-label="Ce que la vérification par drone vous apporte">
+        <li><strong>Tout le toit, <em>sans échelle</em></strong><span>Pans, faîtage, rives et chéneaux&nbsp;: le drone voit de près ce que la rue vous cache.</span></li>
+        <li><strong>Chaque défaut, <em>repéré</em></strong><span>Une tuile qui a glissé, des mousses, un faîtage fatigué, un chéneau encombré.</span></li>
+        <li><strong>Des images, <em>pas des suppositions</em></strong><span>Vous voyez l’état réel de votre toit avant de décider des travaux.</span></li>
+        <li><strong>Au bon <em>moment</em></strong><span>Après un orage ou un coup de vent, avant un achat, avant des travaux, ou pour un simple contrôle.</span></li>
+      </ol>
+
+      <span class="drn-blink" aria-hidden="true"></span>
       <div class="drn-hud" aria-hidden="true">
         <span class="drn-corner drn-corner--tl"></span><span class="drn-corner drn-corner--tr"></span>
         <span class="drn-corner drn-corner--bl"></span><span class="drn-corner drn-corner--br"></span>
         <span class="drn-cross"></span>
+        <span class="drn-hello">Vue du drone</span>
         <div class="drn-top">
           <span class="drn-rec"><i></i>REC <b class="drn-time">00:00</b></span>
           <div class="drn-compass"><div class="drn-tape"></div></div>
-          <span class="drn-mode">Décollage</span>
+          <span class="drn-mode">Vue du drone</span>
         </div>
         <div class="drn-bottom">
           <span class="drn-status">Balayage</span>
@@ -216,6 +217,7 @@
         <li data-mark="drnChenau"><i></i><span>Chéneau encombré</span></li>
       </ul>
     </section>
+    <div class="drn-edge drn-edge--out" aria-hidden="true"></div>
 
     <!-- ============ 4. ENTRETIEN ============ -->
     <section class="lav" id="entretien">

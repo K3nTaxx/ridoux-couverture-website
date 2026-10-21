@@ -151,12 +151,12 @@ Documents existants (devis type, plaquette, carte de visite) : le client en a �
 
 Le client propose la vérification de toiture à domicile par drone. Il n'a pas encore les détails (pas de prix : ne pas en afficher). Les textes de la section sont **généraux**, écrits à partir d'informations publiques sur l'inspection de toiture par drone, et restent à valider par le client :
 
-- Titre : « Votre toit, vu du ciel » — surtitre : « Vérification de toiture par drone ».
-- « Avant de monter sur un toit, nous le regardons d'en haut. Le drone survole votre toiture, piloté depuis le sol : personne ne marche sur les tuiles. »
-- Tout le toit, sans y monter — pans, faîtage, rives et chéneaux vus de près. ✅ (principe même du drone)
-- Les défauts repérés — tuiles déplacées ou cassées, mousses, faîtage abîmé, chéneaux encombrés. ✅ (cas cités par les sources)
-- Des images à l'appui — « l'état réel de votre toit, en images : les travaux se décident sur pièces. » **À confirmer** : le client remet-il les photos ou vidéos au particulier ?
-- Quand y penser — après un orage ou un coup de vent, avant un achat, avant des travaux, pour un simple contrôle. **À confirmer** par le client.
+- Titre (retour n° 13) : « Vérification de votre toiture par drone ».
+- « Avant de monter sur un toit, nous le regardons d'en haut. Le drone le survole, piloté depuis le sol : personne ne marche sur vos tuiles. »
+- Tout le toit, sans échelle — pans, faîtage, rives et chéneaux : le drone voit de près ce que la rue vous cache. ✅ (principe même du drone)
+- Chaque défaut, repéré — une tuile qui a glissé, des mousses, un faîtage fatigué, un chéneau encombré. ✅ (cas cités par les sources)
+- Des images, pas des suppositions — « vous voyez l'état réel de votre toit avant de décider des travaux. » **À confirmer** : le client remet-il les photos ou vidéos au particulier ?
+- Au bon moment — après un orage ou un coup de vent, avant un achat, avant des travaux, pour un simple contrôle. **À confirmer** par le client.
 - Ajouté aussi à la liste des prestations (« Vérification par drone — sans monter sur le toit ») et aux choix du formulaire.
 
 Non affiché, faute d'information du client : tarifs, matériel (caméra thermique ou non), déclarations et formation de télépilote, délais.

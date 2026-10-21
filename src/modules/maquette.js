@@ -94,8 +94,8 @@ const U = {
   uCloud: { value: 1 },
   // le trou ouvert dans la toiture : centre (monde) et rayon
   uHole: { value: new THREE.Vector4(0, 0, 0, 0) },
-  // le trait orange que tire le drone en balayant le toit : position (x monde), largeur du halo, intensité
-  uScan: { value: new THREE.Vector3(0, 0.3, 0) },
+  // le balayage du drone : position du trait (x monde), -, intensité, sens (côté déjà balayé)
+  uScan: { value: new THREE.Vector4(0, 0, 0, 1) },
 };
 
 /* bord déchiré du trou, partagé par les matières et par leurs ombres */
@@ -158,7 +158,7 @@ function patchMaterial(material, grain = 0, hole = false) {
         varying vec3 vWPos;
         uniform float uTime;
         uniform float uCloud;
-        uniform vec3 uScan;
+        uniform vec4 uScan;
         ${HOLE_GLSL}
         float gHash(vec3 p){ p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
         float gNoise(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f*f*(3.0-2.0*f);
@@ -184,10 +184,20 @@ function patchMaterial(material, grain = 0, hole = false) {
     shader.fragmentShader = shader.fragmentShader.replace(
       '#include <tonemapping_fragment>',
       `if (uScan.z > 0.0) {
-        float sd = abs(vWPos.x - uScan.x);
-        float core = 1.0 - smoothstep(0.0, 0.014, sd);
-        float halo = exp(-sd * sd / (uScan.y * uScan.y));
-        gl_FragColor.rgb += vec3(0.81, 0.13, 0.012) * (core * 2.4 + halo * 0.2) * uScan.z;
+        // un trait blanc chaud, un halo rouge-orangé ; derrière lui, la zone balayée s'assombrit
+        // un peu et garde une fine grille qui s'efface avec la distance
+        float sd = (vWPos.x - uScan.x) * uScan.w;
+        float ad = abs(sd);
+        float core = 1.0 - smoothstep(0.0, 0.016, ad);
+        float halo = exp(-ad * ad / 0.006) * 0.7 + exp(-ad * ad / 0.05) * 0.3;
+        float trail = step(0.0, sd) * exp(-ad * 1.4);
+        vec2 gq = abs(fract(vWPos.xz * 8.0) - 0.5);
+        float grid = 1.0 - smoothstep(0.0, 0.035, min(gq.x, gq.y));
+        vec3 sc = gl_FragColor.rgb * (1.0 - 0.42 * trail * uScan.z);
+        sc = mix(sc, vec3(0.75, 0.035, 0.008), clamp(halo * 0.85 * uScan.z, 0.0, 1.0));
+        sc += vec3(0.95, 0.06, 0.01) * (grid * trail * 0.8 + halo * 0.9) * uScan.z;
+        sc += vec3(1.0, 0.86, 0.72) * core * 3.0 * uScan.z;
+        gl_FragColor.rgb = sc;
       }
       #include <tonemapping_fragment>`
     );
@@ -601,10 +611,10 @@ export function createMaquette(canvas) {
   for (const t of slopes[1].tileInfo) {
     const k = t.j * COLS + t.i;
     const d = Math.hypot((t.i - 5.5) / 3.2, t.j / 1.6);
-    if (d < 1.15 && rand() < 1.1 - d * 0.6) mossK.push([k, Math.min(1, 1.25 - d * 0.7)]);
+    if (d < 1.4 && rand() < 1.2 - d * 0.55) mossK.push([k, Math.min(1, 1.35 - d * 0.6)]);
   }
   const RIDGE_BAD = 8;
-  const mossCol = new THREE.Color('#5d6a2c');
+  const mossCol = new THREE.Color('#4f6b22');
   const leafGeo = new THREE.BoxGeometry(0.045, 0.006, 0.028);
   const LEAVES = 16;
   const leaves = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }), LEAVES);
@@ -621,7 +631,7 @@ export function createMaquette(canvas) {
     // mousses
     const s1 = slopes[1], col = s1.tiles.instanceColor.array, mc = [mossCol.r, mossCol.g, mossCol.b];
     for (const [k, w] of mossK) {
-      for (let c = 0; c < 3; c++) col[k * 3 + c] = s1.baseCol[k * 3 + c] + (mc[c] - s1.baseCol[k * 3 + c]) * d * w * 0.85;
+      for (let c = 0; c < 3; c++) col[k * 3 + c] = s1.baseCol[k * 3 + c] + (mc[c] - s1.baseCol[k * 3 + c]) * d * w * 0.95;
     }
     s1.tiles.instanceColor.needsUpdate = true;
     // faîtière soulevée
@@ -690,7 +700,7 @@ export function createMaquette(canvas) {
   ], false, 'centripetal');
   // le drone reste du côté du pignon +x, loin du texte ; le balayage traverse ensuite le toit vers l'autre pignon
   const SCAN_Y = 5.2, SCAN_X0 = 1.7, SCAN_X1 = -1.7;
-  const droneEnd = new THREE.Vector3(0, 9.6, 0.15);
+  const droneEnd = new THREE.Vector3(0.5, 7.5, 0.4);
   const drP = new THREE.Vector3(), drLast = new THREE.Vector3(), drVel = new THREE.Vector3(), drStep = new THREE.Vector3(), drWorld = new THREE.Vector3();
   const povP = new THREE.Vector3(), povQ = new THREE.Vector3();
   function stepDrone(dt) {
@@ -711,7 +721,7 @@ export function createMaquette(canvas) {
     drone.visible = st.droneCam < 0.7;
     drWorld.copy(drone.position);
     model.localToWorld(drWorld);
-    U.uScan.value.set(drWorld.x, 0.34, st.scan);
+    U.uScan.value.set(drWorld.x, 0, st.scan, Math.sign(SCAN_X0 - SCAN_X1));
   }
 
   /* ---------- ancres pour les étiquettes de la coupe ---------- */
@@ -1413,10 +1423,12 @@ export function createMaquette(canvas) {
   function updateCamera() {
     // respiration très lente de la caméra et du soleil, effacée dans la coupe et au SOS
     const calm = (1 - st.explode) * (1 - st.sos);
-    const az = (st.az + pointer.sx * 9 + Math.sin(clock * 0.21) * 1.6 * calm) * DEG;
-    const el = (st.el - pointer.sy * 3.5 + Math.sin(clock * 0.16 + 1.3) * 0.7 * calm) * DEG;
+    // dans la vue du drone, la caméra ne suit plus la souris : seules les tuiles réagissent au curseur
+    const free = 1 - st.droneCam;
+    const az = (st.az + pointer.sx * 9 * free + Math.sin(clock * 0.21) * 1.6 * calm) * DEG;
+    const el = (st.el - pointer.sy * 3.5 * free + Math.sin(clock * 0.16 + 1.3) * 0.7 * calm) * DEG;
     U.uCloud.value = (1 - 0.85 * st.sos) * (1 - 0.45 * st.explode);
-    root.rotation.y = (st.yaw + pointer.sx * 4 * (1 - st.sos) * (1 - st.pathMix)) * DEG;
+    root.rotation.y = (st.yaw + pointer.sx * 4 * (1 - st.sos) * (1 - st.pathMix) * free) * DEG;
     root.updateMatrixWorld();
     target.set(st.tx, st.ty, st.tz);
     camera.position.set(
@@ -1437,14 +1449,14 @@ export function createMaquette(canvas) {
       target.lerp(pathQ, st.pathMix);
     }
     if (st.droneCam > 0.0001) {
-      // la caméra rejoint le drone et regarde le toit sous lui, presque à la verticale
-      povP.copy(drone.position);
+      // la caméra rejoint le drone et regarde le toit sous lui, presque à la verticale ;
+      // elle suit sa trajectoire, pas son balancement : l'image reste stable
+      povP.copy(drP);
       povP.y -= 0.06;
-      povQ.copy(drone.position);
+      povQ.copy(drP);
       povQ.y -= 3;
-      // légèrement incliné vers l'arrière : l'avant de la maison reste en bas de l'image, comme à l'approche
-      povQ.z += -0.12 + pointer.sy * 0.08;
-      povQ.x += pointer.sx * 0.14;
+      // légèrement inclinée vers l'arrière : l'avant de la maison reste en bas de l'image, comme à l'approche
+      povQ.z -= 0.12;
       model.localToWorld(povP);
       model.localToWorld(povQ);
       camera.position.lerp(povP, st.droneCam);
@@ -1458,7 +1470,8 @@ export function createMaquette(canvas) {
     entryWorld.copy(E_m);
     model.localToWorld(entryWorld);
     U.uHole.value.set(entryWorld.x, entryWorld.y - 0.1, entryWorld.z, st.tear * 0.62);
-    renderer.setClearColor(0x262e31, st.dark);
+    if (st.drone > 0.5) renderer.setClearColor(0x1b2326, 1);
+    else renderer.setClearColor(0x262e31, st.dark);
     const sosOn = st.sos > 0.001;
     wall.visible = sosOn;
     if (sosOn) {
@@ -1536,6 +1549,14 @@ export function createMaquette(canvas) {
       out[k] = { x: (v.x * 0.5 + 0.5) * W, y: (-v.y * 0.5 + 0.5) * H };
     }
     return out;
+  }
+
+  function getScanPoint() {
+    v.copy(drP);
+    v.y = HR;
+    model.localToWorld(v);
+    v.project(camera);
+    return { x: (v.x * 0.5 + 0.5) * W, y: (-v.y * 0.5 + 0.5) * H };
   }
 
   function getSosOutline() {
@@ -1637,6 +1658,7 @@ export function createMaquette(canvas) {
     getAnchors,
     getSosOutline,
     getFlash: () => flash,
+    getScanPoint,
     placeFloaters,
     set onFrame(fn) { onFrame = fn; },
     renderer,

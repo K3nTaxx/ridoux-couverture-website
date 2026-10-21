@@ -1,41 +1,38 @@
 /* Vérification par drone : la maquette revient au milieu de la page, un drone décolle devant la maison.
-   On bascule dans sa caméra, il balaie le toit d'un pignon à l'autre en tirant un trait orange
-   et se verrouille sur ce qu'il repère, puis il monte pour montrer tout le toit.
-   La section est épinglée ; la maquette la suit à l'entrée et à la sortie, comme si elle y était posée. */
+   On bascule dans sa caméra, il balaie le toit d'un pignon à l'autre et se verrouille sur ce qu'il repère,
+   puis il monte pour montrer tout le toit. La section est épinglée ; la maquette la suit à l'entrée et à la sortie,
+   et peint elle-même l'ardoise du fond. Dans la vue du drone, la caméra est fixe : seul le curseur soulève les tuiles. */
 
 const DRN_VH = 2.6;
 
 export function initDrone(ctx) {
   const { gsap, ScrollTrigger, maquette, lenis } = ctx;
   const section = document.querySelector('.drn');
+  const edgeIn = document.querySelector('.drn-edge--in');
+  const edgeOut = document.querySelector('.drn-edge--out');
   const canvasEl = document.querySelector('.maquette');
   const hud = section.querySelector('.drn-hud');
-  const mode = hud.querySelector('.drn-mode');
+  const blink = section.querySelector('.drn-blink');
   const pct = hud.querySelector('.drn-pct');
   const time = hud.querySelector('.drn-time');
   const tape = hud.querySelector('.drn-tape');
+  const cross = hud.querySelector('.drn-cross');
   const box = section.querySelector('.drn-marks');
   const marks = [...box.querySelectorAll('li')].map((el) => ({ el, key: el.dataset.mark, on: false, at: 0 }));
-  const points = [...section.querySelectorAll('.drn-points li')];
+  const says = [...section.querySelectorAll('.drn-says li')];
   const cv = ctx.canvasVis;
   const cam = ctx.cam;
   const st = maquette.st;
   const clamp01 = (t) => Math.min(1, Math.max(0, t));
   const ramp = (x, a, b) => clamp01((x - a) / (b - a));
   const io = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  const bump = (x, a, b, c, d) => io(ramp(x, a, b)) * (1 - io(ramp(x, c, d)));
 
-  // la bande du compas : un trait tous les 5°, les points cardinaux en lettres, deux tours pour boucler
-  const CARD = { 0: 'N', 90: 'E', 180: 'S', 270: 'O' };
+  // la bande du compas : un trait tous les 5°, un plus long tous les 45°, deux tours pour boucler
   const STEP = 12 / 5; // pixels par degré
   for (let d = 0; d < 720; d += 5) {
     const sp = document.createElement('span');
-    const a = d % 360;
-    if (a % 45 === 0) sp.classList.add('is-major');
-    if (CARD[a] !== undefined) {
-      const em = document.createElement('em');
-      em.textContent = CARD[a];
-      sp.append(em);
-    }
+    if (d % 45 === 0) sp.classList.add('is-major');
     tape.append(sp);
   }
   const compassW = () => tape.parentElement.offsetWidth;
@@ -45,25 +42,34 @@ export function initDrone(ctx) {
   measure();
   window.addEventListener('resize', measure);
 
+  // ce que la vérification apporte : une légende à la fois, au rythme du balayage ; la dernière reste
+  const windows = [[0.49, 0.58], [0.58, 0.67], [0.67, 0.76], [0.76, 1.2]];
+  const FADE = 0.025;
+
   /* l'état de l'écran, selon l'avancement */
   function state() {
-    const hudOn = io(ramp(p, 0.36, 0.48));
+    // la caméra entre dans le drone : un battement d'obturateur, puis le cadre se referme sur l'image
+    blink.style.setProperty('--blink', (0.88 * bump(p, 0.4, 0.445, 0.45, 0.5)).toFixed(3));
+    hud.style.setProperty('--hud', io(ramp(p, 0.45, 0.52)).toFixed(3));
+    hud.style.setProperty('--snap', (1 - io(ramp(p, 0.45, 0.56))).toFixed(3));
+    hud.style.setProperty('--hello', bump(p, 0.45, 0.48, 0.53, 0.57).toFixed(3));
     const scan = ramp(p, 0.48, 0.84);
-    hud.style.setProperty('--hud', hudOn.toFixed(3));
-    hud.style.setProperty('--snap', (1 - io(ramp(p, 0.38, 0.54))).toFixed(3));
     hud.style.setProperty('--scan', scan.toFixed(4));
     pct.textContent = `${Math.round(scan * 100)} %`;
-    const m = p < 0.3 ? 'Décollage' : p < 0.86 ? 'Vue de dessus' : 'Vue d’ensemble';
-    if (mode.textContent !== m) mode.textContent = m;
-    section.classList.toggle('is-scanning', p > 0.5);
-    section.classList.toggle('is-done', p > 0.88);
-    points.forEach((li, i) => li.classList.toggle('is-on', p > 0.52 + i * 0.075));
+    section.classList.toggle('is-done', p > 0.86);
+    says.forEach((li, i) => {
+      const [a, b] = windows[i];
+      const fin = ramp(p, a, a + FADE), fout = 1 - ramp(p, b - FADE, b);
+      li.style.opacity = Math.min(fin, fout).toFixed(3);
+      li.style.transform = `translate3d(0, ${((1 - fin) * 22 - (1 - fout) * 22).toFixed(1)}px, 0)`;
+    });
   }
 
   /* la maquette suit la section : elle monte avec elle à l'arrivée et repart avec elle à la sortie */
   function follow() {
     const r = section.getBoundingClientRect();
-    const on = r.top < window.innerHeight && r.bottom > 0;
+    const vh = window.innerHeight;
+    const on = r.top < vh && r.bottom > 0;
     if (on !== active) {
       active = on;
       cam.droneOn = on;
@@ -75,6 +81,11 @@ export function initDrone(ctx) {
       ctx.applyCanvas();
     }
     if (on) canvasEl.style.transform = Math.abs(r.top) < 0.5 ? '' : `translate3d(0, ${r.top.toFixed(1)}px, 0)`;
+    // la navigation passe en sombre dès que l'ardoise (ou la moitié sombre d'un fondu) est sous elle
+    const y = 42;
+    const a = edgeIn.getBoundingClientRect(), b = edgeOut.getBoundingClientRect();
+    const dark = (r.top <= y && r.bottom >= y) || (y > a.top + a.height * 0.5 && y < a.bottom) || (y > b.top && y < b.top + b.height * 0.5);
+    section.dataset.navdark = dark ? '1' : '';
   }
   lenis.on('scroll', follow);
 
@@ -91,7 +102,7 @@ export function initDrone(ctx) {
     },
   });
 
-  /* à chaque image : repères projetés depuis la maquette, minuteur, compas */
+  /* à chaque image : croix et repères projetés depuis la maquette, minuteur, compas */
   gsap.ticker.add(() => {
     if (!active) return;
     const s = Math.floor((performance.now() - t0) / 1000);
@@ -102,14 +113,17 @@ export function initDrone(ctx) {
       for (const m of marks) if (m.on) { m.on = false; m.el.classList.remove('is-on'); }
       return;
     }
+    // la croix se pose sur le toit, à la verticale du drone : c'est là que passe le trait de balayage
+    const sp = maquette.getScanPoint();
+    const line = sp.x - bx;
+    cross.style.transform = `translate3d(${line.toFixed(1)}px, ${(sp.y - by).toFixed(1)}px, 0)`;
     const a = maquette.getAnchors();
-    // le trait de balayage reste au centre du cadre et le toit défile vers la droite : un repère s'allume quand il l'a franchi
-    const line = box.offsetWidth / 2;
     for (const m of marks) {
       const q = a[m.key];
       const x = q.x - bx, y = q.y - by;
       m.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-      // une fois franchi, le repère reste verrouillé ; il ne s'éteint que si l'on remonte avant ce moment
+      // le toit défile vers la droite sous le trait : un repère se verrouille quand le trait l'a franchi,
+      // et reste verrouillé ; il ne s'éteint que si l'on remonte avant ce moment
       let on = m.on;
       if (!on && st.droneScan > 0.001 && (x >= line - 2 || st.droneScan > 0.999)) { on = true; m.at = Math.min(p, 0.84); }
       if (on && p < m.at - 0.002) on = false;

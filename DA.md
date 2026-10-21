@@ -236,3 +236,10 @@ Au milieu du site, la maquette revient pour une séquence épinglée de 2,6 écr
 3. **Balayage** — le drone traverse le toit d'un pignon à l'autre ; sous lui, un trait orange (le cordeau) balaie les tuiles. Chaque défaut franchi est verrouillé par un réticule et une étiquette : tuile déplacée, faîtage, mousses, chéneau encombré — tous réellement modélisés sur la maquette. Les quatre points du texte arrivent au même rythme.
 4. **Vue d'ensemble** — le drone monte, tout le toit et ses repères tiennent dans le cadre ; « Demander une vérification ».
 La maquette suit la section à l'entrée et à la sortie, comme si elle y était posée.
+
+### Retour n° 13 — la vérification par drone, dans la DA du site
+
+- Titre : « Vérification de votre toiture *par drone* », en grand (linéale large et italique). Les quatre points sont des légendes en grand, une à la fois, en bas à gauche (même langage que les couches traversées du haut de page).
+- Dans la vue du drone, la caméra est fixe ; seul le curseur soulève les tuiles. L'entrée dans le drone est marquée par un battement d'obturateur et « Vue du drone ».
+- Le balayage : bande rouge-orangé à cœur blanc, zone balayée légèrement assombrie avec une fine grille rouge. La croix de visée suit le point du toit sous le drone.
+- Le fond ardoise est peint par la 3D ; deux fondus le relient à la page claire, avant et après.

@@ -1,4 +1,4 @@
-/* Le fond descend la maison : soir → ardoise (coupe) → zinc → ardoise (drone) → zinc → pierre → zinc.
+/* Le fond descend la maison : soir → ardoise (coupe) → zinc → pierre → zinc (la section drone peint sa propre ardoise).
    La navigation passe en sombre au-dessus des zones ardoise (coupe, mur du SOS, pied de page). */
 
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -10,8 +10,6 @@ export function initBackground({ lenis, gsap }) {
     ['.hero', '#1E272B'],
     ['.cpe', '#252D30'],
     ['.svc', '#E3E6E3', 0.02, 0.12],
-    ['.drn', '#1B2326'],
-    ['.lav', '#E3E6E3'],
     ['.rea', '#E4E5E1'],
     ['.ext', '#D8D2C8'],
     ['.zone', '#E3E5E1'],
@@ -21,6 +19,7 @@ export function initBackground({ lenis, gsap }) {
   const nav = document.querySelector('.nav');
   const foot = document.querySelector('.foot');
   const sos = document.querySelector('.sos');
+  const drn = document.querySelector('.drn');
   const hero = document.querySelector('.hero');
   let last = '';
   let baseDark = false;
@@ -36,7 +35,7 @@ export function initBackground({ lenis, gsap }) {
     const lum = (0.2126 * col[0] + 0.7152 * col[1] + 0.0722 * col[2]) / 255;
     const overFoot = foot.getBoundingClientRect().top < 42;
     baseDark = lum < 0.42 || overFoot;
-    nav.classList.toggle('is-dark', baseDark || sos.dataset.navdark === '1' || hero.dataset.navdark === '1');
+    nav.classList.toggle('is-dark', baseDark || sos.dataset.navdark === '1' || drn.dataset.navdark === '1' || hero.dataset.navdark === '1');
     const css = `rgb(${col.join(',')})`;
     if (css !== last) {
       document.body.style.backgroundColor = css;
@@ -45,6 +44,6 @@ export function initBackground({ lenis, gsap }) {
   }
   lenis.on('scroll', update);
   window.addEventListener('resize', update);
-  gsap.ticker.add(() => nav.classList.toggle('is-dark', baseDark || sos.dataset.navdark === '1'));
+  gsap.ticker.add(() => nav.classList.toggle('is-dark', baseDark || sos.dataset.navdark === '1' || drn.dataset.navdark === '1'));
   update();
 }
