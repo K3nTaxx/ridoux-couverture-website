@@ -31,7 +31,7 @@ export function initHero(ctx) {
   const HI = { ...H0, shiftY: 0, sunAz: 12, sunEl: 52, exposure: 1.08 };
   const C1 = { az: 52, el: 17, dist: 25.5, tx: 0, ty: 0.6, tz: 0, shiftX: 0.035, shiftY: -0.03, sunAz: 70, sunEl: 30, yaw: -10, exposure: 1.12 };
   const C2 = { ...C1, az: 57, yaw: -24 };
-  // drone : la maison de trois quarts, d'abord à droite du titre, puis au centre quand le titre s'y installe
+  // drone : la maison de trois quarts, d'abord à droite du titre, puis au centre une fois le titre effacé
   const D0 = { az: 34, el: 13, dist: 18, tx: 0.2, ty: 0.45, tz: 0, shiftX: 0.2, shiftY: 0.03, sunAz: 115, sunEl: 34, yaw: 0, exposure: 1.06 };
   const D1 = { ...D0, az: 46, el: 20, dist: 13, shiftX: 0 };
   // SOS : la maquette vue depuis le pignon, comme une maison sous la pluie

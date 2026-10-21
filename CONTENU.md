@@ -167,3 +167,12 @@ Sources consultées (informations générales) :
 - FFB, « Utilisation d'un drone en couverture » (vol strictement encadré) : https://www.ffbatiment.fr/techniques-batiment/enveloppe-du-batiment/couverture/dossier/utilisation-drone-couverture
 - Kiwa, « Inspections par drone des structures de toiture et de façade » : https://www.kiwa.com/be/fr-be/domaines-dexpertise/inspections-intelligentes/inspections-par-drone-des-structures-de-toiture-et-de-facade/
 - SeLoger, « Toiture : 7 signes qui montrent qu'elle doit être vérifiée avant l'hiver » : https://edito.seloger.com/node/23805
+
+## 13. Partenaires (retour n° 15, 21/10/2026)
+
+Liste donnée par le client : « Thomas Sograma, BigMat Allemand matériaux de construction, Plastiroll Unieux, Dalep ». Logos récupérés sur Internet, détourés, dans `public/img/partenaires/` :
+
+- **Thomas Sograma Matériaux** (négoce, réseau France Matériaux, magasin au Chambon-Feugerolles) — logo SVG du site officiel : https://www.thomas-sograma.com/
+- **Dalep** (produits de traitement et de démoussage des toitures) — PNG du site officiel : https://www.dalep.net/
+- **Établissement Georges Allemand**, matériaux de construction, 100 rue de la Tour, Saint-Étienne (« BigMat Allemand » : le client confirme qu'il s'agit du magasin) — logo du site officiel, fond blanc retiré : https://allemand-materiaux.fr/
+- **Plastiroll**, Unieux (systèmes de traitement des toitures et façades) — pas de site officiel trouvé ; logo pris sur sa fiche Batiproduits (https://www.batiproduits.com/fiche/fabricant/plastiroll-69218/), très petit (71 × 38 px) : **à remplacer par un fichier fourni par Plastiroll** si possible.

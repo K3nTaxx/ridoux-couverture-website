@@ -187,3 +187,12 @@ Précision du client (même jour) : la légende « Dépose » reste telle quelle
 | « Une réfection, étape par étape » : ne plus s'afficher au défilement, s'afficher dès qu'on arrive | Animation d'ouverture retirée : les trois étapes et le cordeau sont affichés tels quels. |
 | Trop long entre le haut de page et les prestations : passer des liteaux directement dans la charpente, oublier l'écran sous-toiture ; dans la charpente, on a l'impression d'être très zoomé | L'étape « écran sous-toiture » est retirée (il se déchire au passage, sans arrêt ni légende) : tuiles → liteaux → charpente. Le haut de page passe de 3 à 2,3 écrans de défilement, la coupe de 2 à 1,8 : 0,9 écran de moins avant les prestations. Dans les combles, l'objectif est plus large : on voit la charpente au lieu d'être collé dessus. |
 | Partenaires (Thomas Sograma, BigMat Allemand matériaux de construction, Plastiroll à Unieux, Dalep) : chercher les logos, les détourer, les mettre sur le site | En cours : partenaires identifiés ; téléchargement des logos soumis à l'accord du client (voir compte rendu). |
+
+Suite du retour n° 15 (même jour) :
+
+| Demande | Ce qui est fait |
+|---|---|
+| Ne pas toucher à « Nos prestations » | Rien n'a été modifié dans les prestations. |
+| « BigMat Allemand » : c'est le magasin | Partenaire retenu : Établissement Georges Allemand, matériaux de construction, 100 rue de la Tour à Saint-Étienne (réseau France Matériaux) ; logo pris sur allemand-materiaux.fr. |
+| Drone : pourquoi le texte glisse au centre ? Il ne doit pas être centré, il doit disparaître directement | Le titre ne se déplace plus : il s'efface sur place, avec la phrase, dès qu'on commence à défiler, et revient à la fin. |
+| Partenaires : logos récupérés, détourés, en PNG, placés au meilleur endroit ; classique mais pas trop, au minimum un défilement | Nouveau bandeau « Nos partenaires » entre « Réalisations » et « Du toit jusqu'au sol » : Thomas Sograma Matériaux, Dalep, Allemand, Plastiroll. Les logos défilent lentement en gris, chacun dans sa travée entre deux filets ; le défilement de la page les pousse un instant ; au survol, le bandeau ralentit, le logo reprend ses couleurs et le cordeau orange se tire dessous. Logos : SVG d'origine pour Thomas Sograma, PNG détourés pour Dalep, Allemand (fond blanc retiré) et Plastiroll (fond blanc retiré, agrandi : source de 71 × 38 px, un fichier de meilleure qualité est à demander). |

@@ -708,6 +708,62 @@ main { position: relative; z-index: 1; }
 .rea-steps-cord line { stroke: var(--cordeau); stroke-width: 2; vector-effect: non-scaling-stroke; }
 
 /* ---------- 6. FAÇADE ET MAÇONNERIE ---------- */
+/* ---------- PARTENAIRES ----------
+   un bandeau sobre : les logos défilent en gris entre deux filets, chacun dans sa travée, comme des tuiles
+   sur leurs liteaux ; au survol, le bandeau ralentit, le logo reprend ses couleurs et le cordeau se tire dessous */
+.prt {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: clamp(36px, 4vw, 72px);
+  padding: clamp(36px, 6vh, 64px) 0 clamp(36px, 6vh, 64px) var(--m);
+}
+.prt-head { flex: none; width: calc(var(--col) * 3 + var(--g) * 2); }
+.prt-title { font-size: clamp(30px, 2.4vw, 42px); margin-bottom: 12px; }
+.prt-lead { font-family: var(--f-serif); font-size: 16.5px; line-height: 1.5; color: var(--ink-soft); max-width: 17em; }
+.prt-band {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-top: 1px solid var(--zinc-300);
+  border-bottom: 1px solid var(--zinc-300);
+  -webkit-mask: linear-gradient(90deg, transparent, #000 9%, #000 100%);
+  mask: linear-gradient(90deg, transparent, #000 9%, #000 100%);
+}
+.prt-track { display: flex; width: max-content; will-change: transform; }
+.prt-track li {
+  position: relative;
+  flex: none;
+  width: clamp(210px, 15.5vw, 290px);
+  height: clamp(112px, 13.5vh, 146px);
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--zinc-300);
+}
+.prt-track img {
+  height: 42px;
+  width: auto;
+  max-width: 72%;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.15);
+  opacity: .58;
+  transition: filter .5s var(--ease), opacity .5s var(--ease), transform .7s var(--ease);
+}
+.prt-track li.is-tall img { height: 64px; }
+.prt-track li::after {
+  content: '';
+  position: absolute;
+  left: 24%; right: 24%; bottom: -1px;
+  height: 2px;
+  background: var(--cordeau);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .7s var(--ease);
+}
+.prt-track li:hover img { filter: none; opacity: 1; transform: scale(1.04); }
+.prt-track li:hover::after { transform: scaleX(1); }
+
 .ext { position: relative; z-index: 2; padding: clamp(110px, 14vh, 160px) var(--m) clamp(120px, 16vh, 180px); }
 .ext-inner { position: relative; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--g); row-gap: clamp(64px, 9vh, 96px); }
 .ext-plumb { position: absolute; left: calc(var(--col) * .5 - 20px); top: -40px; bottom: 0; width: 40px; pointer-events: none; }

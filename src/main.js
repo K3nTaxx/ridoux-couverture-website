@@ -21,6 +21,7 @@ import { initServices } from './modules/services.js';
 import { initDrone } from './modules/drone.js';
 import { initLavage } from './modules/lavage.js';
 import { initRealisations } from './modules/realisations.js';
+import { initPartners } from './modules/partners.js';
 import { initExterieurs } from './modules/exterieurs.js';
 import { initSos } from './modules/sos.js';
 import { initZone } from './modules/zone.js';
@@ -59,6 +60,7 @@ async function boot() {
   initDrone(ctx);
   initLavage(ctx);
   initRealisations(ctx);
+  initPartners(ctx);
   initExterieurs(ctx);
   initSos(ctx);
   await initZone(ctx);

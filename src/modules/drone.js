@@ -37,21 +37,14 @@ export function initDrone(ctx) {
   }
   const compassW = () => tape.parentElement.offsetWidth;
 
-  let p = 0, active = false, t0 = 0, bx = 0, by = 0, hx = 0, hy = 0, tdx = 0, tdy = 0;
-  // positions de repos (sans transformation) : le cadre de visée et le titre
+  let p = 0, active = false, t0 = 0, bx = 0, by = 0, hx = 0, hy = 0;
+  // positions de repos : le cadre des repères et le cadre de visée
   const measure = () => {
     const s = section.getBoundingClientRect();
     const r = box.getBoundingClientRect();
     bx = r.left - s.left; by = r.top - s.top;
     const h = hud.getBoundingClientRect();
     hx = h.left - s.left; hy = h.top - s.top;
-    const keep = title.style.transform;
-    title.style.transform = 'none';
-    const t = title.getBoundingClientRect();
-    title.style.transform = keep;
-    // le titre s'installe au centre, un peu au-dessus du milieu
-    tdx = s.width / 2 - (t.left - s.left + t.width / 2);
-    tdy = window.innerHeight * 0.34 - (t.top - s.top + t.height / 2);
   };
   measure();
   window.addEventListener('resize', measure);
@@ -68,23 +61,16 @@ export function initDrone(ctx) {
     hud.style.setProperty('--scan', scan.toFixed(4));
     pct.textContent = `${Math.round(scan * 100)} %`;
     section.classList.toggle('is-done', p > 0.93);
-    // le titre : dès qu'on défile, il s'installe au centre, puis s'efface en fondu, de bas en haut,
-    // pendant qu'il monte doucement ; il revient à sa place, sur le côté, quand on sort du drone
+    // le titre et la phrase s'effacent sur place dès qu'on défile ; ils reviennent quand on sort du drone
     if (p < 0.76) {
-      const k = io(ramp(p, 0.02, 0.15)), leave = io(ramp(p, 0.19, 0.34));
-      title.style.transform = `translate3d(${(tdx * k).toFixed(1)}px, ${(tdy * k - 46 * leave).toFixed(1)}px, 0) scale(${(1 + 0.08 * k).toFixed(4)})`;
-      const a = -40 + 140 * leave;
-      const mask = leave > 0 ? `linear-gradient(to top, rgba(0, 0, 0, 0) ${a.toFixed(1)}%, #000 ${(a + 40).toFixed(1)}%)` : 'none';
-      title.style.webkitMaskImage = mask;
-      title.style.maskImage = mask;
-      title.style.opacity = '1';
-      lead.style.opacity = (1 - ramp(p, 0.01, 0.07)).toFixed(3);
-      lead.style.transform = `translate3d(0, ${(-14 * ramp(p, 0.01, 0.07)).toFixed(1)}px, 0)`;
+      const t = ramp(p, 0.015, 0.09), l = ramp(p, 0.01, 0.07);
+      title.style.transform = `translate3d(0, ${(-18 * io(t)).toFixed(1)}px, 0)`;
+      title.style.opacity = (1 - t).toFixed(3);
+      lead.style.opacity = (1 - l).toFixed(3);
+      lead.style.transform = `translate3d(0, ${(-14 * l).toFixed(1)}px, 0)`;
     } else {
       const back = io(ramp(p, 0.88, 0.95)), back2 = io(ramp(p, 0.9, 0.97));
       title.style.transform = `translate3d(0, ${((1 - back) * 24).toFixed(1)}px, 0)`;
-      title.style.webkitMaskImage = 'none';
-      title.style.maskImage = 'none';
       title.style.opacity = back.toFixed(3);
       lead.style.opacity = back2.toFixed(3);
       lead.style.transform = `translate3d(0, ${((1 - back2) * 18).toFixed(1)}px, 0)`;
