@@ -94,3 +94,10 @@ Précisions du client (même jour) :
 |---|---|
 | Trop basique : arbres pas beaux, maison en « vieux blocs » | Maison, arbres et collines retirés. |
 | Pas forcément une scène fixe où l'on bouge au curseur : un effet au défilement, avec des ressources gratuites d'internet si besoin | Haut de page au défilement, en trois temps : la toiture se construit au-dessus d'une mer de nuages (vrai ciel photographié, Poly Haven, CC0, qui éclaire aussi la 3D) ; au défilement, la caméra plonge jusqu'au faîtage ; la vraie photo d'un faîtage refait par le client (IMG_3350) se pose rang par rang, au même angle, avec le cordeau orange, et la légende « De la maquette au chantier ». |
+
+### Retour n° 6 — 21/10/2026
+
+| Demande | Ce qui est fait |
+|---|---|
+| L'idée de la photo qui arrive ne plaît pas du tout : on l'oublie | Photo et légende « De la maquette au chantier » retirées. |
+| Garder le ciel, aller beaucoup plus loin : entrer dans le modèle 3D, qui forme le haut de la maison, et continuer vers la suite du site | Au défilement, la caméra plonge vers le toit, les tuiles s'envolent autour d'un point, l'écran se déchire, on passe entre deux chevrons et l'on entre dans les combles (charpente en enfilade, pénombre, rai de lumière et poussières). La coupe « couche par couche » reprend exactement là : la caméra ressort, les tuiles reviennent se poser, puis le toit s'éclate en couches. Pour que le voyage soit continu, la coupe suit maintenant directement le haut de page ; « Une histoire de famille » passe après les prestations. Les couches traversées s'affichent au passage : les tuiles, liteaux et écran, la charpente. |

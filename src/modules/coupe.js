@@ -152,11 +152,14 @@ export function initCoupe(ctx) {
     onUpdate: (self) => { canvasEl.style.transform = `translate3d(0, ${(-self.progress * window.innerHeight).toFixed(1)}px, 0)`; },
     onLeaveBack: () => { canvasEl.style.transform = ''; },
   });
-  gsap.from('.cpe-lead', {
-    opacity: 0,
-    y: 20,
+  // le titre de la coupe n'apparaît qu'une fois sorti des combles (la section arrive par-dessous le haut de page)
+  gsap.fromTo('.cpe-head', { opacity: 0, y: 24 }, {
+    opacity: 1,
+    y: 0,
     duration: 1.1,
-    scrollTrigger: { trigger: section, start: 'top 40%', toggleActions: 'play none none reverse' },
+    ease: 'expo.out',
+    // après le retour des tuiles, pour qu'aucune ne passe sur le texte
+    scrollTrigger: { trigger: section, start: 'top -45%', toggleActions: 'play none none reverse' },
   });
 
   maquette.onFrame = () => {

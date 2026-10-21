@@ -114,7 +114,7 @@ function waitForSteadyFrames(count, maxMs) {
 
 /* ---------- titres de section : lignes masquées ---------- */
 function initTitles({ gsap, SplitText }) {
-  document.querySelectorAll('main h2:not(.sos-title):not(.hero-real-title)').forEach((h) => {
+  document.querySelectorAll('main h2:not(.sos-title)').forEach((h) => {
     const split = SplitText.create(h, { type: 'lines', mask: 'lines', linesClass: 'title-line' });
     const underlines = h.querySelectorAll('.t-u');
     const tl = gsap.timeline({ scrollTrigger: { trigger: h, start: 'top 86%', toggleActions: 'play none none reverse' } });

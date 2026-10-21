@@ -195,3 +195,12 @@ Le haut de page raconte le métier en un seul geste de défilement :
 2. **La plongée** : au défilement, le texte s'efface et la caméra plonge jusqu'au faîtage.
 3. **Le raccord** : au même angle, la photo réelle d'un faîtage refait par le client se pose par rangs, de l'égout au faîtage, un cordeau orange marquant le rang en cours. La maquette devient le chantier.
 C'est la seconde séquence épinglée du site (la première est la coupe), courte : 150 % de hauteur d'écran.
+
+### Retour n° 6 — « Entrer dans la toiture »
+
+Le raccord vers une photo est abandonné. Le haut de page devient un voyage continu dans la maquette :
+1. La toiture se construit au-dessus d'une mer de nuages (vrai ciel, Poly Haven, CC0).
+2. Au défilement, la caméra plonge vers le pan avant. Autour du point d'entrée, les tuiles se soulèvent et s'envolent ; l'écran sous-toiture se déchire ; les cordeaux orange et les liteaux défilent sous la caméra.
+3. On passe entre deux chevrons et l'on se retrouve dans les combles : la charpente en enfilade, la pénombre, un rai de lumière qui tombe du trou, des poussières en suspension.
+4. La coupe reprend sans coupure : la caméra ressort, les tuiles reviennent se poser, et le toit s'éclate couche par couche avec ses étiquettes.
+Les couches traversées s'affichent au passage, en grand, en bas à gauche.

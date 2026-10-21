@@ -115,58 +115,36 @@ main { position: relative; z-index: 1; }
   overflow: hidden;
 }
 .hero-copy { position: relative; z-index: 2; will-change: transform, opacity; }
-/* la photo réelle se pose par rangs, de l'égout au faîtage */
-.hero-real { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.hero-bands { position: absolute; inset: 0; }
-.hero-band {
-  position: absolute;
-  left: 0; right: 0;
-  top: calc(100% / 7 * var(--i));
-  height: calc(100% / 7 + 2px);
-  overflow: hidden;
-  clip-path: inset(100% 0 0 0);
-  will-change: clip-path;
-}
-.hero-band img {
-  position: absolute;
-  left: 0;
-  top: calc(-100vh / 7 * var(--i));
-  width: 100%;
-  height: 100vh;
-  min-height: 720px;
-  object-fit: cover;
-  object-position: 50% 40%;
-}
-.hero-cord {
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  height: 3px;
-  margin-top: -1.5px;
-  background: var(--cordeau);
-  box-shadow: 0 0 14px rgba(232, 100, 28, .55);
-  opacity: 0;
-  z-index: 3;
-  will-change: transform;
-}
-.hero-real-copy {
+/* ce que l'on traverse en entrant dans la toiture : une couche à la fois */
+.hero-layers {
   position: absolute;
   left: var(--m);
   bottom: clamp(48px, 9vh, 96px);
   z-index: 2;
-  color: var(--zinc-50);
-  opacity: 0;
-  text-shadow: 0 1px 24px rgba(27, 33, 36, .35);
+  pointer-events: none;
 }
-.hero-real-title { font-size: clamp(44px, 3.8vw, 64px); margin-bottom: 14px; }
-.hero-real-cap { font-family: var(--f-serif); font-size: var(--fs-lead); max-width: 26em; }
-.hero-real::after {
-  content: '';
+.hero-layers li {
   position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 45%;
-  background: linear-gradient(to top, rgba(27, 33, 36, .55), rgba(27, 33, 36, 0));
-  opacity: var(--shade, 0);
+  left: 0; bottom: 0;
+  width: 30em;
+  display: grid;
+  gap: 6px;
+  opacity: 0;
+  will-change: transform, opacity;
 }
+.hero-layers strong {
+  font-size: clamp(40px, 3.4vw, 56px);
+  font-weight: 620;
+  font-stretch: 110%;
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  transition: color .4s;
+}
+.hero-layers span { font-family: var(--f-serif); font-size: var(--fs-lead); color: var(--ardoise-700); transition: color .4s; }
+.hero-layers.is-dark strong { color: var(--zinc-50); }
+.hero-layers.is-dark span { color: rgba(236, 238, 236, .74); }
+
 .hero-copy { width: calc(var(--col) * 6 + var(--g) * 5); }
 .hero-title {
   font-size: clamp(52px, 4.3vw, 76px);
@@ -277,7 +255,7 @@ main { position: relative; z-index: 1; }
 .fam-az-steps li > span:last-child { font-family: var(--f-serif); font-size: 16.5px; line-height: 1.45; color: var(--ink-soft); max-width: 15em; }
 
 /* ---------- 3. SAVOIR-FAIRE : LA COUPE ---------- */
-.cpe { position: relative; z-index: 1; color: var(--zinc-50); }
+.cpe { position: relative; z-index: 1; color: var(--zinc-50); margin-top: -100vh; }
 .cpe-pin { position: relative; height: 100vh; overflow: hidden; }
 .cpe-head { position: absolute; left: var(--m); top: calc(var(--nav-h) + 6vh); width: calc(var(--col) * 4 + var(--g) * 3); }
 .cpe-title { margin-bottom: 22px; }

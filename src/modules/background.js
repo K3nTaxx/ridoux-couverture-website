@@ -19,6 +19,7 @@ export function initBackground({ lenis, gsap }) {
   const nav = document.querySelector('.nav');
   const foot = document.querySelector('.foot');
   const sos = document.querySelector('.sos');
+  const hero = document.querySelector('.hero');
   let last = '';
   let baseDark = false;
   function update() {
@@ -33,7 +34,7 @@ export function initBackground({ lenis, gsap }) {
     const lum = (0.2126 * col[0] + 0.7152 * col[1] + 0.0722 * col[2]) / 255;
     const overFoot = foot.getBoundingClientRect().top < 42;
     baseDark = lum < 0.42 || overFoot;
-    nav.classList.toggle('is-dark', baseDark || sos.dataset.navdark === '1');
+    nav.classList.toggle('is-dark', baseDark || sos.dataset.navdark === '1' || hero.dataset.navdark === '1');
     const css = `rgb(${col.join(',')})`;
     if (css !== last) {
       document.body.style.backgroundColor = css;

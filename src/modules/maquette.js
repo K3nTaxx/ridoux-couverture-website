@@ -88,14 +88,51 @@ function tileGeometry() {
 const U = {
   uTime: { value: 0 },
   uCloud: { value: 1 },
+  // le trou ouvert dans la toiture : centre (monde) et rayon
+  uHole: { value: new THREE.Vector4(0, 0, 0, 0) },
 };
+
+/* bord déchiré du trou, partagé par les matières et par leurs ombres */
+const HOLE_GLSL = `
+  uniform vec4 uHole;
+  float hHash(vec3 p){ p = fract(p * 0.3183099 + vec3(0.17, 0.53, 0.29)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+  float hNoise(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f*f*(3.0-2.0*f);
+    return mix(mix(mix(hHash(i), hHash(i+vec3(1,0,0)), f.x), mix(hHash(i+vec3(0,1,0)), hHash(i+vec3(1,1,0)), f.x), f.y),
+               mix(mix(hHash(i+vec3(0,0,1)), hHash(i+vec3(1,0,1)), f.x), mix(hHash(i+vec3(0,1,1)), hHash(i+vec3(1,1,1)), f.x), f.y), f.z); }
+  bool inHole(vec3 w){
+    if (uHole.w <= 0.0) return false;
+    float rag = hNoise(w * 7.0) * 0.12 + hNoise(w * 19.0) * 0.05;
+    return distance(w, uHole.xyz) < uHole.w + rag - 0.06;
+  }`;
+
+/* les ombres de l'écran et des liteaux respectent le trou : la lumière entre dans les combles */
+function holeDepthMaterial() {
+  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+  m.onBeforeCompile = (shader) => {
+    shader.uniforms.uHole = U.uHole;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vec4 gp = vec4(transformed, 1.0);
+        #ifdef USE_INSTANCING
+          gp = instanceMatrix * gp;
+        #endif
+        vWPos = (modelMatrix * gp).xyz;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;\n' + HOLE_GLSL)
+      .replace('void main() {', 'void main() {\n  if (inHole(vWPos)) discard;');
+  };
+  m.customProgramCacheKey = () => 'ridoux-hole-depth';
+  return m;
+}
 
 /* grain de terre cuite (variations de teinte dans l'espace monde) et ombres de nuages :
    un bruit qui dérive avec le vent masque une partie de la lumière du soleil, jamais la lumière ambiante */
-function patchMaterial(material, grain = 0) {
+function patchMaterial(material, grain = 0, hole = false) {
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = U.uTime;
     shader.uniforms.uCloud = U.uCloud;
+    shader.uniforms.uHole = U.uHole;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vWPos;')
       .replace(
@@ -114,6 +151,7 @@ function patchMaterial(material, grain = 0) {
         varying vec3 vWPos;
         uniform float uTime;
         uniform float uCloud;
+        ${HOLE_GLSL}
         float gHash(vec3 p){ p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419)); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
         float gNoise(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f*f*(3.0-2.0*f);
           return mix(mix(mix(gHash(i+vec3(0,0,0)), gHash(i+vec3(1,0,0)), f.x), mix(gHash(i+vec3(0,1,0)), gHash(i+vec3(1,1,0)), f.x), f.y),
@@ -135,6 +173,9 @@ function patchMaterial(material, grain = 0) {
         reflectedLight.directSpecular *= cShade;
         #include <aomap_fragment>`
       );
+    if (hole) {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>', '#include <clipping_planes_fragment>\n  if (inHole(vWPos)) discard;');
+    }
     if (grain > 0) {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <color_fragment>',
@@ -145,7 +186,7 @@ function patchMaterial(material, grain = 0) {
       );
     }
   };
-  material.customProgramCacheKey = () => `ridoux-${grain}`;
+  material.customProgramCacheKey = () => `ridoux-${grain}-${hole ? 'h' : ''}`;
   return material;
 }
 
@@ -171,9 +212,9 @@ export function createMaquette(canvas) {
     ridge: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.66, metalness: 0, side: THREE.DoubleSide }), 0.16),
     rafter: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xc39a66, roughness: 0.8 }), 0.1),
     truss: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xa97f4e, roughness: 0.82 }), 0.1),
-    batten: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xd3ae7b, roughness: 0.8 }), 0.12),
-    ecran: patchMaterial(new THREE.MeshStandardMaterial({ color: 0x4a5357, roughness: 0.92 })),
-    insul: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xd9cba3, roughness: 1 }), 0.22),
+    batten: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xd3ae7b, roughness: 0.8 }), 0.12, true),
+    ecran: patchMaterial(new THREE.MeshStandardMaterial({ color: 0x4a5357, roughness: 0.92, side: THREE.DoubleSide }), 0, true),
+    insul: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xc8b88f, roughness: 1 }), 0.22),
     zinc: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xa5aeb1, roughness: 0.42, metalness: 0.18, side: THREE.DoubleSide })),
     rive: patchMaterial(new THREE.MeshStandardMaterial({ color: 0xdfe2de, roughness: 0.55 })),
     cord: new THREE.MeshBasicMaterial({ color: 0xe8641c }),
@@ -209,6 +250,7 @@ export function createMaquette(canvas) {
   };
 
   const shadowy = (m) => { m.castShadow = true; m.receiveShadow = true; return m; };
+  const holeDepth = holeDepthMaterial();
 
   /* ---------- pans ---------- */
   const rand = rng(42);
@@ -258,12 +300,14 @@ export function createMaquette(canvas) {
     const ecranGeo = new THREE.BoxGeometry(L + 0.02, 0.006, R + 0.06);
     ecranGeo.translate(0, 0.003, (R + 0.06) / 2);
     const ecran = shadowy(new THREE.Mesh(ecranGeo, M.ecran));
+    ecran.customDepthMaterial = holeDepth;
     g.ecran.add(ecran);
 
     // contre-liteaux
     const clGeo = new THREE.BoxGeometry(0.036, 0.02, R);
     clGeo.translate(0, 0.016, R / 2);
     const cl = shadowy(new THREE.InstancedMesh(clGeo, M.batten, NR));
+    cl.customDepthMaterial = holeDepth;
     rafterX.forEach((x, i) => { dummy.position.set(x, 0, 0); dummy.updateMatrix(); cl.setMatrixAt(i, dummy.matrix); });
     g.liteaux.add(cl);
 
@@ -271,6 +315,7 @@ export function createMaquette(canvas) {
     const litGeo = new THREE.BoxGeometry(L, 0.024, 0.042);
     litGeo.translate(L / 2, 0.038, 0);
     const lit = shadowy(new THREE.InstancedMesh(litGeo, M.batten, NC));
+    lit.customDepthMaterial = holeDepth;
     const cordGeo = new THREE.BoxGeometry(L, 0.007, 0.022);
     cordGeo.translate(L / 2, 0.053, 0);
     const cord = new THREE.InstancedMesh(cordGeo, M.cord, NC);
@@ -298,7 +343,7 @@ export function createMaquette(canvas) {
       const zTop = vBottom - TL;
       for (let i = 0; i < COLS; i++) {
         const x = -L / 2 + TW * (i + 0.5);
-        tileInfo.push({ i, j, x, z: zTop });
+        tileInfo.push({ i, j, x, z: zTop, r1: rand(), r2: rand(), r3: rand() });
         const r = rand();
         c.copy(tileBase);
         c.offsetHSL((rand() - 0.5) * 0.012, (rand() - 0.5) * 0.05, (r - 0.5) * 0.045 - (r > 0.95 ? 0.035 : 0));
@@ -415,15 +460,16 @@ export function createMaquette(canvas) {
   dustGeo.setAttribute('aAlpha', new THREE.BufferAttribute(dAlpha, 1));
   dustGeo.setAttribute('aSize', new THREE.BufferAttribute(dSize, 1));
   const dustMat = new THREE.ShaderMaterial({
-    uniforms: { uColor: { value: new THREE.Color('#e8641c') }, uScale: { value: 1 } },
+    uniforms: { uColor: { value: new THREE.Color('#e8641c') }, uScale: { value: 1 }, uNear: { value: 0 } },
     vertexShader: `
       attribute float aAlpha;
       attribute float aSize;
       uniform float uScale;
+      uniform float uNear;
       varying float vA;
       void main() {
-        vA = aAlpha;
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vA = aAlpha * smoothstep(uNear, uNear + 0.7, -mv.z);
         gl_PointSize = aSize * uScale / -mv.z;
         gl_Position = projectionMatrix * mv;
       }`,
@@ -588,6 +634,94 @@ export function createMaquette(canvas) {
   const sun0 = new THREE.Color(0xffd8b0), sunWet = new THREE.Color(0xcfdbe4);
   const hemi0 = new THREE.Color(0xe2e9ec), hemiWet = new THREE.Color(0xb9c7cf);
 
+  /* ---------- l'entrée dans la toiture ----------
+     la caméra plonge vers le pan avant, passe entre deux chevrons et se retrouve dans les combles,
+     le regard le long du faîtage */
+  const ENTRY = { x: (-L / 2 + 0.06) + 5.5 * ((L - 0.12) / (NR - 1)), z: 1.05 };
+  const frontSlope = slopes[0].slope;
+  frontSlope.updateMatrix();
+  const onSlope = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(frontSlope.matrix);
+  const nrm = new THREE.Vector3(0, Math.cos(PITCH), Math.sin(PITCH));
+  const E_m = onSlope(ENTRY.x, 0.1, ENTRY.z);
+  const B_m = onSlope(ENTRY.x, -0.2, ENTRY.z);
+  const camPath = new THREE.CatmullRomCurve3([
+    E_m.clone().addScaledVector(nrm, 7.5).add(new THREE.Vector3(2.6, 0.4, 1.6)),
+    E_m.clone().addScaledVector(nrm, 2.6).add(new THREE.Vector3(0.7, 0, 0.35)),
+    E_m.clone().addScaledVector(nrm, 0.75),
+    B_m.clone().addScaledVector(nrm, -0.22),
+    new THREE.Vector3(1.72, 0.58, -0.4),
+  ], false, 'centripetal');
+  const lookPath = new THREE.CatmullRomCurve3([
+    E_m.clone(),
+    E_m.clone(),
+    // en passant le trou, le regard se tourne déjà vers la charpente, pas vers le plancher
+    new THREE.Vector3(0.35, 0.5, 0.45),
+    new THREE.Vector3(-1.2, 0.48, 0.15),
+    new THREE.Vector3(-2.5, 0.52, 0.18),
+  ], false, 'centripetal');
+  const pathP = new THREE.Vector3(), pathQ = new THREE.Vector3();
+  const entryWorld = new THREE.Vector3();
+
+  // rai de lumière qui tombe du trou dans les combles
+  const BEAM_L = 2.6;
+  const beamGeo = new THREE.CylinderGeometry(0.42, 0.8, BEAM_L, 40, 1, true);
+  beamGeo.translate(0, -BEAM_L / 2, 0);
+  const beamMat = new THREE.ShaderMaterial({
+    uniforms: { uAlpha: { value: 0 } },
+    vertexShader: `
+      varying vec2 vUv;
+      varying float vFace;
+      void main() {
+        vUv = uv;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vec3 n = normalize(normalMatrix * normal);
+        vFace = abs(dot(n, normalize(-mv.xyz)));
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform float uAlpha;
+      varying vec2 vUv;
+      varying float vFace;
+      void main() {
+        float along = pow(vUv.y, 1.4);
+        float a = uAlpha * along * pow(vFace, 2.2) * 0.16;
+        gl_FragColor = vec4(vec3(1.0, 0.86, 0.66) * a, a);
+      }`,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+  });
+  const beam = new THREE.Mesh(beamGeo, beamMat);
+  beam.visible = false;
+  beam.frustumCulled = false;
+  scene.add(beam);
+  // poussières en suspension dans le rai
+  const MOTES = 260;
+  const mPos = new Float32Array(MOTES * 3);
+  const mAlpha = new Float32Array(MOTES);
+  const mSize = new Float32Array(MOTES);
+  const mSeed = [];
+  for (let i = 0; i < MOTES; i++) {
+    const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random());
+    const y = -Math.random() * BEAM_L;
+    const rad = 0.42 + (0.8 - 0.42) * (-y / BEAM_L);
+    mSeed.push({ a, r: r * rad * 0.9, y, sp: 0.02 + Math.random() * 0.05, ph: Math.random() * 6.28 });
+    mSize[i] = 0.004 + Math.random() * 0.01;
+  }
+  const motesGeo = new THREE.BufferGeometry();
+  motesGeo.setAttribute('position', new THREE.BufferAttribute(mPos, 3));
+  motesGeo.setAttribute('aAlpha', new THREE.BufferAttribute(mAlpha, 1));
+  motesGeo.setAttribute('aSize', new THREE.BufferAttribute(mSize, 1));
+  const motesMat = dustMat.clone();
+  motesMat.uniforms.uColor.value = new THREE.Color('#ffe2bd');
+  motesMat.blending = THREE.AdditiveBlending;
+  motesMat.uniforms.uNear.value = 0.55;
+  const motes = new THREE.Points(motesGeo, motesMat);
+  motes.frustumCulled = false;
+  beam.add(motes);
+
   /* ---------- état piloté par GSAP ---------- */
   const st = {
     build: 0,
@@ -602,13 +736,18 @@ export function createMaquette(canvas) {
     exposure: 1.02,
     sos: 0,
     sosY: 0,
+    pathMix: 0,   // 0 : caméra en orbite ; 1 : caméra sur la trajectoire d'entrée
+    u: 0,         // avancement sur la trajectoire
+    hole: 0,      // ouverture du toit
+    inside: 0,    // dans les combles
+    dark: 0,      // fond ardoise derrière la maquette
   };
   const pointer = { x: 0, y: 0, sx: 0, sy: 0, inside: false };
   let clock = 0;
   let lastNow = performance.now();
   slopes.forEach((s) => { s.cordP = new Float32Array(NC); s.pt = 0; s.lifting = false; });
   let focus = null;
-  let lastBuild = -1, lastExplode = -1;
+  let lastBuild = -1, lastExplode = -1, lastHole = 0;
 
   /* cordeaux : une fois claqués, ils vibrent une fraction de seconde */
   function writeCords(s) {
@@ -636,6 +775,28 @@ export function createMaquette(canvas) {
       const p = easeOut(clamp01(local));
       const fall = (1 - p) * 0.42;
       const lf = s.lift[k];
+      // le couvreur ouvre le toit : autour du point d'entrée, les tuiles se soulèvent et s'envolent
+      let o = 0;
+      if (s === slopes[0] && st.hole > 0) {
+        const dx = t.x - ENTRY.x, dz = t.z + TL * 0.5 - ENTRY.z;
+        const d = Math.hypot(dx, dz);
+        o = clamp01((st.hole * 1.25 - d + t.r1 * 0.25) / 0.35);
+        o = o * o * (3 - 2 * o);
+        if (o > 0) {
+          const k2 = 1 / Math.max(d, 0.05);
+          dummy.position.set(
+            t.x + dx * k2 * o * (0.8 + t.r2 * 0.9),
+            0.05 + fall + lf * 0.3 + o * (1.1 + t.r3 * 1.4),
+            t.z - (1 - p) * 0.12 + dz * k2 * o * (0.8 + t.r2 * 0.9)
+          );
+          dummy.rotation.set(-TILT - lf * 1.9 - o * (1.6 + t.r1 * 2.4), o * (t.r2 - 0.5) * 3, o * (t.r3 - 0.5) * 2.4);
+          const sc3 = 1 - o * 0.25;
+          dummy.scale.set(sc3, sc3, sc3);
+          dummy.updateMatrix();
+          s.tiles.setMatrixAt(k, dummy.matrix);
+          continue;
+        }
+      }
       dummy.position.set(t.x, 0.05 + fall + lf * 0.3, t.z - (1 - p) * 0.12);
       dummy.rotation.set(-TILT - (1 - p) * 0.25 - lf * 1.9, 0, 0);
       const sc2 = p <= 0 ? 0.0001 : 1;
@@ -675,7 +836,7 @@ export function createMaquette(canvas) {
     return hit;
   }
   function stepLift(dt) {
-    const allowed = st.build >= 0.999 && st.explode < 0.001 && st.sos < 0.001;
+    const allowed = st.build >= 0.999 && st.explode < 0.001 && st.sos < 0.001 && st.hole < 0.001 && st.pathMix < 0.01;
     const hit = allowed ? probeRoof() : null;
     hover += ((hit ? 1 : 0) - hover) * Math.min(1, dt * 6);
     const f = Math.min(1, dt * 60);
@@ -846,6 +1007,7 @@ export function createMaquette(canvas) {
     camera.aspect = W / H;
     camera.updateProjectionMatrix();
     dustMat.uniforms.uScale.value = (H / (2 * Math.tan((camera.fov * DEG) / 2))) * DPR;
+    motesMat.uniforms.uScale.value = dustMat.uniforms.uScale.value;
   }
   resize();
   window.addEventListener('resize', resize);
@@ -856,15 +1018,32 @@ export function createMaquette(canvas) {
     const az = (st.az + pointer.sx * 9 + Math.sin(clock * 0.21) * 1.6 * calm) * DEG;
     const el = (st.el - pointer.sy * 3.5 + Math.sin(clock * 0.16 + 1.3) * 0.7 * calm) * DEG;
     U.uCloud.value = (1 - 0.85 * st.sos) * (1 - 0.45 * st.explode);
+    root.rotation.y = (st.yaw + pointer.sx * 4 * (1 - st.sos) * (1 - st.pathMix)) * DEG;
+    root.updateMatrixWorld();
     target.set(st.tx, st.ty, st.tz);
     camera.position.set(
       target.x + st.dist * Math.cos(el) * Math.sin(az),
       target.y + st.dist * Math.sin(el),
       target.z + st.dist * Math.cos(el) * Math.cos(az)
     );
+    if (st.pathMix > 0.0001) {
+      // sur la trajectoire, la souris ne fait qu'incliner légèrement le regard
+      camPath.getPoint(clamp01(st.u), pathP);
+      lookPath.getPoint(clamp01(st.u), pathQ);
+      pathQ.x += pointer.sx * 0.25 * st.pathMix;
+      pathQ.y -= pointer.sy * 0.12 * st.pathMix;
+      model.localToWorld(pathP);
+      model.localToWorld(pathQ);
+      camera.position.lerp(pathP, st.pathMix);
+      target.lerp(pathQ, st.pathMix);
+    }
     camera.lookAt(target);
     camera.setViewOffset(W, H, -W * st.shiftX, -H * st.shiftY, W, H);
-    root.rotation.y = (st.yaw + pointer.sx * 4 * (1 - st.sos)) * DEG;
+    // le trou suit la toiture
+    entryWorld.copy(E_m);
+    model.localToWorld(entryWorld);
+    U.uHole.value.set(entryWorld.x, entryWorld.y - 0.1, entryWorld.z, st.hole * 0.78);
+    renderer.setClearColor(0x262e31, st.dark);
     const sosOn = st.sos > 0.001;
     wall.visible = sosOn;
     if (sosOn) {
@@ -876,10 +1055,12 @@ export function createMaquette(canvas) {
       camera.setViewOffset(W, H, -W * st.shiftX, -H * st.shiftY - (st.sosY - y0), W, H);
     }
     const w = st.sos;
-    // avec le ciel réel, la lumière ambiante s'efface au profit de l'environnement
-    amb.intensity = envReady ? 0.55 : 1.5;
-    hemi.intensity = envReady ? 0.55 : 1.05;
-    scene.environmentIntensity = envReady ? 0.85 : 0;
+    // avec le ciel réel, la lumière ambiante s'efface au profit de l'environnement ;
+    // dans les combles, la pénombre : seul le rai de lumière éclaire
+    const dim = 1 - 0.8 * st.inside;
+    amb.intensity = (envReady ? 0.55 : 1.5) * dim;
+    hemi.intensity = (envReady ? 0.55 : 1.05) * dim;
+    scene.environmentIntensity = (envReady ? 0.85 : 0) * dim;
     M.tile.roughness = 0.66 - 0.34 * w;
     M.ridge.roughness = 0.66 - 0.34 * w;
     sun.color.copy(sun0).lerp(sunWet, w);
@@ -891,10 +1072,42 @@ export function createMaquette(canvas) {
     sun.position.set(Math.cos(sEl) * Math.sin(sAz) * 12, Math.sin(sEl) * 12, Math.cos(sEl) * Math.cos(sAz) * 12);
     sun.intensity = 3.2 - 0.8 * w;
     sun.target.position.set(0, 0, 0);
+    // le rai suit la direction du soleil
+    beam.visible = st.hole > 0.05;
+    if (beam.visible) {
+      tmpV.copy(sun.position).normalize().negate();
+      beam.position.copy(entryWorld).addScaledVector(tmpV, -0.15);
+      beam.quaternion.setFromUnitVectors(UP_NEG, tmpV);
+      // distance de la caméra à l'axe du rai : on l'efface quand on passe dedans
+      axisTmp.copy(camera.position).sub(beam.position);
+      const along = axisTmp.dot(tmpV);
+      axisTmp.addScaledVector(tmpV, -along);
+      const near = THREE.MathUtils.smoothstep(axisTmp.length(), 0.4, 1.3);
+      beamMat.uniforms.uAlpha.value = st.hole * (0.35 + 0.65 * st.inside) * near;
+    }
     fill.position.set(-sun.position.x, 4, -sun.position.z);
     floor.material.opacity = 0.13 * st.floor;
     floor.visible = st.floor > 0.001;
     renderer.toneMappingExposure = st.exposure;
+  }
+
+  const UP_NEG = new THREE.Vector3(0, -1, 0);
+  const axisTmp = new THREE.Vector3();
+  function stepMotes(dt) {
+    if (!beam.visible) return;
+    const a = beamMat.uniforms.uAlpha.value;
+    for (let i = 0; i < MOTES; i++) {
+      const m = mSeed[i];
+      m.y -= m.sp * dt * 0.4;
+      if (m.y < -BEAM_L) m.y += BEAM_L;
+      m.a += dt * 0.08;
+      mPos[i * 3] = Math.cos(m.a) * m.r + Math.sin(clock * 0.6 + m.ph) * 0.03;
+      mPos[i * 3 + 1] = m.y;
+      mPos[i * 3 + 2] = Math.sin(m.a) * m.r;
+      mAlpha[i] = a * (0.45 + 0.55 * Math.sin(clock * 1.3 + m.ph * 3) ** 2) * Math.min(1, -m.y / 0.4);
+    }
+    motesGeo.attributes.position.needsUpdate = true;
+    motesGeo.attributes.aAlpha.needsUpdate = true;
   }
 
   /* ---------- projection des ancres ---------- */
@@ -939,8 +1152,10 @@ export function createMaquette(canvas) {
       for (const s of slopes) if (s.snapAt.some((t) => t >= 0 && clock - t < 0.7)) writeCords(s);
     }
     updateCamera();
+    if (st.hole !== lastHole) { writeTiles(slopes[0]); lastHole = st.hole; }
     stepLift(dt);
     stepDust(dt);
+    stepMotes(dt);
     renderer.render(scene, camera);
     if (onFrame) onFrame();
   }
@@ -960,8 +1175,9 @@ export function createMaquette(canvas) {
   // la craie et le mur du SOS sont rendus visibles le temps de la compilation, pour ne rien compiler en pleine animation
   dust.visible = true;
   wall.visible = true;
+  beam.visible = true;
   const ready = (renderer.compileAsync ? renderer.compileAsync(scene, camera) : Promise.resolve(renderer.compile(scene, camera)))
-    .then(() => { dust.visible = false; wall.visible = false; });
+    .then(() => { dust.visible = false; wall.visible = false; beam.visible = false; });
 
   return {
     ready,
