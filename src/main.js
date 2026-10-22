@@ -27,6 +27,7 @@ import { initExterieurs } from './modules/exterieurs.js';
 import { initSos } from './modules/sos.js';
 import { initZone } from './modules/zone.js';
 import { initContact } from './modules/contact.js';
+import { initReveal } from './modules/reveal.js';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 gsap.defaults({ ease: 'expo.out', duration: 1.1 });
@@ -75,6 +76,7 @@ async function boot() {
   initContact(ctx);
   initChrome(ctx);
   initTitles(ctx);
+  initReveal(ctx);
 
   ScrollTrigger.refresh();
   performance.mark('ridoux:modules');
@@ -130,12 +132,12 @@ function waitForSteadyFrames(count, maxMs) {
 }
 
 /* ---------- titres de section : lignes masquées ---------- */
-function initTitles({ gsap, SplitText, mobile }) {
-  document.querySelectorAll('main h2:not(.sos-title)').forEach((h) => {
+function initTitles({ gsap, SplitText }) {
+  document.querySelectorAll('main h2:not(.sos-title), main .rea-steps-title').forEach((h) => {
     const split = SplitText.create(h, { type: 'lines', mask: 'lines', linesClass: 'title-line' });
     const underlines = h.querySelectorAll('.t-u');
-    // (téléphone : joué une fois, le titre ne se rembobine pas quand on remonte)
-    const tl = gsap.timeline({ scrollTrigger: { trigger: h, start: 'top 86%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' } });
+    // joué une fois, comme toutes les apparitions : le titre ne se rembobine pas quand on remonte
+    const tl = gsap.timeline({ scrollTrigger: { trigger: h, start: 'top 86%', toggleActions: 'play none none none' } });
     tl.from(split.lines, { yPercent: 112, duration: 1.15, stagger: 0.09, ease: 'expo.out' });
     // le souligné se trace une fois la ligne posée, au moment où on la lit
     if (underlines.length) {

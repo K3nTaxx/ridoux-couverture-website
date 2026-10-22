@@ -79,11 +79,9 @@ export async function initZone({ gsap, zoneData, mobile }) {
   gsap.set([ring, dot], { scale: 0, transformOrigin: '50% 50%' });
   routes.forEach((r) => gsap.set(r.end, { scale: 0, transformOrigin: '50% 50%' }));
 
-  // téléphone : la carte se dessine d'elle-même quand elle arrive, sans suivre le doigt
+  // la carte se dessine d'elle-même quand elle arrive, une fois (comme toutes les apparitions de la page)
   const tl = gsap.timeline({
-    scrollTrigger: mobile
-      ? { trigger: '.zone-map', start: 'top 72%', toggleActions: 'play none none none' }
-      : { trigger: '.zone', start: 'top 62%', end: 'center 52%', scrub: 0.8 },
+    scrollTrigger: { trigger: '.zone-map', start: mobile ? 'top 72%' : 'top 62%', toggleActions: 'play none none none' },
   });
   tl.to([dot, ring], { scale: 1, duration: 0.3, ease: 'expo.out' }, 0)
     .to(baseName, { opacity: 1, duration: 0.25 }, 0.05)

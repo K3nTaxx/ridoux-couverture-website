@@ -1,6 +1,7 @@
 /* Navigation qui se cache, boutons magnétiques, ancres */
 
-export function initChrome({ gsap, ScrollTrigger, lenis }) {
+export function initChrome(ctx) {
+  const { gsap, ScrollTrigger, lenis } = ctx;
   const nav = document.querySelector('.nav');
 
   /* ---------- navigation ---------- */
@@ -39,14 +40,18 @@ export function initChrome({ gsap, ScrollTrigger, lenis }) {
       veil.classList.toggle('is-on', v);
       nav.classList.remove('is-hidden');
       gsap.killTweensOf([menu, links]);
+      // le volet glisse de sous la barre (un simple déplacement, calculé par la carte graphique) ;
+      // la maquette 3D se met en pause tant qu'il est ouvert : toute la puissance va au menu
       if (v) {
         menu.hidden = false;
         lenis.stop();
-        gsap.fromTo(menu, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.75, ease: 'expo.out' });
-        gsap.fromTo(links, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, stagger: 0.035, ease: 'expo.out', delay: 0.1 });
+        ctx.pauseMaquette?.(true);
+        gsap.fromTo(menu, { yPercent: -100 }, { yPercent: 0, duration: 0.55, ease: 'expo.out', force3D: true });
+        gsap.fromTo(links, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.025, ease: 'power3.out', delay: 0.12 });
       } else {
         lenis.start();
-        gsap.to(menu, { clipPath: 'inset(0 0 100% 0)', duration: 0.5, ease: 'power3.in', onComplete: () => { if (!open) menu.hidden = true; } });
+        ctx.pauseMaquette?.(false);
+        gsap.to(menu, { yPercent: -100, duration: 0.38, ease: 'power3.in', force3D: true, onComplete: () => { if (!open) menu.hidden = true; } });
       }
     };
     burger.addEventListener('click', () => {

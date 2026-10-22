@@ -56,8 +56,4 @@ export function initExterieurs({ gsap, ScrollTrigger, mobile }) {
     });
   }
 
-  gsap.from('.ext-item', {
-    opacity: 0, y: 18, duration: 1, stagger: 0.12,
-    scrollTrigger: { trigger: '.ext-facade-copy', start: 'top 85%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
-  });
 }

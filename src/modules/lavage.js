@@ -137,17 +137,8 @@ export function initLavage({ gsap, ScrollTrigger, mobile }) {
       onUpdate: (self) => { progress = self.progress; draw(); },
     });
 
-    /* entrée : le cadre s'ouvre comme une fenêtre de toit */
-    gsap.fromTo(frame, { clipPath: 'inset(16% 20% 34% 20%)' }, {
-      clipPath: 'inset(0% 0% 0% 0%)',
-      ease: 'none',
-      scrollTrigger: { trigger: '.lav-stage', start: 'top 95%', end: 'top 30%', scrub: 0.6 },
-    });
   }
-  gsap.from('.lav-lead', {
-    opacity: 0, y: 20, duration: 1.1,
-    scrollTrigger: { trigger: '.lav-lead', start: 'top 85%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
-  });
+  // (les apparitions du texte, du cadre et des photos : reveal.js)
 
   /* mosaïque : la colonne de gauche défile plus vite et se pose quand le nettoyage se termine ;
      celle de droite reste calée sur le bas de la grande image */
@@ -156,14 +147,6 @@ export function initLavage({ gsap, ScrollTrigger, mobile }) {
     gsap.fromTo(colA, { y: 110 }, {
       y: 0, ease: 'none',
       scrollTrigger: { trigger: '.lav-gallery', start: 'top bottom', endTrigger: '.lav-stage', end: 'bottom 94%', scrub: true },
-    });
-  }
-  if (!mobile) {
-    section.querySelectorAll('.lav-col figure').forEach((f) => {
-      gsap.fromTo(f, { clipPath: 'inset(12% 0% 12% 0%)' }, {
-        clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
-        scrollTrigger: { trigger: f, start: 'top 98%', end: 'top 60%', scrub: 0.5 },
-      });
     });
   }
 
@@ -176,14 +159,4 @@ export function initLavage({ gsap, ScrollTrigger, mobile }) {
     onToggle: (self) => { if (self.isActive) video.play().catch(() => {}); else video.pause(); },
   });
 
-  /* bâtiment professionnel : l'image glisse en profondeur */
-  const pro = section.querySelector('.lav-pro-mask');
-  if (!mobile) {
-    gsap.fromTo(pro.querySelector('img'), { yPercent: -14, scale: 1.18 }, {
-      yPercent: 0,
-      scale: 1,
-      ease: 'none',
-      scrollTrigger: { trigger: pro, start: 'top bottom', end: 'bottom top', scrub: true },
-    });
-  }
 }

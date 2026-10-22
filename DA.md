@@ -281,3 +281,7 @@ La même histoire, recadrée pour un écran en hauteur ; rien n'est retiré, rie
 ### Retour n° 22 — téléphone : une version simple
 
 Au téléphone, le site raconte la même chose avec moins de mise en scène : une couverture (le soir, le titre, la maison, les tuiles qui volent) qui ne bouge pas quand on défile, puis les sections l'une après l'autre, chacune à peu près sur un écran. Rien ne suit le doigt : ce qui s'anime le fait d'un seul geste, quand on arrive (le toit qui se nettoie, la façade qui se lave, la carte qui se dessine, le cordeau du suivi). La coupe est réservée à l'ordinateur ; le drone garde sa mission en 3D ; le SOS est un bloc ardoise sous l'averse. La barre ne garde que le logo, le nom et un menu fin ; le menu est un volet ardoise à la taille de son contenu.
+
+### Retour n° 23 — un seul langage d'apparition
+
+Après le drone, tout apparaît de la même façon, une fois, à l'arrivée : les titres montent ligne par ligne derrière leur masque, les textes suivent d'un fondu qui monte de 18 px, et chaque photo descend dans son cadre et le remplit de haut en bas (1,5 s, même courbe partout), comme on découvre un toit. Une photo ne se montre qu'une fois chargée ; rien d'autre (fond gris, étiquette) ne la précède. Au téléphone, le haut de page se resserre autour de la maison : le titre juste au-dessus, le lieu juste en dessous.

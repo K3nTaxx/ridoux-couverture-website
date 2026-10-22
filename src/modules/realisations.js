@@ -36,7 +36,8 @@ export function initRealisations({ gsap, ScrollTrigger, mobile }) {
       start: 'top 78%',
       onEnter: () => {
         if (hovering) return;
-        gsap.fromTo(state, { c: 112 }, { c: -12, duration: 1.7, delay: (idx % 3) * 0.14, ease: 'power3.inOut', onUpdate: render, overwrite: true });
+        // la ligne passe une fois la photo arrivée dans son cadre (reveal.js)
+        gsap.fromTo(state, { c: 112 }, { c: -12, duration: 1.7, delay: 1.2 + (idx % 3) * 0.14, ease: 'power3.inOut', onUpdate: render, overwrite: true });
       },
       // (téléphone : jouée une fois, la ligne ne revient pas en arrière quand on remonte)
       onLeaveBack: () => { if (mobile) return; gsap.killTweensOf(state); state.c = 112; render(); },
@@ -56,13 +57,6 @@ export function initRealisations({ gsap, ScrollTrigger, mobile }) {
     });
   });
 
-  gsap.from('.rea-item figcaption', {
-    opacity: 0,
-    y: 10,
-    duration: 0.9,
-    stagger: 0.06,
-    scrollTrigger: { trigger: '.rea-grid', start: 'top 70%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
-  });
 
   /* réfection en trois temps : les trois étapes sont là dès qu'on arrive, reliées par le cordeau */
   const steps = [...document.querySelectorAll('.rea-steps-row figure')];

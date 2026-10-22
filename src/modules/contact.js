@@ -50,18 +50,14 @@ export function initContact({ gsap, mobile }) {
 
   // les cordeaux des champs se tendent une première fois à l'arrivée, puis se relâchent
   const cords = [...form.querySelectorAll('.ctc-cord')];
-  gsap.timeline({ scrollTrigger: { trigger: form, start: 'top 72%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' } })
+  gsap.timeline({ scrollTrigger: { trigger: form, start: 'top 72%', toggleActions: 'play none none none' } })
     .fromTo(cords, { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut', stagger: 0.07 })
     .to(cords, { scaleX: 0, transformOrigin: 'right center', duration: 0.8, ease: 'expo.inOut', stagger: 0.07, clearProps: 'transform,transformOrigin' }, 0.55);
-  gsap.from(form, {
-    opacity: 0, y: 30, duration: 1.2,
-    scrollTrigger: { trigger: form, start: 'top 88%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
-  });
 
   /* pied de page */
   tileEdge(document.querySelector('.foot-edge'), mobile);
   gsap.from('.foot-logo', {
     rotate: -24, scale: 0.8, opacity: 0, duration: 1.3, ease: 'expo.out',
-    scrollTrigger: { trigger: '.foot', start: 'top 85%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
+    scrollTrigger: { trigger: '.foot', start: 'top 85%', toggleActions: 'play none none none' },
   });
 }

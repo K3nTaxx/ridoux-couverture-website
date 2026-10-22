@@ -146,7 +146,10 @@ export function initHero(ctx) {
      les tuiles en suspens s'envolent, la toiture s'ouvre couche par couche et le ciel passe à l'heure bleue.
      La coupe « couche par couche » prend la suite sans casser le mouvement. */
   const vis = { hero: true, cpe: false, drone: false, sos: false };
-  const apply = () => maquette.setActive(vis.hero || vis.cpe || vis.drone || vis.sos);
+  let paused = false;
+  const apply = () => maquette.setActive(!paused && (vis.hero || vis.cpe || vis.drone || vis.sos));
+  // le menu du téléphone met la maquette en pause tant qu'il est ouvert
+  ctx.pauseMaquette = (v) => { paused = v; apply(); };
   const copy = document.querySelector('.hero-copy');
   const lineA = back.querySelector('.hero-line--a');
   const lineB = back.querySelector('.hero-line--b');

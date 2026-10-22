@@ -1006,10 +1006,12 @@ export function createMaquette(canvas, { mobile = false } = {}) {
   floaters.frustumCulled = false;
   floaters.visible = false;
   scene.add(floaters);
+  // téléphone : l'écran est plus petit, cinq tuiles de moins suffisent
+  const FLOAT_OFF = mobile ? [3, 6, 9, 11, 13] : [];
   const fInfo = FLOAT_SPEC.map((f, i) => {
     floaters.setColorAt(i, new THREE.Color(tileBase).offsetHSL(0, (rand() - 0.5) * 0.04, (rand() - 0.5) * 0.05));
     return {
-      base: new THREE.Vector3(), out: new THREE.Vector3(), size: f[3],
+      base: new THREE.Vector3(), out: new THREE.Vector3(), size: FLOAT_OFF.includes(i) ? 0 : f[3],
       // les tuiles proches suivent en partie la caméra : un peu de profondeur au curseur, sans qu'elles traversent l'écran
       follow: 1 - Math.min(1, Math.max(0.3, f[2] / 22)),
       q0: new THREE.Quaternion().setFromEuler(new THREE.Euler(rand() * 6.28, rand() * 6.28, rand() * 6.28)),
