@@ -1,5 +1,6 @@
 /* Entretien : le toit se nettoie passe après passe au défilement (photos réelles avant / après) ;
    à droite, une galerie de chantiers en deux colonnes qui défilent à des vitesses différentes. */
+import { onResize } from './resize.js';
 
 function loadImg(src) {
   return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
@@ -114,28 +115,38 @@ export function initLavage({ gsap, ScrollTrigger, mobile }) {
   Promise.all([loadImg('/img/ra-chenau-avant.webp'), loadImg('/img/ra-chenau-apres.webp')]).then(([a, b]) => {
     before = a; after = b; ready = true; size();
   });
-  window.addEventListener('resize', size);
+  onResize(size, mobile);
 
-  // le nettoyage se termine quand la grande image cesse d'être épinglée (bas du cadre à 94 % de l'écran),
-  // au moment où la mosaïque de droite arrive à sa dernière image.
-  // Téléphone : l'image n'est pas épinglée, le toit se nettoie pendant qu'elle traverse l'écran.
-  ScrollTrigger.create({
-    trigger: mobile ? frame : '.lav-stage',
-    start: mobile ? 'top 72%' : 'top 34%',
-    end: mobile ? 'bottom 32%' : 'bottom 94%',
-    scrub: 0.5,
-    onUpdate: (self) => { progress = self.progress; draw(); },
-  });
+  // téléphone : rien ne suit le doigt ; quand l'image est bien à l'écran, le toit se nettoie tout seul, passe après passe
+  if (mobile) {
+    const run = { p: 0 };
+    ScrollTrigger.create({
+      trigger: frame,
+      start: 'top 55%',
+      once: true,
+      onEnter: () => gsap.to(run, { p: 1, duration: 3.2, ease: 'power1.inOut', onUpdate: () => { progress = run.p; draw(); } }),
+    });
+  } else {
+    // le nettoyage se termine quand la grande image cesse d'être épinglée (bas du cadre à 94 % de l'écran),
+    // au moment où la mosaïque de droite arrive à sa dernière image
+    ScrollTrigger.create({
+      trigger: '.lav-stage',
+      start: 'top 34%',
+      end: 'bottom 94%',
+      scrub: 0.5,
+      onUpdate: (self) => { progress = self.progress; draw(); },
+    });
 
-  /* entrée : le cadre s'ouvre comme une fenêtre de toit */
-  gsap.fromTo(frame, { clipPath: 'inset(16% 20% 34% 20%)' }, {
-    clipPath: 'inset(0% 0% 0% 0%)',
-    ease: 'none',
-    scrollTrigger: { trigger: '.lav-stage', start: 'top 95%', end: 'top 30%', scrub: 0.6 },
-  });
+    /* entrée : le cadre s'ouvre comme une fenêtre de toit */
+    gsap.fromTo(frame, { clipPath: 'inset(16% 20% 34% 20%)' }, {
+      clipPath: 'inset(0% 0% 0% 0%)',
+      ease: 'none',
+      scrollTrigger: { trigger: '.lav-stage', start: 'top 95%', end: 'top 30%', scrub: 0.6 },
+    });
+  }
   gsap.from('.lav-lead', {
     opacity: 0, y: 20, duration: 1.1,
-    scrollTrigger: { trigger: '.lav-lead', start: 'top 85%', toggleActions: 'play none none reverse' },
+    scrollTrigger: { trigger: '.lav-lead', start: 'top 85%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
   });
 
   /* mosaïque : la colonne de gauche défile plus vite et se pose quand le nettoyage se termine ;
@@ -147,12 +158,14 @@ export function initLavage({ gsap, ScrollTrigger, mobile }) {
       scrollTrigger: { trigger: '.lav-gallery', start: 'top bottom', endTrigger: '.lav-stage', end: 'bottom 94%', scrub: true },
     });
   }
-  section.querySelectorAll('.lav-col figure').forEach((f) => {
-    gsap.fromTo(f, { clipPath: 'inset(12% 0% 12% 0%)' }, {
-      clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
-      scrollTrigger: { trigger: f, start: 'top 98%', end: 'top 60%', scrub: 0.5 },
+  if (!mobile) {
+    section.querySelectorAll('.lav-col figure').forEach((f) => {
+      gsap.fromTo(f, { clipPath: 'inset(12% 0% 12% 0%)' }, {
+        clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
+        scrollTrigger: { trigger: f, start: 'top 98%', end: 'top 60%', scrub: 0.5 },
+      });
     });
-  });
+  }
 
   /* vidéo : lecture seulement quand elle est à l'écran */
   const video = section.querySelector('video');
@@ -165,10 +178,12 @@ export function initLavage({ gsap, ScrollTrigger, mobile }) {
 
   /* bâtiment professionnel : l'image glisse en profondeur */
   const pro = section.querySelector('.lav-pro-mask');
-  gsap.fromTo(pro.querySelector('img'), { yPercent: -14, scale: 1.18 }, {
-    yPercent: 0,
-    scale: 1,
-    ease: 'none',
-    scrollTrigger: { trigger: pro, start: 'top bottom', end: 'bottom top', scrub: true },
-  });
+  if (!mobile) {
+    gsap.fromTo(pro.querySelector('img'), { yPercent: -14, scale: 1.18 }, {
+      yPercent: 0,
+      scale: 1,
+      ease: 'none',
+      scrollTrigger: { trigger: pro, start: 'top bottom', end: 'bottom top', scrub: true },
+    });
+  }
 }

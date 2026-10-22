@@ -197,3 +197,5 @@ Référencement :
 Page « Mentions légales et confidentialité » : reprend les informations ci-dessus (section 10), plus l'hébergeur, la conception (Kalion Studio), la propriété intellectuelle, les données du formulaire, l'absence de cookies et les crédits. **À faire valider par le client** : la durée de conservation des demandes (« au plus trois ans après notre dernier échange », durée habituelle recommandée par la CNIL) et l'adresse de contact pour les données personnelles (ridoux.couverture.charpentes@gmail.com).
 
 Page « Page introuvable » (404) : « Cette page n'existe pas, ou elle a été déplacée. Le reste du site, lui, est bien en place. » — « Revenir à l'accueil », le numéro.
+
+Retour n° 22 (22/10/2026) : au téléphone, la section « La toiture, couche par couche » n'est plus affichée (ni dans le menu) ; la consigne « Touchez une couche… » ne sert plus qu'aux tablettes tactiles. Le titre « Votre demande » du formulaire est masqué au téléphone (le titre de la section suffit).

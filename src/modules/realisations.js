@@ -1,7 +1,8 @@
 /* Réalisations : la ligne de partage, inclinée à la pente du toit, balaie l'avant pour révéler l'après
    puis suit le curseur pour comparer. */
+import { onResize } from './resize.js';
 
-export function initRealisations({ gsap, ScrollTrigger }) {
+export function initRealisations({ gsap, ScrollTrigger, mobile }) {
   const items = [...document.querySelectorAll('.rea-item')];
 
   items.forEach((item, idx) => {
@@ -23,7 +24,7 @@ export function initRealisations({ gsap, ScrollTrigger }) {
       frame.style.setProperty('--avant-o', c > 18 ? '1' : '0');
     }
     measure();
-    window.addEventListener('resize', measure);
+    onResize(measure, mobile);
 
     let hovering = false;
     // la ligne colle au curseur, avec juste assez de souplesse pour rester fluide
@@ -37,7 +38,9 @@ export function initRealisations({ gsap, ScrollTrigger }) {
         if (hovering) return;
         gsap.fromTo(state, { c: 112 }, { c: -12, duration: 1.7, delay: (idx % 3) * 0.14, ease: 'power3.inOut', onUpdate: render, overwrite: true });
       },
-      onLeaveBack: () => { gsap.killTweensOf(state); state.c = 112; render(); },
+      // (téléphone : jouée une fois, la ligne ne revient pas en arrière quand on remonte)
+      onLeaveBack: () => { if (mobile) return; gsap.killTweensOf(state); state.c = 112; render(); },
+      once: mobile,
     });
 
     frame.addEventListener('pointermove', (e) => {
@@ -58,7 +61,7 @@ export function initRealisations({ gsap, ScrollTrigger }) {
     y: 10,
     duration: 0.9,
     stagger: 0.06,
-    scrollTrigger: { trigger: '.rea-grid', start: 'top 70%', toggleActions: 'play none none reverse' },
+    scrollTrigger: { trigger: '.rea-grid', start: 'top 70%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
   });
 
   /* réfection en trois temps : les trois étapes sont là dès qu'on arrive, reliées par le cordeau */
@@ -71,5 +74,5 @@ export function initRealisations({ gsap, ScrollTrigger }) {
     cord.style.bottom = 'auto';
   };
   placeCord();
-  window.addEventListener('resize', placeCord);
+  onResize(placeCord, mobile);
 }

@@ -5,7 +5,21 @@ const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
 const smooth = (t) => t * t * (3 - 2 * t);
 
-export function initBackground({ lenis, gsap }) {
+export function initBackground({ lenis, gsap, mobile }) {
+  // téléphone : chaque section porte sa propre couleur (feuille mobile.css) ; la navigation passe simplement
+  // en sombre au-dessus des sections sombres
+  if (mobile) {
+    const nav = document.querySelector('.nav');
+    const dark = [...document.querySelectorAll('.hero, .drn, .sos, .foot')];
+    const update = () => {
+      const y = nav.offsetHeight / 2;
+      nav.classList.toggle('is-dark', dark.some((el) => { const r = el.getBoundingClientRect(); return r.top <= y && r.bottom >= y; }));
+    };
+    lenis.on('scroll', update);
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+    return;
+  }
   const stops = [
     ['.hero', '#1E272B'],
     ['.cpe', '#252D30'],

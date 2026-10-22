@@ -1,10 +1,11 @@
 /* L'entreprise : le rang suivant recouvre le haut de page, la lettre, puis le suivi de A à Z
    qui se déroule tout seul, étape par étape, quand il arrive à l'écran. */
 import { tileEdge } from './edge.js';
+import { onResize } from './resize.js';
 
 export function initFamille({ gsap, ScrollTrigger, mobile }) {
   const section = document.querySelector('.fam');
-  tileEdge(section.querySelector('.fam-edge'));
+  tileEdge(section.querySelector('.fam-edge'), mobile);
 
   /* photo : se dévoile par le haut, comme on découvre un toit */
   const mask = section.querySelector('.fam-photo-mask');
@@ -12,13 +13,16 @@ export function initFamille({ gsap, ScrollTrigger, mobile }) {
     clipPath: 'inset(0 0 0% 0)',
     duration: 1.5,
     ease: 'expo.inOut',
-    scrollTrigger: { trigger: mask, start: 'top 82%', toggleActions: 'play none none reverse' },
+    scrollTrigger: { trigger: mask, start: 'top 82%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
   });
-  gsap.fromTo(mask.querySelector('img'), { yPercent: -8 }, {
-    yPercent: 0,
-    ease: 'none',
-    scrollTrigger: { trigger: mask, start: 'top bottom', end: 'bottom top', scrub: true },
-  });
+  // (au téléphone, rien ne suit le doigt : pas de glissement de la photo au défilement)
+  if (!mobile) {
+    gsap.fromTo(mask.querySelector('img'), { yPercent: -8 }, {
+      yPercent: 0,
+      ease: 'none',
+      scrollTrigger: { trigger: mask, start: 'top bottom', end: 'bottom top', scrub: true },
+    });
+  }
 
   /* lettre : le texte arrive d'un bloc */
   gsap.from('.fam-text, .fam-sign', {
@@ -26,17 +30,25 @@ export function initFamille({ gsap, ScrollTrigger, mobile }) {
     y: 24,
     duration: 1.2,
     stagger: 0.12,
-    scrollTrigger: { trigger: '.fam-letter', start: 'top 72%', toggleActions: 'play none none reverse' },
+    scrollTrigger: { trigger: '.fam-letter', start: 'top 72%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' },
   });
 
   /* valeurs : le souligné se dépose au moment de la lecture */
-  section.querySelectorAll('.fam-statement mark').forEach((m, i) => {
-    gsap.to(m, {
-      backgroundSize: '100% 4px',
-      ease: 'none',
-      scrollTrigger: { trigger: '.fam-statement', start: `top ${76 - i * 8}%`, end: `top ${56 - i * 8}%`, scrub: 0.6 },
+  // (téléphone : les deux soulignés se tracent d'eux-mêmes, l'un après l'autre)
+  if (mobile) {
+    gsap.to(section.querySelectorAll('.fam-statement mark'), {
+      backgroundSize: '100% 3px', duration: 0.9, stagger: 0.35, ease: 'power3.inOut',
+      scrollTrigger: { trigger: '.fam-statement', start: 'top 78%', toggleActions: 'play none none none' },
     });
-  });
+  } else {
+    section.querySelectorAll('.fam-statement mark').forEach((m, i) => {
+      gsap.to(m, {
+        backgroundSize: '100% 4px',
+        ease: 'none',
+        scrollTrigger: { trigger: '.fam-statement', start: `top ${76 - i * 8}%`, end: `top ${56 - i * 8}%`, scrub: 0.6 },
+      });
+    });
+  }
 
   /* suivi de A à Z : animation automatique, le cordeau se tend et coche chaque étape à son passage */
   const steps = [...section.querySelectorAll('.fam-az-steps li')];
@@ -87,11 +99,13 @@ export function initFamille({ gsap, ScrollTrigger, mobile }) {
     tl.to(...cordTo(1, { duration: 0.6, ease: 'power2.out' }), t);
   };
   build();
-  window.addEventListener('resize', () => { const played = tl.progress(); build(); tl.progress(played); });
+  onResize(() => { const played = tl.progress(); build(); tl.progress(played); }, mobile);
   ScrollTrigger.create({
     trigger: track,
     start: 'top 78%',
     onEnter: () => tl.play(0),
-    onLeaveBack: () => tl.pause(0),
+    // téléphone : joué une fois, il ne se rembobine pas quand on remonte
+    onLeaveBack: () => { if (!mobile) tl.pause(0); },
+    once: mobile,
   });
 }

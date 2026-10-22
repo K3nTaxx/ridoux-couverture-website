@@ -1,5 +1,6 @@
 /* SOS Toiture : la maquette revient, vue depuis le pignon, comme une maison sous la pluie.
    Le pignon suit la section ; la pluie frappe les tuiles, ruisselle vers l'égout et goutte des chéneaux. */
+import { onResize } from './resize.js';
 
 const ABOVE = 0.55; // au plus, la pluie commence 55 % d'écran au-dessus de la section
 const EAVE = 0.46;  // bas du pignon, en fraction d'écran sous le haut de la section (= --eave)
@@ -21,13 +22,15 @@ export function initSos(ctx) {
   // sur un écran de téléphone, moins de gouttes suffisent à la même densité
   const N = ctx.mobile ? 150 : 260;
 
+  // téléphone : pas de maison en 3D, une averse claire sur le bloc ardoise de la section, et rien d'autre
+  const mobile = ctx.mobile;
   function size() {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     // la pluie commence juste sous le dernier élément de la section précédente, jamais sur ses images
     const prev = section.previousElementSibling;
     const inner = prev && (prev.querySelector('.ext-inner') || prev);
     const gap = inner ? section.getBoundingClientRect().top - inner.getBoundingClientRect().bottom - 28 : window.innerHeight * ABOVE;
-    off = Math.round(Math.max(0, Math.min(window.innerHeight * ABOVE, gap)));
+    off = mobile ? 0 : Math.round(Math.max(0, Math.min(window.innerHeight * ABOVE, gap)));
     canvas.style.top = `${-off}px`;
     canvas.style.height = `calc(100% + ${off}px)`;
     W = section.offsetWidth;
@@ -47,11 +50,12 @@ export function initSos(ctx) {
   };
   size();
   for (let i = 0; i < N; i++) { const d = {}; spawn(d, true); drops.push(d); }
-  window.addEventListener('resize', size);
+  onResize(size, mobile);
 
   /* silhouette du toit, recalculée à chaque image depuis la maquette */
   const segY = (a, b, x) => (b.x === a.x ? Math.min(a.y, b.y) : a.y + ((x - a.x) * (b.y - a.y)) / (b.x - a.x));
   function outline() {
+    if (mobile) { roofX0 = roofX1 = wallX0 = wallX1 = -1e4; return false; }
     o = maquette.getSosOutline();
     if (!ctx.cam.sosOn) {
       // maison pas encore à l'écran : la pluie tombe sans obstacle
@@ -121,7 +125,7 @@ export function initSos(ctx) {
       if (d.y > H + 30) { spawn(d, false); continue; }
       const a = d.a * Math.min(1, Math.max(0, d.y / fade));
       if (a < 0.01) continue;
-      const light = onRoof(d.x, d.y) || onWall(d.x, d.y);
+      const light = mobile || onRoof(d.x, d.y) || onWall(d.x, d.y);
       c.strokeStyle = light ? `rgba(232, 238, 240, ${(a * 0.8).toFixed(3)})` : `rgba(38, 46, 49, ${a.toFixed(3)})`;
       c.beginPath();
       c.moveTo(d.x, d.y);
@@ -182,11 +186,30 @@ export function initSos(ctx) {
     }
 
     // la navigation passe en sombre au-dessus du mur
+    if (mobile) return;
     const navLine = 42 - (section.getBoundingClientRect().top - off);
     const overWall = house && navLine > wallTop && navLine < o.wallB.y - (o.wallB.y - wallTop) * 0.35;
     section.dataset.navdark = overWall ? '1' : '';
   }
   gsap.ticker.add(frame);
+
+  if (mobile) {
+    // la pluie ne tombe que pendant que la section est à l'écran
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: (self) => {
+        running = self.isActive;
+        if (running) { size(); last = performance.now(); }
+      },
+    });
+    gsap.from(section.querySelector('.sos-inner'), {
+      opacity: 0, y: 24, duration: 1.1,
+      scrollTrigger: { trigger: section, start: 'top 70%', toggleActions: 'play none none none' },
+    });
+    return;
+  }
 
   /* la maquette suit la section : le pignon se dresse pendant l'arrivée,
      et la maison monte avec son texte, d'un seul bloc */

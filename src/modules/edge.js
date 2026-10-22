@@ -1,6 +1,7 @@
 /* Bord supérieur au profil d'un rang de tuiles romanes (le recouvrement d'un rang sur l'autre) */
+import { onResize } from './resize.js';
 
-export function tileEdge(svg) {
+export function tileEdge(svg, mobile = false) {
   const draw = () => {
     const w = window.innerWidth;
     const h = 62, base = 36, r = 24, pan = 78;
@@ -17,5 +18,5 @@ export function tileEdge(svg) {
     svg.querySelector('path').setAttribute('d', d);
   };
   draw();
-  window.addEventListener('resize', draw);
+  onResize(draw, mobile);
 }

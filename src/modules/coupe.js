@@ -4,6 +4,8 @@
 const SVGNS = 'http://www.w3.org/2000/svg';
 
 export function initCoupe(ctx) {
+  // téléphone : pas de coupe, on passe du haut de page aux prestations
+  if (ctx.mobile) return;
   const { gsap, ScrollTrigger, maquette } = ctx;
   const section = document.querySelector('.cpe');
   const pin = section.querySelector('.cpe-pin');
@@ -18,31 +20,21 @@ export function initCoupe(ctx) {
   };
   const plan = {};
   for (const side of ['left', 'right']) ORDER[side].forEach((name, rank) => { plan[name] = { side, rank }; });
-  // téléphone : pas de place pour sept étiquettes autour de la maquette ; chaque couche reçoit un numéro
-  // posé sur la maquette, et la légende se range en pastilles numérotées sous elle
-  const mobile = ctx.mobile;
-  const items = labels.map((el, i) => {
+  const items = labels.map((el) => {
     const name = el.dataset.layer;
     const g = document.createElementNS(SVGNS, 'g');
     const line = document.createElementNS(SVGNS, 'polyline');
     const halo = document.createElementNS(SVGNS, 'circle');
     const dot = document.createElementNS(SVGNS, 'circle');
-    halo.setAttribute('r', mobile ? '14' : '8');
+    halo.setAttribute('r', '8');
     halo.setAttribute('class', 'cpe-halo');
-    dot.setAttribute('r', mobile ? '9.5' : '3.6');
+    dot.setAttribute('r', '3.6');
     dot.setAttribute('class', 'cpe-dot');
     g.append(line, halo, dot);
-    let num = null;
-    if (mobile) {
-      num = document.createElementNS(SVGNS, 'text');
-      num.setAttribute('class', 'cpe-num');
-      num.textContent = String(i + 1);
-      g.append(num);
-    }
     svg.append(g);
     const { side, rank } = plan[name];
     el.classList.add(side === 'right' ? 'is-right' : 'is-left');
-    return { el, name, g, line, halo, dot, num, side, rank, h: 0, y: 0 };
+    return { el, name, g, line, halo, dot, side, rank, h: 0, y: 0 };
   });
 
   const measure = () => items.forEach((it) => { it.h = it.el.offsetHeight; });
@@ -66,7 +58,6 @@ export function initCoupe(ctx) {
     labelsBox.style.transform = shift;
     // le titre aussi reste à sa place (translate, qui s'ajoute au mouvement de son apparition)
     head.style.translate = off ? `0 ${(-off).toFixed(1)}px` : '';
-    if (mobile) { layoutMobile(a, reveal); return; }
     const xRight = W - m - LABEL_W;
     const xLeft = Math.max(m, W * 0.235 - LABEL_W);
     for (const side of ['left', 'right']) {
@@ -106,33 +97,6 @@ export function initCoupe(ctx) {
     }
   }
 
-  /* téléphone : les numéros suivent la maquette, les pastilles apparaissent une à une ;
-     une fois tout posé, la légende passe d'une couche à l'autre toute seule (la couche s'éclaire,
-     sa description s'affiche dessous), et un doigt sur une pastille la choisit */
-  const caption = section.querySelector('.cpe-caption');
-  let hold = 0, lastStep = 0;
-  function layoutMobile(a, reveal) {
-    items.forEach((it, i) => {
-      const q = a[it.name];
-      const p = gsap.utils.clamp(0, 1, reveal * 5 - i * 0.55);
-      it.el.style.transform = '';
-      it.el.style.opacity = p;
-      it.g.style.opacity = p;
-      it.dot.setAttribute('cx', q.x);
-      it.dot.setAttribute('cy', q.y);
-      it.halo.setAttribute('cx', q.x);
-      it.halo.setAttribute('cy', q.y);
-      it.num.setAttribute('x', q.x);
-      it.num.setAttribute('y', q.y);
-    });
-    caption.style.opacity = reveal >= 1 ? '1' : '0';
-    const now = performance.now();
-    if (reveal >= 1 && now > hold && now - lastStep > 2800) {
-      lastStep = now;
-      setOn(items[(items.indexOf(current) + 1) % items.length]);
-    }
-  }
-
   /* survol : la couche s'éclaire dans la maquette */
   let current = null;
   const setOn = (it) => {
@@ -144,32 +108,13 @@ export function initCoupe(ctx) {
       x.g.classList.toggle('is-on', on);
     });
     maquette.setFocus(it ? it.name : null);
-    if (mobile) {
-      caption.replaceChildren();
-      if (it) {
-        const b = document.createElement('strong');
-        b.textContent = it.el.querySelector('strong').textContent;
-        caption.append(b, it.el.querySelector('span').textContent);
-      }
-    }
   };
-  if (mobile) {
-    items.forEach((it) => {
-      it.el.addEventListener('click', () => {
-        setOn(it);
-        // la légende laisse le temps de lire avant de reprendre son tour
-        hold = performance.now() + 9000;
-        lastStep = performance.now();
-      });
-    });
-  } else {
-    // un léger délai à la sortie évite le clignotement quand la souris passe d'une étiquette à l'autre
-    let leaveTimer = 0;
-    items.forEach((it) => {
-      it.el.addEventListener('pointerenter', () => { clearTimeout(leaveTimer); setOn(it); });
-      it.el.addEventListener('pointerleave', () => { leaveTimer = setTimeout(() => setOn(null), 120); });
-    });
-  }
+  // un léger délai à la sortie évite le clignotement quand la souris passe d'une étiquette à l'autre
+  let leaveTimer = 0;
+  items.forEach((it) => {
+    it.el.addEventListener('pointerenter', () => { clearTimeout(leaveTimer); setOn(it); });
+    it.el.addEventListener('pointerleave', () => { leaveTimer = setTimeout(() => setOn(null), 120); });
+  });
 
   /* séquence épinglée : la progression pilote la caméra et la vue éclatée */
   ScrollTrigger.create({

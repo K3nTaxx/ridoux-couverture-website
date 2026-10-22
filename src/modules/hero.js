@@ -1,6 +1,7 @@
 /* Haut de page : la toiture se pose rang par rang dans le soir ; dès qu'on défile, elle se transforme sur place
    en vue éclatée, couche par couche, pendant que le ciel passe à l'heure bleue.
    Ce module dirige aussi la caméra de la maquette pour toute la page (haut de page, coupe, drone, SOS). */
+import { onResize } from './resize.js';
 
 export function initHero(ctx) {
   const { gsap, ScrollTrigger, maquette } = ctx;
@@ -39,15 +40,11 @@ export function initHero(ctx) {
   // SOS : la maquette vue depuis le pignon, comme une maison sous la pluie
   const S0 = { az: 90, el: 34, dist: 12.8, tx: 2.0, ty: 0.2, tz: 0, shiftX: 0, shiftY: 0, sunAz: 140, sunEl: 38, yaw: 0, exposure: 0.98 };
   const S1 = { ...S0, el: 13, dist: 11.4 };
-  // téléphone : la même mise en scène, recadrée pour un écran en hauteur — la maison centrée et plus loin,
-  // le drone et sa maison sous le texte
+  // téléphone : une couverture qui ne bouge pas (la maison au centre, sous le titre, les tuiles qui volent)
+  // et le drone sous son texte ; ni transformation, ni coupe, ni maison sous la pluie
   if (ctx.mobile) {
     Object.assign(H0, { dist: 37, shiftX: -0.01, shiftY: 0.03 });
-    Object.assign(C1, { dist: 40, shiftX: 0, shiftY: 0.03 });
-    Object.assign(C2, { ...C1, az: 57, yaw: -24 });
     Object.assign(DR, { dist: 39, shiftX: -0.01, shiftY: 0.18 });
-    Object.assign(S0, { dist: 21 });
-    Object.assign(S1, { dist: 18.5 });
   }
   // tablette en paysage : la vue éclatée tient entre ses deux colonnes d'étiquettes, la maison du drone à côté du texte
   if (ctx.compact) {
@@ -59,12 +56,11 @@ export function initHero(ctx) {
   // (mesurée seulement quand la largeur change : la barre d'adresse qui bouge ne fait pas sauter la maquette)
   let fit = 1, fitW = 0;
   const measureFit = () => {
-    if (!ctx.mobile || window.innerWidth === fitW) return;
-    fitW = window.innerWidth;
-    fit = Math.min(1.3, Math.max(0.8, 0.462 / (window.innerWidth / window.innerHeight)));
+    if (!ctx.mobile || canvas.clientWidth === fitW || !canvas.clientHeight) return;
+    fitW = canvas.clientWidth;
+    fit = Math.min(1.3, Math.max(0.8, 0.462 / (canvas.clientWidth / canvas.clientHeight)));
   };
   measureFit();
-  if (ctx.mobile) window.addEventListener('resize', () => { measureFit(); ctx.updateCam(); });
   const keys = Object.keys(H0);
   const intro = { dist: 0, el: 0, az: 0 };
   // dT, dScan, dLaser : la mission du drone, jouée en boucle par drone.js
@@ -107,8 +103,6 @@ export function initHero(ctx) {
         const arc = Math.sin(Math.PI * k);
         st.el += 9 * arc;
         st.shiftY += DIP * arc;
-        // téléphone : de profil, au milieu du demi-tour, la maison est plus large que l'écran : la caméra recule d'autant
-        if (ctx.mobile) st.dist += 16 * arc;
       } else mixState(C1, C2, ramp(s, END, C + CPE_VH));
       st.yaw += TURN * k;
       st.explode = smooth(ramp(s, 0.06, END));
@@ -177,14 +171,36 @@ export function initHero(ctx) {
     sky.style.setProperty('--night', io(ramp(s, 0.05, C)).toFixed(3));
     if (cv.heroReady) applyCanvas();
   }
-  // téléphone : la coupe remonte d'exactement une hauteur d'écran (celle que mesure l'épinglage),
-  // quelle que soit la barre d'adresse au moment du chargement
+  ctx.setCoupeVisible = (v) => { vis.cpe = v; apply(); };
+  ctx.setSosVisible = (v) => { vis.sos = v; apply(); };
+  ctx.setDroneVisible = (v) => { vis.drone = v; apply(); };
+
+  /* ---------- téléphone : une couverture qui ne bouge pas ----------
+     pas d'épinglage ni de transformation : on défile, la page monte, la maison reste telle quelle.
+     La toile n'est pas fixée à l'écran (un calque fixé, recalé à chaque défilement, tremble sur un téléphone) :
+     elle est posée dans le haut de page et défile avec lui ; le drone la reprend dans sa section. */
   if (ctx.mobile) {
-    const cpe = document.querySelector('.cpe');
-    const lift = () => { cpe.style.marginTop = `${-window.innerHeight}px`; };
-    lift();
-    ScrollTrigger.addEventListener('refreshInit', lift);
+    const heroEl = document.querySelector('.hero');
+    let placed = heroEl;
+    ctx.placeCanvas = (section) => {
+      placed = section;
+      canvas.style.top = `${section.offsetTop}px`;
+      canvas.style.height = `${section.offsetHeight}px`;
+      maquette.resize();
+      measureFit();
+      ctx.updateCam();
+    };
+    ctx.placeCanvas(heroEl);
+    onResize(() => ctx.placeCanvas(placed), true);
+    ScrollTrigger.create({
+      trigger: heroEl,
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: (self) => { vis.hero = self.isActive; apply(); },
+    });
+    return;
   }
+
   ScrollTrigger.create({
     trigger: '.hero',
     start: 'top top',
@@ -199,7 +215,4 @@ export function initHero(ctx) {
     onEnter: () => { vis.hero = false; apply(); cv.hero = 0; applyCanvas(); },
     onLeaveBack: () => { vis.hero = true; apply(); cv.hero = 1; applyCanvas(); },
   });
-  ctx.setCoupeVisible = (v) => { vis.cpe = v; apply(); };
-  ctx.setSosVisible = (v) => { vis.sos = v; apply(); };
-  ctx.setDroneVisible = (v) => { vis.drone = v; apply(); };
 }

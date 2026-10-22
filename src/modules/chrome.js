@@ -28,11 +28,15 @@ export function initChrome({ gsap, ScrollTrigger, lenis }) {
   const menu = document.querySelector('.menu');
   if (burger && menu) {
     const links = [...menu.querySelectorAll('.menu-links a, .menu-foot > *')];
+    const veil = document.createElement('div');
+    veil.className = 'menu-veil';
+    menu.before(veil);
     let open = false;
     const set = (v) => {
       open = v;
       burger.setAttribute('aria-expanded', String(v));
       nav.classList.toggle('is-open', v);
+      veil.classList.toggle('is-on', v);
       nav.classList.remove('is-hidden');
       gsap.killTweensOf([menu, links]);
       if (v) {
@@ -45,9 +49,14 @@ export function initChrome({ gsap, ScrollTrigger, lenis }) {
         gsap.to(menu, { clipPath: 'inset(0 0 100% 0)', duration: 0.5, ease: 'power3.in', onComplete: () => { if (!open) menu.hidden = true; } });
       }
     };
-    burger.addEventListener('click', () => set(!open));
+    burger.addEventListener('click', () => {
+      set(!open);
+      burger.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+    });
     // un lien du menu le referme ; le défilement vers la section suit (gestionnaire des ancres, plus bas)
     menu.addEventListener('click', (e) => { if (e.target.closest('a')) set(false); });
+    // un geste à côté du menu (sur la page assombrie) le referme aussi
+    document.addEventListener('pointerdown', (e) => { if (open && !menu.contains(e.target) && !burger.contains(e.target)) set(false); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) { set(false); burger.focus(); } });
   }
 
@@ -57,8 +66,10 @@ export function initChrome({ gsap, ScrollTrigger, lenis }) {
     if (!a) return;
     const id = a.getAttribute('href');
     if (id.length < 2) return;
-    const target = document.querySelector(id);
+    let target = document.querySelector(id);
     if (!target) return;
+    // une section absente de cette version (la coupe, au téléphone) : on va à la suivante, les prestations
+    if (!target.offsetParent && target !== document.body) target = document.querySelector('#prestations');
     e.preventDefault();
     lenis.scrollTo(target, { offset: id === '#accueil' ? 0 : -8, duration: 1.6, easing: (t) => 1 - Math.pow(1 - t, 4) });
   });

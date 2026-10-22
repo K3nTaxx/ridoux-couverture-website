@@ -1,7 +1,8 @@
 /* Partenaires : les logos défilent en boucle, lentement, toujours à la même vitesse,
    quoi qu'on fasse sur la page. */
+import { onResize } from './resize.js';
 
-export function initPartners({ gsap }) {
+export function initPartners({ gsap, mobile }) {
   const band = document.querySelector('.prt-band');
   if (!band) return;
   const track = band.querySelector('.prt-track');
@@ -25,7 +26,7 @@ export function initPartners({ gsap }) {
     }
   }
   fill();
-  window.addEventListener('resize', fill);
+  onResize(fill, mobile);
 
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(band);
 

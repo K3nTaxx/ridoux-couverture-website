@@ -130,11 +130,12 @@ function waitForSteadyFrames(count, maxMs) {
 }
 
 /* ---------- titres de section : lignes masquées ---------- */
-function initTitles({ gsap, SplitText }) {
+function initTitles({ gsap, SplitText, mobile }) {
   document.querySelectorAll('main h2:not(.sos-title)').forEach((h) => {
     const split = SplitText.create(h, { type: 'lines', mask: 'lines', linesClass: 'title-line' });
     const underlines = h.querySelectorAll('.t-u');
-    const tl = gsap.timeline({ scrollTrigger: { trigger: h, start: 'top 86%', toggleActions: 'play none none reverse' } });
+    // (téléphone : joué une fois, le titre ne se rembobine pas quand on remonte)
+    const tl = gsap.timeline({ scrollTrigger: { trigger: h, start: 'top 86%', toggleActions: mobile ? 'play none none none' : 'play none none reverse' } });
     tl.from(split.lines, { yPercent: 112, duration: 1.15, stagger: 0.09, ease: 'expo.out' });
     // le souligné se trace une fois la ligne posée, au moment où on la lit
     if (underlines.length) {

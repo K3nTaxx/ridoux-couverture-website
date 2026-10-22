@@ -47,15 +47,22 @@ export function initDrone(ctx) {
       ctx.setDroneVisible(on);
       clock = 0;
       armed = false;
+      // aucune couche ne reste mise en lumière (les autres seraient transparentes)
+      maquette.setFocus(null);
       if (on) measure();
-      else canvasEl.style.transform = '';
+      else if (!ctx.mobile) canvasEl.style.transform = '';
+      // téléphone : la toile est posée dans la section et défile avec elle ; elle retourne au haut de page ensuite
+      if (ctx.mobile) {
+        ctx.placeCanvas(on ? section : document.querySelector('.hero'));
+        section.classList.toggle('is-live', on);
+      }
       ctx.updateCam();
       ctx.applyCanvas();
     }
     // la mission démarre quand la section occupe l'écran ; elle repart du sol à chaque nouvelle arrivée
     if (on && !armed && Math.abs(r.top) < window.innerHeight * 0.2) { armed = true; clock = 0; last = performance.now(); }
     // translation au pixel près : le bord de l'ardoise reste net
-    if (on) canvasEl.style.transform = Math.abs(r.top) < 0.5 ? '' : `translate3d(0, ${Math.round(r.top)}px, 0)`;
+    if (on && !ctx.mobile) canvasEl.style.transform = Math.abs(r.top) < 0.5 ? '' : `translate3d(0, ${Math.round(r.top)}px, 0)`;
     section.dataset.navdark = r.top <= 42 && r.bottom >= 42 ? '1' : '';
   }
   lenis.on('scroll', follow);
