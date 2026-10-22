@@ -4,6 +4,7 @@ import '@fontsource-variable/newsreader/opsz-italic.css';
 import 'lenis/dist/lenis.css';
 import './styles/base.css';
 import './styles/sections.css';
+import './styles/mobile.css';
 
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -42,11 +43,18 @@ lenis.stop();
 
 // la carte est demandée dès le départ, en même temps que tout le reste
 const zoneData = fetch('/geo/zone.json').then((r) => r.json());
-const ctx = { gsap, ScrollTrigger, SplitText, lenis, zoneData };
+// téléphone (jusqu'à 860 px de large) : sa propre mise en page et sa propre mise en scène de la maquette.
+// Si l'écran passe d'une version à l'autre (tablette qu'on tourne), on recharge la page.
+const MOBILE = window.matchMedia('(max-width: 860px)');
+MOBILE.addEventListener('change', () => location.reload());
+// tablette en paysage (861 à 1199 px) : la mise en page de l'ordinateur, la maquette un peu plus loin
+const COMPACT = window.matchMedia('(min-width: 861px) and (max-width: 1199px)');
+COMPACT.addEventListener('change', () => location.reload());
+const ctx = { gsap, ScrollTrigger, SplitText, lenis, zoneData, mobile: MOBILE.matches, compact: COMPACT.matches };
 
 async function boot() {
   // la 3D (ciel d'éclairage puis shaders) se prépare pendant que les polices arrivent
-  const maquette = createMaquette(document.querySelector('.maquette'));
+  const maquette = createMaquette(document.querySelector('.maquette'), { mobile: ctx.mobile });
   await Promise.all([document.fonts.ready, maquette.ready]);
   performance.mark('ridoux:3d');
   gsap.ticker.add(maquette.tick);

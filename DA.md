@@ -266,3 +266,14 @@ La maquette suit la section à l'entrée et à la sortie, comme si elle y était
 
 - Le demi-tour se fait sur place : la maquette tourne sur elle-même en descendant légèrement, sans écart sur le côté.
 - Une fois les étiquettes tracées, la coupe ne reste épinglée que 0,5 écran avant que « Nos prestations » ne la recouvre.
+
+### Retour n° 21 — la version téléphone
+
+La même histoire, recadrée pour un écran en hauteur ; rien n'est retiré, rien n'est ajouté au récit.
+- **Navigation** : logo, appel direct (le geste le plus utile chez un couvreur), « Menu » : un rideau ardoise qui descend, les sections en grand, le numéro et le devis en pied.
+- **Haut de page** : « COUVREUR ET / CHARPENTIER » sur toute la largeur, « dans la Loire et la Haute-Loire » dessous, la maison au centre, la phrase en bas. Le demi-tour se fait comme sur ordinateur ; la caméra recule pendant que la maison est de profil.
+- **La coupe** : la logique d'un plan éclaté — des numéros posés sur les couches, une légende en pastilles, et une couche mise en lumière à la fois (elle s'éclaire, les autres s'effacent, sa description s'affiche). La légende tourne seule, comme le drone joue sa mission seul.
+- **Drone** : le texte en haut, la maison dessous, le drone posé devant ; les repères se rangent du côté libre.
+- **Le reste** : une colonne, les mêmes animations au défilement ; le cordeau du suivi de A à Z descend au lieu de traverser ; avant / après au doigt ; la réfection en trois étapes se fait défiler du doigt.
+- **La barre du navigateur** : les écrans épinglés prennent la plus petite hauteur d'écran, la 3D la plus grande ; rien ne bouge quand la barre apparaît ou disparaît.
+- Tablette en paysage (861 à 1199 px) : la mise en page de l'ordinateur, le menu à la place des liens, la maquette un peu plus loin.

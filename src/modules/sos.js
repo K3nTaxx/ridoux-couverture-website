@@ -18,7 +18,8 @@ export function initSos(ctx) {
   let roofX0 = 0, roofX1 = 0, apexX = 0, wallX0 = 0, wallX1 = 0, wallTop = 0;
   let o = null;
   const drops = [], runs = [], splashes = [], drips = [];
-  const N = 260;
+  // sur un écran de téléphone, moins de gouttes suffisent à la même densité
+  const N = ctx.mobile ? 150 : 260;
 
   function size() {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);

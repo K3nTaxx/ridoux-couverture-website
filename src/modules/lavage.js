@@ -11,7 +11,7 @@ function coverRect(iw, ih, w, h, posY = 0.5) {
   return [(w - dw) / 2, (h - dh) * posY, dw, dh];
 }
 
-export function initLavage({ gsap, ScrollTrigger }) {
+export function initLavage({ gsap, ScrollTrigger, mobile }) {
   const section = document.querySelector('.lav');
   const frame = section.querySelector('.lav-frame');
   const canvas = section.querySelector('.lav-canvas');
@@ -117,11 +117,12 @@ export function initLavage({ gsap, ScrollTrigger }) {
   window.addEventListener('resize', size);
 
   // le nettoyage se termine quand la grande image cesse d'être épinglée (bas du cadre à 94 % de l'écran),
-  // au moment où la mosaïque de droite arrive à sa dernière image
+  // au moment où la mosaïque de droite arrive à sa dernière image.
+  // Téléphone : l'image n'est pas épinglée, le toit se nettoie pendant qu'elle traverse l'écran.
   ScrollTrigger.create({
-    trigger: '.lav-stage',
-    start: 'top 34%',
-    end: 'bottom 94%',
+    trigger: mobile ? frame : '.lav-stage',
+    start: mobile ? 'top 72%' : 'top 34%',
+    end: mobile ? 'bottom 32%' : 'bottom 94%',
     scrub: 0.5,
     onUpdate: (self) => { progress = self.progress; draw(); },
   });
@@ -140,10 +141,12 @@ export function initLavage({ gsap, ScrollTrigger }) {
   /* mosaïque : la colonne de gauche défile plus vite et se pose quand le nettoyage se termine ;
      celle de droite reste calée sur le bas de la grande image */
   const colA = section.querySelector('.lav-col--a');
-  gsap.fromTo(colA, { y: 110 }, {
-    y: 0, ease: 'none',
-    scrollTrigger: { trigger: '.lav-gallery', start: 'top bottom', endTrigger: '.lav-stage', end: 'bottom 94%', scrub: true },
-  });
+  if (!mobile) {
+    gsap.fromTo(colA, { y: 110 }, {
+      y: 0, ease: 'none',
+      scrollTrigger: { trigger: '.lav-gallery', start: 'top bottom', endTrigger: '.lav-stage', end: 'bottom 94%', scrub: true },
+    });
+  }
   section.querySelectorAll('.lav-col figure').forEach((f) => {
     gsap.fromTo(f, { clipPath: 'inset(12% 0% 12% 0%)' }, {
       clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',

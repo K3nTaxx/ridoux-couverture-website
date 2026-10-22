@@ -128,7 +128,7 @@ Les lieux et dates des chantiers ne sont pas donnés → aucune légende de vill
 Champs : nom, téléphone, e-mail, commune des travaux, type de travaux (liste des prestations ci-dessus), message.
 Mention : devis gratuit. Envoi : [À FOURNIR : service d'envoi des formulaires, à choisir avec l'hébergement].
 
-## 10. Pied de page — mentions légales (version courte ; la page complète viendra plus tard)
+## 10. Pied de page — mentions légales (version courte dans le pied de page ; page complète `/mentions-legales` depuis le retour n° 21)
 
 - Raison sociale déclarée : Ridoux, couverture charpente ✅
 - Forme juridique : auto-entrepreneur (entreprise individuelle) ✅ → pas de capital social (sans objet en EI)
@@ -139,7 +139,7 @@ Mention : devis gratuit. Envoi : [À FOURNIR : service d'envoi des formulaires, 
 - Siège : 17 chemin de Terre Ronde, 42500 Le Chambon-Feugerolles ✅
 - Téléphone officiel : 06 03 94 66 58 ✅ — e-mail officiel : ridoux1509@gmail.com ✅
 - Directeur de la publication : Anthony Ridoux ✅
-- Hébergeur : [À FOURNIR : hébergeur, non défini à ce jour]
+- Hébergeur : Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, États-Unis — support@netlify.com (conditions d'utilisation de Netlify, consultées le 22/10/2026) ✅
 - Assurance RC pro / décennale : oui ✅ — [À FOURNIR : assureur et numéro de police]
 
 ## 11. Hors périmètre de cette étape (noté, non traité)
@@ -177,3 +177,23 @@ Liste donnée par le client : « Thomas Sograma, BigMat Allemand matériaux de c
 - **Dalep** (produits de traitement et de démoussage des toitures) — PNG du site officiel : https://www.dalep.net/
 - **Établissement Georges Allemand**, matériaux de construction, 100 rue de la Tour, Saint-Étienne (« BigMat Allemand » : le client confirme qu'il s'agit du magasin) — logo du site officiel, fond blanc retiré : https://allemand-materiaux.fr/
 - **Plastiroll**, Unieux (systèmes de traitement des toitures et façades, « Solutions Bâtiment & Bois ») — logo fourni par le client (retour n° 16) ✅
+
+## 14. Téléphone, référencement et finitions (retour n° 21, 22/10/2026)
+
+Textes ajoutés pour le téléphone (consignes au doigt, affichées seulement sur écran tactile) :
+- Coupe : « Touchez une couche pour la mettre en lumière. » (au lieu de « Passez sur une couche… »)
+- Réalisations : « Faites glisser la ligne du doigt sur une photo. » (au lieu de « Passez sur une photo… »)
+- Menu : Savoir-faire, Prestations, L'entreprise, Vérification par drone, Nettoyage et traitement, Réalisations, Zone d'intervention, SOS Toiture, le numéro, « Demander un devis ».
+
+Formulaire (messages) :
+- « Merci, votre demande est envoyée. Nous vous rappelons pour fixer un rendez-vous. »
+- « L'envoi n'a pas abouti. Appelez-nous directement au 06 03 94 66 58. »
+
+Référencement :
+- Titre : « Couvreur charpentier dans la Loire (42) | Ridoux Couverture »
+- Description : « Couvreur charpentier au Chambon-Feugerolles, près de Saint-Étienne : réfection de toiture, charpente, chéneaux, nettoyage. Devis gratuit : 06 03 94 66 58. »
+- Partage : « Ridoux Couverture — couvreur et charpentier dans la Loire » / « Réfection de toiture, charpente, zinguerie, nettoyage et traitement. Une entreprise familiale au Chambon-Feugerolles, depuis 2011. Devis gratuit. »
+
+Page « Mentions légales et confidentialité » : reprend les informations ci-dessus (section 10), plus l'hébergeur, la conception (Kalion Studio), la propriété intellectuelle, les données du formulaire, l'absence de cookies et les crédits. **À faire valider par le client** : la durée de conservation des demandes (« au plus trois ans après notre dernier échange », durée habituelle recommandée par la CNIL) et l'adresse de contact pour les données personnelles (ridoux.couverture.charpentes@gmail.com).
+
+Page « Page introuvable » (404) : « Cette page n'existe pas, ou elle a été déplacée. Le reste du site, lui, est bien en place. » — « Revenir à l'accueil », le numéro.

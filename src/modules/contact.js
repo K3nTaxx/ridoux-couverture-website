@@ -13,7 +13,13 @@ export function initContact({ gsap }) {
     sync();
   });
 
-  form.addEventListener('submit', (e) => {
+  // envoi : formulaires Netlify (le formulaire est déclaré dans la page, Netlify le reconnaît au déploiement)
+  const status = form.querySelector('.ctc-status');
+  const say = (text, error) => {
+    status.textContent = text;
+    status.classList.toggle('is-error', !!error);
+  };
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     let ok = true;
     form.querySelectorAll('[required]').forEach((inp) => {
@@ -21,8 +27,25 @@ export function initContact({ gsap }) {
       inp.closest('.ctc-field').classList.toggle('is-invalid', bad);
       if (bad) ok = false;
     });
-    if (!ok) form.querySelector('.is-invalid input')?.focus();
-    // l'envoi sera branché avec l'hébergement
+    if (!ok) { form.querySelector('.is-invalid input')?.focus(); return; }
+    if (form.classList.contains('is-sending')) return;
+    form.classList.add('is-sending');
+    say('Envoi en cours…');
+    try {
+      const res = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form)).toString(),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      form.reset();
+      form.querySelectorAll('.ctc-field').forEach((f) => f.classList.remove('is-filled'));
+      say('Merci, votre demande est envoyée. Nous vous rappelons pour fixer un rendez-vous.');
+    } catch (err) {
+      say('L’envoi n’a pas abouti. Appelez-nous directement au 06 03 94 66 58.', true);
+    } finally {
+      form.classList.remove('is-sending');
+    }
   });
 
   // les cordeaux des champs se tendent une première fois à l'arrivée, puis se relâchent

@@ -1,0 +1,64 @@
+/* ==========================================================
+   Pages annexes : mentions légales et page introuvable
+   ========================================================== */
+
+.lg-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  height: var(--nav-h);
+  padding: 0 var(--m);
+  background: var(--ardoise-900);
+  color: var(--zinc-50);
+}
+.lg-brand { display: flex; align-items: center; gap: 14px; }
+.lg-brand img { width: 44px; height: 44px; }
+.lg-brand span { font-size: 13px; font-weight: 760; font-stretch: 122%; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+.lg-back { font-size: 15px; font-weight: 600; font-stretch: 106%; white-space: nowrap; background: linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 100% 1.5px no-repeat; padding-bottom: 3px; }
+
+.lg-main { max-width: 46em; margin: 0 auto; padding: clamp(56px, 10vh, 110px) var(--m) clamp(72px, 12vh, 130px); }
+.lg-main h1 { font-size: var(--fs-h2); font-weight: 620; font-stretch: 110%; line-height: 1.04; letter-spacing: -0.012em; margin-bottom: 18px; }
+.lg-lead { font-family: var(--f-serif); font-size: var(--fs-lead); line-height: 1.55; color: var(--ink-soft); margin-bottom: 48px; }
+.lg-main h2 { font-size: var(--fs-h3); margin: 44px 0 14px; padding-top: 22px; border-top: 1px solid var(--line); }
+.lg-main p, .lg-main li { font-family: var(--f-serif); font-size: 17px; line-height: 1.6; color: var(--ardoise-700); }
+.lg-main p + p { margin-top: .8em; }
+.lg-main ul { display: grid; gap: 4px; margin-top: .6em; }
+.lg-main li { padding-left: 18px; position: relative; }
+.lg-main li::before { content: ''; position: absolute; left: 0; top: .78em; width: 8px; height: 1.5px; background: var(--cordeau); }
+.lg-main strong { font-family: var(--f-sans); font-weight: 640; color: var(--ink); }
+.lg-main a { color: var(--ink); background: linear-gradient(var(--cordeau), var(--cordeau)) left bottom / 100% 1.5px no-repeat; padding-bottom: 1px; overflow-wrap: anywhere; }
+.lg-date { margin-top: 48px; font-size: 15px !important; color: var(--ink-soft) !important; }
+
+.lg-foot { padding: 26px var(--m) calc(26px + env(safe-area-inset-bottom)); background: var(--ardoise-900); color: rgba(236, 238, 236, .5); font-size: 12.5px; line-height: 1.6; }
+
+/* page introuvable : l'ardoise du soir, un message, le chemin du retour */
+.nf {
+  min-height: calc(100svh - var(--nav-h));
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 22px;
+  padding: 56px var(--m);
+  color: var(--zinc-50);
+  background:
+    radial-gradient(46% 34% at 54% 96%, rgba(255, 196, 140, .32) 0%, rgba(255, 170, 120, 0) 100%),
+    linear-gradient(180deg, #1b2326 0%, #232d32 40%, #36424a 72%, #66625d 100%);
+}
+.nf p.nf-code { font-family: var(--f-sans); font-size: 12.5px; font-weight: 650; font-stretch: 112%; letter-spacing: .22em; text-transform: uppercase; color: var(--cordeau-pale); }
+.nf h1 { font-size: clamp(40px, 6vw, 80px); font-weight: 700; font-stretch: 116%; line-height: .98; letter-spacing: -0.02em; text-transform: uppercase; }
+.nf p { font-family: var(--f-serif); font-size: var(--fs-lead); line-height: 1.55; color: rgba(236, 238, 236, .78); max-width: 30em; }
+.nf-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 28px; margin-top: 10px; }
+.nf-tel { font-size: 20px; font-weight: 650; font-stretch: 112%; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 860px) {
+  :root { --m: clamp(20px, 5.4vw, 40px); --nav-h: 64px; --fs-h2: clamp(31px, 8.4vw, 46px); --fs-h3: clamp(20px, 5.4vw, 24px); --fs-lead: 17px; }
+  .lg-brand img { width: 38px; height: 38px; }
+  .lg-brand span { font-size: 10.5px; letter-spacing: .08em; }
+  .lg-back { font-size: 14px; }
+  .lg-main p, .lg-main li { font-size: 16px; }
+  .nf .btn { height: 54px; }
+}
+@media (max-width: 379px) {
+  .lg-brand span { display: none; }
+}

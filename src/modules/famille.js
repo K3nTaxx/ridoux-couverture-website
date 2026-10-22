@@ -2,7 +2,7 @@
    qui se déroule tout seul, étape par étape, quand il arrive à l'écran. */
 import { tileEdge } from './edge.js';
 
-export function initFamille({ gsap, ScrollTrigger }) {
+export function initFamille({ gsap, ScrollTrigger, mobile }) {
   const section = document.querySelector('.fam');
   tileEdge(section.querySelector('.fam-edge'));
 
@@ -42,17 +42,26 @@ export function initFamille({ gsap, ScrollTrigger }) {
   const steps = [...section.querySelectorAll('.fam-az-steps li')];
   const cord = section.querySelector('.fam-az-cord');
   const track = section.querySelector('.fam-az-track');
+  // téléphone : les étapes se lisent de haut en bas, le cordeau descend le long des coches
   const marks = () => {
     const tr = track.getBoundingClientRect();
+    if (mobile) {
+      const ys = steps.map((li) => { const r = li.querySelector('.fam-az-check').getBoundingClientRect(); return r.top + r.height / 2 - tr.top; });
+      const len = ys[ys.length - 1] - ys[0];
+      track.style.setProperty('--az-top', `${ys[0]}px`);
+      track.style.setProperty('--az-len', `${len}px`);
+      return ys.map((y) => (y - ys[0]) / len);
+    }
     return steps.map((li) => (li.querySelector('.fam-az-check').getBoundingClientRect().left + 23 - tr.left) / tr.width);
   };
+  const cordTo = (p, vars) => (mobile ? [track, { '--az': p, ...vars }] : [cord, { strokeDashoffset: 1000 - p * 1000, ...vars }]);
 
   gsap.set(steps, { opacity: 0.32 });
   let tl = null;
   const build = () => {
     const pos = marks();
     if (tl) tl.kill();
-    gsap.set(cord, { strokeDashoffset: 1000 });
+    gsap.set(...cordTo(0, {}));
     steps.forEach((li) => {
       const check = li.querySelector('.fam-az-check');
       gsap.set(check, { '--fill': 0 });
@@ -67,7 +76,7 @@ export function initFamille({ gsap, ScrollTrigger }) {
       const check = li.querySelector('.fam-az-check');
       const path = check.querySelector('path');
       const d = i === 0 ? 0.35 : 0.5 + (p - prev) * 0.9;
-      tl.to(cord, { strokeDashoffset: 1000 - p * 1000, duration: d, ease: i === 0 ? 'power2.out' : 'power2.inOut' }, t);
+      tl.to(...cordTo(p, { duration: d, ease: i === 0 ? 'power2.out' : 'power2.inOut' }), t);
       t += d;
       tl.to(check, { '--fill': 1, duration: 0.45, ease: 'expo.out' }, t - 0.05)
         .to(path, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' }, t + 0.08)
@@ -75,7 +84,7 @@ export function initFamille({ gsap, ScrollTrigger }) {
       t += 0.12;
       prev = p;
     });
-    tl.to(cord, { strokeDashoffset: 0, duration: 0.6, ease: 'power2.out' }, t);
+    tl.to(...cordTo(1, { duration: 0.6, ease: 'power2.out' }), t);
   };
   build();
   window.addEventListener('resize', () => { const played = tl.progress(); build(); tl.progress(played); });

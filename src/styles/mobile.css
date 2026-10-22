@@ -1,0 +1,380 @@
+/* ==========================================================
+   Téléphone et tablette
+   Toute la version téléphone vit ici (jusqu'à 860 px de large). Entre 861 et 1199 px (tablette en paysage),
+   seul le menu remplace les liens de la navigation. À partir de 1200 px, rien de ce fichier ne s'applique,
+   sauf les éléments propres au téléphone, masqués sur ordinateur.
+   Les hauteurs d'écran utilisent svh (la plus petite hauteur, barre d'adresse affichée) :
+   rien ne saute quand la barre du navigateur apparaît ou disparaît.
+   ========================================================== */
+
+/* éléments propres au téléphone : absents de la version ordinateur */
+.nav-call, .nav-burger, .menu, .cpe-caption { display: none; }
+/* consignes au doigt plutôt qu'à la souris */
+.only-touch { display: none; }
+@media (hover: none) {
+  .only-hover { display: none; }
+  .only-touch { display: inline; }
+}
+
+/* menu : téléphone et tablette (jusqu'à 1199 px) — les liens de la navigation passent dans un rideau ardoise */
+@media (max-width: 1199px) {
+  .nav-links, .nav-sos { display: none; }
+  .nav-actions { margin-left: auto; }
+  .nav-burger {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 10px;
+    height: 42px;
+    padding: 0 0 0 8px;
+    font-size: 12px;
+    font-weight: 680;
+    font-stretch: 116%;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .nav-burger-lines { position: relative; width: 22px; height: 11px; }
+  .nav-burger-lines i { position: absolute; left: 0; right: 0; height: 1.6px; background: currentColor; transition: transform .6s var(--ease); }
+  .nav-burger-lines i:first-child { top: 0; }
+  .nav-burger-lines i:last-child { bottom: 0; }
+  .nav.is-open { color: var(--zinc-50); --nav-bg: var(--ardoise-900); }
+  .nav.is-open::before { box-shadow: none; }
+  .nav.is-open .nav-burger-lines i:first-child { transform: translateY(4.7px) rotate(45deg); }
+  .nav.is-open .nav-burger-lines i:last-child { transform: translateY(-4.7px) rotate(-45deg); }
+
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 28px;
+    padding: calc(var(--nav-h) + 2svh) var(--m) calc(26px + env(safe-area-inset-bottom));
+    background: var(--ardoise-900);
+    color: var(--zinc-50);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .menu[hidden] { display: none; }
+  .menu-links { display: grid; }
+  .menu-links a {
+    display: block;
+    padding: 10px 0 9px;
+    font-size: clamp(25px, 7vw, 34px);
+    font-weight: 620;
+    font-stretch: 110%;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid rgba(236, 238, 236, .1);
+  }
+  .menu-links a.is-current { color: var(--cordeau-pale); }
+  .menu-sos { color: var(--cordeau-pale); }
+  .menu-foot { display: grid; gap: 14px; }
+  .menu-tel { font-size: 26px; font-weight: 700; font-stretch: 118%; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+  .menu .btn { justify-content: center; width: 100%; }
+}
+
+@media (max-width: 860px) {
+  :root {
+    --m: clamp(20px, 5.4vw, 40px);
+    --g: 12px;
+    --nav-h: 64px;
+    --fs-h2: clamp(31px, 8.4vw, 46px);
+    --fs-h3: clamp(20px, 5.4vw, 24px);
+    --fs-body: 16px;
+    --fs-lead: 17px;
+  }
+  .btn { height: 54px; padding: 0 24px; font-size: 15px; }
+  /* la toile 3D couvre la grande hauteur d'écran ; les sections épinglées, la petite (toujours visible) */
+  .maquette { height: 100lvh; }
+  .cpe-pin { height: 100svh; }
+
+  /* ---------- navigation : le logo, l'appel direct, le menu ---------- */
+  .nav { gap: 8px; }
+  .nav-links, .nav-actions { display: none; }
+  .nav-brand { gap: 10px; margin-right: auto; min-width: 0; }
+  .nav-logo { width: 38px; height: 38px; }
+  .nav-wordmark { font-size: 10.5px; letter-spacing: .08em; }
+  .nav-call {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  .nav-call svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+
+  /* ---------- 1. haut de page ---------- */
+  .hero {
+    height: 100svh;
+    min-height: 540px;
+    justify-content: flex-start;
+    padding: var(--nav-h) var(--m) calc(28px + env(safe-area-inset-bottom));
+  }
+  .hero-lead { font-size: 16px; line-height: 1.5; max-width: 26em; }
+  .hero-back { padding: calc(var(--nav-h) + 16px) var(--m) 0; }
+  /* « CHARPENTIER » tient toute la largeur utile */
+  .hero-title { font-size: calc((100vw - 2 * var(--m)) * .1125); }
+  .hero-line--place { position: static; margin-top: .55em; }
+  .hero-line--place em { font-size: clamp(20px, 5.6vw, 28px); }
+
+  /* ---------- 3. la coupe : des numéros sur la maquette, la légende en pastilles ---------- */
+  .cpe-head { right: var(--m); width: auto; top: calc(var(--nav-h) + 16px); }
+  .cpe-title { margin-bottom: 12px; }
+  .cpe-lead { font-size: 15.5px; line-height: 1.45; max-width: 30em; }
+  .cpe-labels {
+    inset: auto var(--m) calc(78px + env(safe-area-inset-bottom)) var(--m);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    counter-reset: couche;
+  }
+  .cpe-label {
+    position: relative;
+    width: auto;
+    padding: 6px 11px 6px 6px;
+    text-align: left;
+    border-radius: 999px;
+    background: rgba(14, 19, 21, .42);
+    box-shadow: inset 0 0 0 1px rgba(236, 238, 236, .2);
+    counter-increment: couche;
+    transition: background-color .35s, box-shadow .35s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cpe-label.is-left { text-align: left; }
+  .cpe-label strong { display: flex; align-items: center; gap: 7px; margin: 0; font-size: 13px; line-height: 1.2; }
+  .cpe-label strong::before {
+    content: counter(couche);
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    font-size: 10.5px;
+    font-weight: 700;
+    background: rgba(236, 238, 236, .16);
+    transition: background-color .35s;
+  }
+  .cpe-label span { display: none; }
+  .cpe-label.is-on { background: rgba(232, 100, 28, .2); box-shadow: inset 0 0 0 1px var(--cordeau); }
+  .cpe-label.is-on strong { color: var(--zinc-50); }
+  .cpe-label.is-on strong::before { background: var(--cordeau); }
+  .cpe-caption {
+    display: block;
+    position: absolute;
+    left: var(--m);
+    right: var(--m);
+    bottom: calc(18px + env(safe-area-inset-bottom));
+    min-height: 2.8em;
+    font-family: var(--f-serif);
+    font-size: 15px;
+    line-height: 1.4;
+    color: rgba(236, 238, 236, .8);
+    opacity: 0;
+    transition: opacity .5s var(--ease);
+  }
+  .cpe-caption strong { font-family: var(--f-sans); font-weight: 640; font-stretch: 108%; color: var(--cordeau-pale); margin-right: 6px; }
+  .cpe-leaders .cpe-num { fill: var(--ardoise-900); font: 700 10.5px var(--f-sans); text-anchor: middle; dominant-baseline: central; transition: fill .35s; }
+  .cpe-leaders .is-on .cpe-num { fill: var(--zinc-50); }
+
+  /* ---------- 3 bis. prestations ---------- */
+  .svc { display: block; min-height: 0; padding: 76px var(--m) 84px; }
+  .svc-inner { display: block; }
+  .svc-head { padding: 0; margin-bottom: 26px; }
+  .svc-title { margin-bottom: 18px; }
+  .svc-lead { font-size: 19px; max-width: 24em; }
+  .svc-hint, .svc-guarantee { font-size: 15.5px; max-width: 30em; }
+  .svc-guarantee { margin-top: 20px; }
+  .svc-grid { display: block; }
+  .svc-grid a { padding: 16px 40px 15px 0; }
+  .svc-name { font-size: 19px; }
+  .svc-mat { font-size: 14.5px; }
+  .svc-more { margin-top: 22px; font-size: 16px; }
+
+  /* ---------- 2. l'entreprise ---------- */
+  .fam { padding: 76px var(--m) 100px; }
+  .fam-inner { display: flex; flex-direction: column; align-items: stretch; gap: 56px; }
+  .fam-title { max-width: none; margin-bottom: 22px; }
+  .fam-text { font-size: 17px; }
+  .fam-sign-role { font-size: 15.5px; }
+  .fam-statement { font-size: clamp(28px, 7.8vw, 42px); }
+  .fam-statement mark { background-size: 0% 3px; }
+  .fam-az-title { margin-bottom: 28px; }
+  /* le suivi de A à Z se lit de haut en bas : le cordeau descend d'une étape à l'autre */
+  .fam-az-line { display: none; }
+  .fam-az-track::before, .fam-az-track::after {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: var(--az-top, 20px);
+    height: var(--az-len, 0px);
+    width: 2px;
+    transform-origin: top;
+  }
+  .fam-az-track::before { background: var(--zinc-300); width: 1.5px; left: 19.25px; }
+  .fam-az-track::after { background: var(--cordeau); transform: scaleY(var(--az, 0)); }
+  .fam-az-steps { grid-template-columns: 1fr; row-gap: 26px; }
+  .fam-az-steps li { grid-template-columns: 40px 1fr; column-gap: 16px; row-gap: 2px; position: relative; z-index: 1; }
+  .fam-az-check { grid-row: 1 / span 2; width: 40px; height: 40px; margin: 0; }
+  .fam-az-check svg { width: 20px; height: 20px; }
+  .fam-az-steps strong { grid-column: 2; padding-top: 7px; font-size: 18px; }
+  .fam-az-steps li > span:last-child { grid-column: 2; font-size: 15.5px; max-width: none; }
+
+  /* ---------- vérification par drone : le texte en haut, la maison dessous ---------- */
+  .drn { height: 100svh; min-height: 620px; }
+  .drn-copy { top: calc(var(--nav-h) + 20px); left: var(--m); right: var(--m); width: auto; transform: none; }
+  .drn-title { font-size: clamp(33px, 9.4vw, 50px); margin-bottom: 14px; }
+  .drn-lead { font-size: 15.5px; max-width: 27em; }
+  .drn-cta { margin-top: 18px; height: 50px; padding: 0 22px; font-size: 14.5px; }
+  .drn-marks i { left: -16px; top: -16px; width: 32px; height: 32px; }
+  .drn-marks span { left: 22px; top: -11px; padding: 4px 7px 3px; font-size: 9.5px; letter-spacing: .12em; }
+  .drn-marks li[data-side="left"] span { left: auto; right: 22px; }
+
+  /* ---------- 4. entretien : le texte, puis le toit qui se nettoie, puis la galerie ---------- */
+  .lav { padding: 76px var(--m) 0; }
+  .lav-inner { display: flex; flex-direction: column; }
+  .lav-side { display: contents; }
+  .lav-copy { order: 1; padding: 0; margin-bottom: 26px; }
+  .lav-title { max-width: none; margin-bottom: 16px; }
+  .lav-stage { order: 2; }
+  .lav-frame { position: relative; top: auto; height: auto; aspect-ratio: 4 / 5; max-height: 72svh; width: 100%; }
+  .lav-tag { top: 14px; padding: 6px 10px 5px; font-size: 11px; }
+  .lav-tag--avant { left: 14px; }
+  .lav-tag--apres { right: 14px; }
+  .lav-gallery { order: 3; margin-top: 12px; gap: 12px; }
+  .lav-col { gap: 12px; }
+  .lav-col--a { margin-bottom: 0; }
+  .lav-col figcaption { left: 8px; bottom: 8px; font-size: 10.5px; }
+  .lav-pro { margin-top: 32px; padding-bottom: 76px; }
+  .lav-pro-mask { height: 52svh; }
+  .lav-pro figcaption { font-size: 15.5px; }
+
+  /* ---------- 5. réalisations ---------- */
+  .rea { padding: 76px var(--m) 84px; }
+  .rea-head { display: block; margin-bottom: 26px; }
+  .rea-lead { margin-top: 14px; padding: 0; font-size: 16px; }
+  .rea-grid { grid-template-columns: 1fr; gap: 30px; margin-bottom: 72px; }
+  .rea-frame { height: auto; aspect-ratio: 4 / 3; touch-action: pan-y; }
+  .rea-item figcaption { padding-top: 12px; }
+  .rea-item figcaption strong { font-size: 16.5px; }
+  .rea-item figcaption span { font-size: 15px; }
+  /* la réfection en trois temps : on fait défiler les étapes du doigt */
+  .rea-steps-title { margin-bottom: 20px; }
+  .rea-steps-row {
+    display: flex;
+    gap: 12px;
+    margin: 0 calc(-1 * var(--m));
+    padding: 0 var(--m) 6px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--m);
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .rea-steps-row::-webkit-scrollbar { display: none; }
+  .rea-steps-row figure { flex: 0 0 80%; scroll-snap-align: start; }
+  .rea-steps-row img { height: auto; aspect-ratio: 4 / 5; }
+  .rea-steps-row figcaption { padding-top: 14px; font-size: 15px; }
+  .rea-steps-row figcaption strong { font-size: 17px; }
+  .rea-steps-cord { display: none; }
+
+  /* ---------- partenaires ---------- */
+  .prt { display: block; padding: 56px 0 60px; }
+  .prt-head { width: auto; padding: 0 var(--m); margin-bottom: 22px; }
+  .prt-title { font-size: clamp(28px, 7.6vw, 38px); margin-bottom: 8px; }
+  .prt-lead { font-size: 15.5px; max-width: none; }
+  .prt-band { -webkit-mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+  .prt-track li { width: 158px; height: 92px; }
+  .prt-track img { height: 30px; }
+  .prt-track li.is-tall img { height: 46px; }
+
+  /* ---------- 6. façade et maçonnerie ---------- */
+  .ext { padding: 76px var(--m) 92px; }
+  .ext-inner { display: block; }
+  .ext-plumb { display: none; }
+  .ext-head { margin-bottom: 30px; }
+  .ext-title { margin-bottom: 16px; }
+  .ext-facade { display: block; }
+  .ext-facade-frame { height: auto; aspect-ratio: 4 / 5; max-height: 70svh; }
+  .ext-tag--avant { left: 14px; bottom: 14px; }
+  .ext-tag--apres { left: 14px; top: 14px; }
+  .ext-tag { padding: 6px 10px 5px; font-size: 11px; }
+  .ext-facade-copy { margin-top: 30px; gap: 26px; }
+  .ext-item p { font-size: 16px; }
+
+  /* ---------- 7. SOS ---------- */
+  .sos { height: 104vh; }
+  .sos-inner { width: calc(100% - 2 * var(--m)); top: calc(var(--eave) + 5vh); }
+  .sos-title { font-size: clamp(34px, 9.4vw, 48px); }
+  .sos-lead { margin-top: 14px; font-size: 16px; }
+  .sos-tel { margin-top: 26px; gap: 10px; }
+  .sos-tel-label { font-size: 11.5px; }
+  .sos-tel-num { gap: .2em; font-size: calc((100vw - 2 * var(--m)) * .108); padding-bottom: 12px; }
+
+  /* ---------- 8. zone ---------- */
+  .zone { padding: 76px var(--m) 56px; }
+  .zone-inner { display: block; }
+  .zone-lead { margin-bottom: 26px; }
+  .zone-list li { grid-template-columns: 108px 1fr; padding: 12px 0; }
+  .zone-list strong { font-size: 17px; }
+  .zone-list span { font-size: 15px; }
+  .zone-ask { margin-top: 22px; font-size: 16px; }
+  .zone-map { margin-top: 30px; }
+  .zone-svg { max-height: none; }
+  /* la carte est réduite : ses noms grossissent d'autant */
+  .zone-name { font-size: 34px; stroke-width: 7px; }
+  .zone-name--minor { font-size: 26px; stroke-width: 6px; }
+  .zone-name--base { font-size: 30px; }
+
+  /* ---------- 9. contact ---------- */
+  .ctc { padding: 76px var(--m) 92px; }
+  .ctc-inner { display: block; }
+  .ctc-side { padding: 0; margin-bottom: 34px; }
+  .ctc-title { max-width: none; }
+  .ctc-lead { margin-bottom: 26px; }
+  .ctc-ways > div { grid-template-columns: 1fr; row-gap: 2px; padding: 12px 0; }
+  .ctc-ways dt { font-size: 12px; }
+  .ctc-ways dd { font-size: 16px; }
+  .ctc-tel { font-size: 26px; }
+  .ctc-form { padding: 24px 18px 26px; gap: 22px; }
+  .ctc-form-title { font-size: 19px; }
+  .ctc-row { grid-template-columns: 1fr; gap: 22px; }
+  /* 16 px au moins : le téléphone ne zoome pas en entrant dans un champ */
+  .ctc-field input, .ctc-field textarea { font-size: 16px; }
+  .ctc-chips span { padding: 9px 12px 8px; font-size: 14px; }
+  .ctc-submit { gap: 14px; }
+  .ctc-submit .btn { width: 100%; justify-content: center; }
+  .ctc-note { font-size: 15px; }
+
+  /* ---------- pied de page ---------- */
+  .foot { padding: 40px var(--m) calc(24px + env(safe-area-inset-bottom)); }
+  .foot-top { grid-template-columns: auto 1fr; row-gap: 24px; column-gap: 18px; }
+  .foot-top .btn { grid-column: 1 / -1; justify-content: center; }
+  .foot-logo { width: 64px; height: 64px; }
+  .foot-claim { font-size: 19px; }
+  .foot-cols { grid-template-columns: 1fr 1fr; row-gap: 28px; }
+  .foot-col { font-size: 15px; gap: 9px; }
+  .foot-col:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .foot-col:nth-child(3) { grid-column: 2; grid-row: 1; }
+  .foot-col:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+  .foot-col a { overflow-wrap: anywhere; }
+  .foot-legal { font-size: 11.5px; }
+}
+
+/* petite tablette : un peu plus d'air, deux colonnes là où la place le permet */
+@media (min-width: 600px) and (max-width: 860px) {
+  .svc-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--g); }
+  .rea-grid { grid-template-columns: 1fr 1fr; }
+  .rea-steps-row figure { flex-basis: 46%; }
+  .ctc-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* petits écrans : le menu se réduit à son pictogramme, le nom reste entier */
+@media (max-width: 379px) {
+  .nav-burger-txt { display: none; }
+  .nav-wordmark { font-size: 10px; letter-spacing: .07em; }
+}

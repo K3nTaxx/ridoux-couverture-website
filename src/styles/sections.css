@@ -847,3 +847,11 @@ main { position: relative; z-index: 1; }
 
 /* ligne de titre masquée */
 .title-line { padding-bottom: .14em; margin-bottom: -.14em; }
+
+/* envoi du formulaire : la réponse s'affiche sous le bouton */
+.ctc-status { font-family: var(--f-serif); font-size: 17px; line-height: 1.5; padding: 12px 16px; border-left: 2px solid var(--cordeau); background: rgba(255, 255, 255, .6); }
+.ctc-status:empty { display: none; }
+.ctc-status.is-error { color: var(--cordeau-deep); }
+.ctc-form.is-sending .ctc-submit .btn { opacity: .6; pointer-events: none; }
+.foot-legal a { color: rgba(236, 238, 236, .66); background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat; padding-bottom: 1px; transition: color .3s; }
+.foot-legal a:hover { color: var(--zinc-50); }

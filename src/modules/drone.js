@@ -90,6 +90,11 @@ export function initDrone(ctx) {
     for (const m of marks) {
       const q = a[m.key];
       m.el.style.transform = `translate3d(${(q.x - bx).toFixed(1)}px, ${(q.y - by).toFixed(1)}px, 0)`;
+      // téléphone : l'étiquette se range du côté où elle a la place
+      if (ctx.mobile) {
+        const side = q.x > window.innerWidth * 0.56 ? 'left' : '';
+        if (m.el.dataset.side !== side) m.el.dataset.side = side;
+      }
       const on = showAll || (phase === 'balayage' && laser > 0.2 && q.x - bx >= line - 2) || (phase === 'balayage' && m.on);
       if (on !== m.on) { m.on = on; m.el.classList.toggle('is-on', on); }
     }

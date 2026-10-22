@@ -39,6 +39,32 @@ export function initHero(ctx) {
   // SOS : la maquette vue depuis le pignon, comme une maison sous la pluie
   const S0 = { az: 90, el: 34, dist: 12.8, tx: 2.0, ty: 0.2, tz: 0, shiftX: 0, shiftY: 0, sunAz: 140, sunEl: 38, yaw: 0, exposure: 0.98 };
   const S1 = { ...S0, el: 13, dist: 11.4 };
+  // téléphone : la même mise en scène, recadrée pour un écran en hauteur — la maison centrée et plus loin,
+  // le drone et sa maison sous le texte
+  if (ctx.mobile) {
+    Object.assign(H0, { dist: 37, shiftX: -0.01, shiftY: 0.03 });
+    Object.assign(C1, { dist: 40, shiftX: 0, shiftY: 0.03 });
+    Object.assign(C2, { ...C1, az: 57, yaw: -24 });
+    Object.assign(DR, { dist: 39, shiftX: -0.01, shiftY: 0.18 });
+    Object.assign(S0, { dist: 21 });
+    Object.assign(S1, { dist: 18.5 });
+  }
+  // tablette en paysage : la vue éclatée tient entre ses deux colonnes d'étiquettes, la maison du drone à côté du texte
+  if (ctx.compact) {
+    Object.assign(C1, { dist: 34, shiftX: -0.015 });
+    Object.assign(C2, { ...C1, az: 57, yaw: -24 });
+    Object.assign(DR, { dist: 20.5, shiftX: 0.23 });
+  }
+  // et la distance suit la proportion de l'écran (un téléphone plus étroit recule un peu plus)
+  // (mesurée seulement quand la largeur change : la barre d'adresse qui bouge ne fait pas sauter la maquette)
+  let fit = 1, fitW = 0;
+  const measureFit = () => {
+    if (!ctx.mobile || window.innerWidth === fitW) return;
+    fitW = window.innerWidth;
+    fit = Math.min(1.3, Math.max(0.8, 0.462 / (window.innerWidth / window.innerHeight)));
+  };
+  measureFit();
+  if (ctx.mobile) window.addEventListener('resize', () => { measureFit(); ctx.updateCam(); });
   const keys = Object.keys(H0);
   const intro = { dist: 0, el: 0, az: 0 };
   // dT, dScan, dLaser : la mission du drone, jouée en boucle par drone.js
@@ -81,6 +107,8 @@ export function initHero(ctx) {
         const arc = Math.sin(Math.PI * k);
         st.el += 9 * arc;
         st.shiftY += DIP * arc;
+        // téléphone : de profil, au milieu du demi-tour, la maison est plus large que l'écran : la caméra recule d'autant
+        if (ctx.mobile) st.dist += 16 * arc;
       } else mixState(C1, C2, ramp(s, END, C + CPE_VH));
       st.yaw += TURN * k;
       st.explode = smooth(ramp(s, 0.06, END));
@@ -89,6 +117,7 @@ export function initHero(ctx) {
       st.sos = 0;
     }
     st.dist += intro.dist; st.el += intro.el; st.az += intro.az;
+    st.dist *= fit;
   };
   ctx.cam = cam;
   ctx.updateCam();
@@ -147,6 +176,14 @@ export function initHero(ctx) {
     glow.style.transform = `translate3d(0, ${(-4 * ps).toFixed(2)}%, 0) scale(${(1 + 0.2 * ps).toFixed(4)})`;
     sky.style.setProperty('--night', io(ramp(s, 0.05, C)).toFixed(3));
     if (cv.heroReady) applyCanvas();
+  }
+  // téléphone : la coupe remonte d'exactement une hauteur d'écran (celle que mesure l'épinglage),
+  // quelle que soit la barre d'adresse au moment du chargement
+  if (ctx.mobile) {
+    const cpe = document.querySelector('.cpe');
+    const lift = () => { cpe.style.marginTop = `${-window.innerHeight}px`; };
+    lift();
+    ScrollTrigger.addEventListener('refreshInit', lift);
   }
   ScrollTrigger.create({
     trigger: '.hero',

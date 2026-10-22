@@ -218,7 +218,7 @@ function patchMaterial(material, grain = 0, hole = false) {
   return material;
 }
 
-export function createMaquette(canvas) {
+export function createMaquette(canvas, { mobile = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   renderer.setPixelRatio(DPR);
@@ -1425,9 +1425,19 @@ export function createMaquette(canvas) {
   /* ---------- caméra ---------- */
   const target = new THREE.Vector3();
   let W = 1, H = 1;
+  // téléphone : la toile garde la grande hauteur d'écran (barre d'adresse masquée, 100lvh) ;
+  // la barre du navigateur qui apparaît ou disparaît ne la redimensionne donc jamais
+  const probe = mobile ? document.createElement('div') : null;
+  if (probe) {
+    probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:100lvh;visibility:hidden;pointer-events:none';
+    document.body.append(probe);
+  }
   function resize() {
-    W = window.innerWidth;
-    H = window.innerHeight;
+    const w = window.innerWidth;
+    const h = probe ? Math.max(probe.offsetHeight, window.innerHeight) : window.innerHeight;
+    if (probe && w === W && h === H) return;
+    W = w;
+    H = h;
     renderer.setSize(W, H, false);
     camera.aspect = W / H;
     camera.updateProjectionMatrix();
@@ -1629,6 +1639,8 @@ export function createMaquette(canvas) {
   function tick() { if (active && !document.hidden) render(); }
 
   window.addEventListener('pointermove', (e) => {
+    // au doigt (défilement), la maquette ne suit pas : seule la souris l'oriente
+    if (e.pointerType !== 'mouse') return;
     pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
     pointer.y = (e.clientY / window.innerHeight) * 2 - 1;
     pointer.inside = true;
@@ -1663,11 +1675,20 @@ export function createMaquette(canvas) {
     renderer.setRenderTarget(null);
     return done.then(() => rt.dispose());
   }
+  // une couche mise en lumière rend les autres transparentes : ces variantes des shaders sont préparées dès le chargement,
+  // sinon la première couche éclairée (survol, ou légende du téléphone) figerait l'image le temps de les compiler
+  function compileFocus() {
+    const mats = allMats.filter((m) => !m.transparent);
+    mats.forEach((m) => { m.transparent = true; m.needsUpdate = true; });
+    const done = renderer.compileAsync(scene, camera);
+    mats.forEach((m) => { m.transparent = false; m.needsUpdate = true; });
+    return done;
+  }
   const ready = envLoaded
     .then(() => {
       updateCamera();
       if (!renderer.compileAsync) return renderer.compile(scene, camera);
-      return Promise.all([renderer.compileAsync(scene, camera), compileShadows()]);
+      return Promise.all([renderer.compileAsync(scene, camera), compileShadows(), compileFocus()]);
     })
     .then(() => { dust.visible = false; wall.visible = false; beam.visible = false; floaters.visible = false; air.visible = false; });
 
